@@ -23,7 +23,7 @@ dependencies {
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
 
         // Add necessary plugin dependencies for compilation here, example:
-        // bundledPlugin("com.intellij.java")
+        bundledPlugin("com.intellij.java")
     }
 
     implementation(project(":app"))
@@ -65,9 +65,9 @@ tasks.named("generateGrammarSource", AntlrTask::class.java).configure {
 }
 
 sourceSets {
-    main {
+    val main by getting {
         java {
-            srcDirs.add(File("src/main/antlr/generated-src"))
+            srcDir("src/main/antlr/generated-src")
         }
     }
 }

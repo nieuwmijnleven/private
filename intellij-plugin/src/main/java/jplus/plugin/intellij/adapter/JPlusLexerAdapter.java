@@ -1,17 +1,13 @@
 package jplus.plugin.intellij.adapter;
 
 import com.intellij.lang.Language;
-import com.intellij.psi.tree.IElementType;
 import jplus.base.JPlus20Lexer;
 import jplus.base.JPlus20Parser;
 import jplus.plugin.intellij.JPlus20IntellijLexer;
 import jplus.plugin.intellij.JPlusLanguage;
-import jplus.plugin.intellij.JPlusTokenTypes;
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor;
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory;
 import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Token;
-import org.jetbrains.annotations.Nullable;
 
 public class JPlusLexerAdapter extends ANTLRLexerAdaptor {
 
