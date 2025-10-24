@@ -13,7 +13,7 @@ public class JPlusLanguage extends Language {
 //    }
 
     private JPlusLanguage() {
-        super(JavaLanguage.INSTANCE, "JPlus", new String[]{"text/x-java-source", "text/java", "application/x-java", "text/x-java"});
+        super(JavaLanguage.INSTANCE, "JPlus", new String[]{"text/jplus", "text/x-java-source", "text/java", "application/x-java", "text/x-java"});
     }
 
     @Override

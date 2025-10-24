@@ -13,15 +13,16 @@ public class JPlusAnnotator implements Annotator {
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
         if (element instanceof PsiErrorElement) {
             String text = element.getText();
-            if ("?".equals(text)) { // nullability 표시
-                holder.newAnnotation(HighlightSeverity.INFORMATION, "Nullable type indicator")
-                        .textAttributes(DefaultLanguageHighlighterColors.KEYWORD)
-                        .create();
-            } else if ("apply".equals(text)) {
-                holder.newAnnotation(HighlightSeverity.INFORMATION, "Apply statement")
-                        .textAttributes(DefaultLanguageHighlighterColors.KEYWORD)
-                        .create();
-            }
+            System.err.println("text = " + text);
+//            if ("?".equals(text)) { // nullability 표시
+//                holder.newAnnotation(HighlightSeverity.INFORMATION, "Nullable type indicator")
+//                        .textAttributes(DefaultLanguageHighlighterColors.KEYWORD)
+//                        .create();
+//            } else if ("apply".equals(text)) {
+//                holder.newAnnotation(HighlightSeverity.INFORMATION, "Apply statement")
+//                        .textAttributes(DefaultLanguageHighlighterColors.KEYWORD)
+//                        .create();
+//            }
         }
     }
 }

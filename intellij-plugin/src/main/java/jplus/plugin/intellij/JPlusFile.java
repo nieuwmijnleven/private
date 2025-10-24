@@ -14,13 +14,13 @@ public class JPlusFile extends PsiJavaFileImpl {
         super(viewProvider);
     }
 
-    @Override
-    public @NotNull FileType getFileType() {
-        return JPlusFileType.INSTANCE;
-    }
-
-    @Override
-    public String toString() {
-        return "JPlus file";
-    }
+//    @Override
+//    public @NotNull FileType getFileType() {
+//        return JPlusFileType.INSTANCE;
+//    }
+//
+//    @Override
+//    public String toString() {
+//        return "JPlus file";
+//    }
 }
