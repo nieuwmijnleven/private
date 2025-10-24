@@ -23,16 +23,20 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.java</depends>
+    <!--    <depends>com.intellij.modules.lang</depends>-->
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <lang.parserDefinition language="JPlus" implementationClass="jplus.plugin.intellij.JPlusParserDefinitionFromJavaParserDefinition"/>
 <!--        <fileType name="JPlus" language="JPlus" implementationClass="jplus.plugin.intellij.JPlusFileType"/>-->
-<!--        <annotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusAnnotator"/>-->
-                <fileTypeFactory implementation="jplus.plugin.intellij.JPlusFileTypeFactory"/>
+        <fileTypeFactory implementation="jplus.plugin.intellij.JPlusFileTypeFactory"/>
+        <annotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusAnnotator"/>
+        <lang.fileViewProviderFactory
+                language="JPlus"
+                implementationClass="jplus.plugin.intellij.JPlusFileViewProviderFactory"/>
+
         <!--        <lang.syntaxHighlighterFactory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusSyntaxHighlighterFactory"/>-->
         <!--        <lang.commenter language="JPlus" implementationClass="jplus.plugin.intellij.JPlusCommenter" />-->
         <!--        <indexPatternBuilder implementation="jplus.plugin.intellij.psi.JPlusIndexPatternBuilder"/>-->

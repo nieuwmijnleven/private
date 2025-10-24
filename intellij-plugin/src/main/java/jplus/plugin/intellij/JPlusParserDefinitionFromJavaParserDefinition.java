@@ -24,10 +24,10 @@ public class JPlusParserDefinitionFromJavaParserDefinition extends JavaParserDef
 
     @Override
     public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
-        if (!(viewProvider instanceof JPlusFileViewProvider)) {
-            viewProvider = new JPlusFileViewProvider(
-                    viewProvider.getManager(), viewProvider.getVirtualFile(), true);
-        }
+//        if (!(viewProvider instanceof JPlusFileViewProvider)) {
+//            viewProvider = new JPlusFileViewProvider(
+//                    viewProvider.getManager(), viewProvider.getVirtualFile(), true);
+//        }
         return new PsiJavaFileImpl(viewProvider);
     }
 
