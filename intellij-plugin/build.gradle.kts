@@ -67,7 +67,8 @@ tasks.named("generateGrammarSource", AntlrTask::class.java).configure {
 sourceSets {
     main {
         java {
-            srcDirs.add(File("src/main/antlr/generated-src"))
+            //srcDir("src/main/antlr/generated-src")
+            srcDirs("src/main/antlr/generated-src")
         }
     }
 }
