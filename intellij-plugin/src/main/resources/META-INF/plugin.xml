@@ -22,7 +22,8 @@
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
-    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -35,6 +36,7 @@
 <!--        <colorSettingsPage implementation="jplus.plugin.intellij.configdialogs.JPlusColorsPage"/>-->
 <!--        <additionalTextAttributes scheme="Default" file="colorSchemes/JPlusDefault.xml"/>-->
 <!--        <additionalTextAttributes scheme="Darcula" file="colorSchemes/JPlusDarcula.xml"/>-->
+        <completion.contributor language="JPlus" implementationClass="jplus.plugin.intellij.JPlusCompletionContributor"/>
         <lang.parserDefinition language="JPlus" implementationClass="jplus.plugin.intellij.JPlusParserDefinition"/>
 <!--        <lang.ast.factory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>-->
 <!--        <lang.psiStructureViewFactory language="JPlus"-->
