@@ -6,8 +6,11 @@ import com.intellij.codeInsight.navigation.JavaGotoSuperHandler;
 import com.intellij.codeInsight.navigation.JavaGotoTargetPresentationProvider;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -58,15 +61,37 @@ public class JPlusGotoDefinitionHandler implements GotoDeclarationHandler {
         System.err.println("sourceElement => " + sourceElement.getClass().getSimpleName());
         PsiReference ref = sourceElement.getReference();
         System.err.println("PsiReference = " + ref);
+
         if (ref != null) {
             PsiElement resolved = ref.resolve();
+//            if (resolved instanceof JPlusPsiElementWrapper target) {
+//                // 여기서 직접 이동을 수행
+//                navigateToTarget(target);
+//                return new PsiElement[]{target.getPsiElement()};
+//            }
+
             if (resolved != null) {
                 System.err.println("resolved = " + resolved);
                 return new PsiElement[]{resolved};
             }
         }
 
+
+
+
         return PsiElement.EMPTY_ARRAY;
+    }
+
+    private void navigateToTarget(JPlusPsiElementWrapper target) {
+        PsiFile file = target.getContainingFile();
+        Project project = file.getProject();
+        TextRange range = target.getTextRange();
+
+        if (file.getVirtualFile() != null) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+                new OpenFileDescriptor(project, file.getVirtualFile(), range.getStartOffset()).navigate(true);
+            });
+        }
     }
 
     /**

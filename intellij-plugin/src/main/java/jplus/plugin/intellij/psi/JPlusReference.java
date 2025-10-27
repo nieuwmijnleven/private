@@ -21,6 +21,8 @@ import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.LightVirtualFile;
 import com.jetbrains.cef.remote.thrift.annotation.Nullable;
+import jplus.plugin.intellij.JPlusPsiElementWrapper;
+import jplus.plugin.intellij.PsiElementWrapper;
 import jplus.plugin.intellij.PsiResolver;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,16 +51,18 @@ public class JPlusReference extends PsiReferenceBase<PsiElement> {
 //        return psiClass;
 
         PsiElement resolved = PsiResolver.resolveSymbol(javaFile, symbol);
-        if (resolved != null) {
-            if (resolved instanceof PsiTypeElement) {
-                String qualfiedName = ((PsiTypeElement) resolved).getInnermostComponentReferenceElement().getQualifiedName();
-                System.err.println("PsiTypeElement = " + qualfiedName);
-                PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(qualfiedName, GlobalSearchScope.allScope(project));
-                return psiClass;
-            }
+        if (resolved == null) return null;
+
+        if (resolved instanceof PsiTypeElement) {
+            String qualfiedName = ((PsiTypeElement) resolved).getInnermostComponentReferenceElement().getQualifiedName();
+            System.err.println("PsiTypeElement = " + qualfiedName);
+            PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(qualfiedName, GlobalSearchScope.allScope(project));
+            if (psiClass != null) return psiClass;
         }
 
-        return resolved;
+//        TextRange range = myElement.getTextRange();
+//        return new JPlusPsiElementWrapper(resolved, jplusPsiFile, range, symbol);
+        return new PsiElementWrapper(resolved, jplusPsiFile);
     }
 
     private PsiJavaFile createJavaPsiFromJPlus(Project project, PsiFile jplusFile) {
