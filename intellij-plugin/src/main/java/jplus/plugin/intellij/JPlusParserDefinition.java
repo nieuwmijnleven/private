@@ -16,7 +16,10 @@ import jplus.base.JPlus20Lexer;
 import jplus.base.JPlus20Parser;
 import jplus.plugin.intellij.adapter.JPlusLexerAdapter;
 import jplus.plugin.intellij.adapter.JPlusParserAdapter;
+import jplus.plugin.intellij.psi.ApplyBlockPsiElement;
+import jplus.plugin.intellij.psi.ApplyStatementPsiElement;
 import jplus.plugin.intellij.psi.MethodPsiElement;
+import jplus.plugin.intellij.psi.NormalClassDeclarationPsiElement;
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.adaptor.lexer.TokenIElementType;
@@ -75,8 +78,14 @@ public class JPlusParserDefinition implements ParserDefinition {
 
         RuleIElementType ruleElementType = (RuleIElementType)iElementType;
         switch (ruleElementType.getRuleIndex()) {
+            case JPlus20Parser.RULE_applyBlock:
+                return new ApplyBlockPsiElement(node);
+            case JPlus20Parser.RULE_applyStatement:
+                return new ApplyStatementPsiElement(node);
             case JPlus20Parser.RULE_methodDeclaration:
                 return new MethodPsiElement(node, ruleElementType);
+            case JPlus20Parser.RULE_normalClassDeclaration:
+                return new NormalClassDeclarationPsiElement(node);
         }
 
         return new ANTLRPsiNode(node);

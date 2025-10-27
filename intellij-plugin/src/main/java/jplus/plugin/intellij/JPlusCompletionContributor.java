@@ -16,19 +16,34 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
+import jplus.base.JPlus20Parser;
+import jplus.plugin.intellij.psi.ApplyBlockPsiElement;
+import jplus.plugin.intellij.psi.ApplyStatementPsiElement;
+import jplus.plugin.intellij.psi.NormalClassDeclarationPsiElement;
+import jplus.plugin.intellij.util.PsiUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class JPlusCompletionContributor extends CompletionContributor {
 
+    private static final List<String> APPLY_KEYWORDS = Arrays.asList(
+            "getter", "setter", "data", "equality", "constructor", "builder", "tostring", "equals", "hashcode"
+    );
+
     public JPlusCompletionContributor() {
-        extend(CompletionType.SMART, JPlusPatterns.psiElement(), new CompletionProvider<>() {
+        extend(CompletionType.BASIC, JPlusPatterns.psiElement(), new CompletionProvider<>() {
             @Override
             protected void addCompletions(@NotNull CompletionParameters parameters,
                                           @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 Project project = parameters.getPosition().getProject();
                 PsiElement jplusElement = parameters.getPosition();
+
+                collectApplyCandidates(jplusElement, result);
 
                 PsiFile javaPsiFile = createJavaPsiFromJPlus(project, jplusElement.getContainingFile());
                 if (javaPsiFile != null) {
@@ -39,10 +54,28 @@ public class JPlusCompletionContributor extends CompletionContributor {
         });
     }
 
-    // 임시 Java PSI 생성
+    private void collectApplyCandidates(PsiElement element, CompletionResultSet result) {
+        PsiElement parent = element.getParent();
+        if (parent == null) return;
+
+        boolean isInApply = PsiTreeUtil.getParentOfType(element, ApplyStatementPsiElement.class, ApplyBlockPsiElement.class) != null;
+        if (!isInApply) return;
+
+        if (PsiTreeUtil.getParentOfType(element, ApplyBlockPsiElement.class) != null) {
+            PsiFile file = element.getContainingFile();
+            PsiUtils.getClassNameList(file).forEach(className -> {
+                result.addElement(LookupElementBuilder.create(className));
+            });
+        }
+
+        for (String keyword : APPLY_KEYWORDS) {
+            result.addElement(LookupElementBuilder.create(keyword));
+        }
+    }
+
     private PsiFile createJavaPsiFromJPlus(Project project, PsiFile jplusFile) {
-//        String javaText = JPlusToJavaConverter.convert(jplusFile.getText()); // 변환 로직
-        String javaText = jplusFile.getText(); // 변환 로직
+//        String javaText = JPlusToJavaConverter.convert(jplusFile.getText());
+        String javaText = jplusFile.getText();
         if (javaText.isEmpty()) return null;
 
         return PsiFileFactory.getInstance(project)
@@ -68,15 +101,6 @@ public class JPlusCompletionContributor extends CompletionContributor {
                 super.visitClass(aClass);
             }
         });
-
-//        // Java SDK 클래스 추가 후보 (System.out 등)
-//        JavaPsiFacade facade = JavaPsiFacade.getInstance(javaPsiFile.getProject());
-//        PsiClass systemClass = facade.findClass("java.lang.System", javaPsiFile.getResolveScope());
-//        if (systemClass != null) {
-//            for (PsiMethod method : systemClass.getMethods()) {
-//                result.addElement(LookupElementBuilder.create("System." + method.getName()));
-//            }
-//        }
     }
 
     private void invokeJavaCompletion(PsiFile javaPsiFile,
