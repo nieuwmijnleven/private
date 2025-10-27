@@ -13,31 +13,16 @@ public class JPlusASTFactory extends CoreASTFactory {
 	@NotNull
     @Override
     public CompositeElement createComposite(IElementType type) {
-	    return super.createComposite(type);
+        return super.createComposite(type);
     }
 
 	@NotNull
 	@Override
 	public LeafElement createLeaf(@NotNull IElementType type, CharSequence text) {
-		if ( type instanceof TokenIElementType &&
-			 ((TokenIElementType) type).getANTLRTokenType() == JPlus20Lexer.Identifier)
-		{
-            System.err.println("created IdentifierPsiElement");
-			// found an ID node; here we do not distinguish between definitions and references
-			// because we have no context information here. All we know is that
-			// we have an identifier node that will be connected somewhere in a tree.
-			//
-			// You can only rename, find usages, etc... on leaves implementing PsiNamedElement
-			//
-			// TODO: try not to create one for IDs under def subtree roots like vardef, function
+		if (type instanceof TokenIElementType tokenIElementType &&
+			 tokenIElementType.getANTLRTokenType() == JPlus20Lexer.Identifier) {
 			return new IdentifierPsiElement(type, text);
 		}
-
-        System.err.println("type " + type.getDebugName());
-        System.err.println("class " + type.getClass().getSimpleName());
-        if ( type instanceof TokenIElementType tokenIElementType) {
-            System.err.println("TokenIElementType " + tokenIElementType.getANTLRTokenType());
-        }
 		LeafElement leaf = super.createLeaf(type, text);
 		return leaf;
     }

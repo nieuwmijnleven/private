@@ -1,4 +1,4 @@
-package jplus.plugin.intellij;
+package jplus.plugin.intellij.psi;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
