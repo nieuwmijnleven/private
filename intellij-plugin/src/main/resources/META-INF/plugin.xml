@@ -37,6 +37,8 @@
 <!--        <additionalTextAttributes scheme="Default" file="colorSchemes/JPlusDefault.xml"/>-->
 <!--        <additionalTextAttributes scheme="Darcula" file="colorSchemes/JPlusDarcula.xml"/>-->
         <completion.contributor language="JPlus" implementationClass="jplus.plugin.intellij.JPlusCompletionContributor"/>
+        <gotoDeclarationHandler implementation="jplus.plugin.intellij.JPlusGotoDefinitionHandler"/>
+        <lang.ast.factory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>
         <lang.parserDefinition language="JPlus" implementationClass="jplus.plugin.intellij.JPlusParserDefinition"/>
 <!--        <lang.ast.factory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>-->
 <!--        <lang.psiStructureViewFactory language="JPlus"-->
