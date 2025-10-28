@@ -33,16 +33,14 @@ public class PsiElementWrapper implements PsiElement {
 
     protected final PsiElement psiElement;
     protected final PsiFile psiFile;
-    protected PsiElement deReferencedPsiElement;
 
     public PsiElementWrapper(PsiElement psiElement, PsiFile psiFile) {
-        this(psiElement, psiFile, null);
-    }
-
-    public PsiElementWrapper(PsiElement psiElement, PsiFile psiFile, PsiElement deReferencedPsiElement) {
         this.psiElement = psiElement;
         this.psiFile = psiFile;
-        this.deReferencedPsiElement = deReferencedPsiElement;
+    }
+
+    public PsiElement getSourceElement() {
+        return psiElement;
     }
 
     @Contract(pure = true)
@@ -55,14 +53,6 @@ public class PsiElementWrapper implements PsiElement {
     @Override
     public @NotNull Language getLanguage() {
         return psiElement.getLanguage();
-    }
-
-    public PsiElement getDeReferencedPsiElement() {
-        return deReferencedPsiElement;
-    }
-
-    public void setDeReferencedPsiElement(PsiElement deReferencedPsiElement) {
-        this.deReferencedPsiElement = deReferencedPsiElement;
     }
 
     @Contract(pure = true)

@@ -1,21 +1,16 @@
 package jplus.plugin.intellij;
 
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
@@ -32,11 +27,8 @@ public class JPlusRenameProcessor extends RenamePsiElementProcessor {
 
     @Override
     public boolean canProcessElement(@NotNull PsiElement element) {
-//        return element instanceof IdentifierPsiElement;
         System.err.println("canProcessElement = " + element.getClass().getSimpleName());
-//        if (element instanceof PsiNamedElementWrapper || element instanceof PsiNamedElement) return true;
-//        if (element instanceof PsiFieldImpl || element instanceof PsiMethod || element instanceof PsiClass) return true;
-        return true;
+        return element.getLanguage().isKindOf(JavaLanguage.INSTANCE) || !element.isPhysical();
     }
 
     @Override
@@ -49,32 +41,9 @@ public class JPlusRenameProcessor extends RenamePsiElementProcessor {
 
             JPlusContext.getInstance().setProject(project);
             JPlusContext.getInstance().setJPlusFile(element.getContainingFile());
-//
-//            PsiJavaFile javaPsiFile = JPlusUtil.createJavaPsiFromJPlus(project, psiFile);
-//            if (javaPsiFile == null) return element;
-//            System.err.println("javaPsiFile = " + javaPsiFile);
-//
-//            PsiElement javaElement = findCorrespondingJavaElement(javaPsiFile, editor.getCaretModel().getOffset());
-//            if (javaElement == null) return element;
-//            System.err.println("javaElement = " + javaElement);
 
             if (element instanceof PsiElementWrapper javaElement) {
-                PsiElement deReferencedElement = javaElement.getDeReferencedPsiElement();
-                System.out.println("deReferencedElement = " + deReferencedElement.getClass().getSimpleName());
-//                PsiNamedElement namedParent = PsiTreeUtil.getParentOfType(deReferencedElement, PsiNamedElement.class, false);
-                PsiElement resolved = null;
-                if (deReferencedElement instanceof PsiIdentifier) {
-                    PsiElement parent = PsiTreeUtil.getParentOfType(deReferencedElement, false, PsiJavaCodeReferenceElement.class);
-                    if (parent != null) {
-                        resolved = parent.getReference().resolve();
-                    } else {
-                        resolved = PsiTreeUtil.getParentOfType(deReferencedElement, false, PsiClass.class, PsiMethod.class, PsiField.class, PsiVariable.class);
-                    }
-                }
-
-                if (resolved != null) {
-                    return resolved;
-                }
+                return javaElement.getSourceElement();
             }
         }
         return element;
