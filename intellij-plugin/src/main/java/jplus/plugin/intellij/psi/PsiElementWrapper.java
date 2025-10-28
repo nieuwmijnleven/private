@@ -13,6 +13,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiInvalidElementAccessException;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -30,16 +31,18 @@ import java.util.Collection;
 
 public class PsiElementWrapper implements PsiElement {
 
-    private final PsiElement psiElement;
-    private PsiFile psiFile;
-
-    public PsiElementWrapper(PsiElement psiElement) {
-        this.psiElement = psiElement;
-    }
+    protected final PsiElement psiElement;
+    protected final PsiFile psiFile;
+    protected PsiElement deReferencedPsiElement;
 
     public PsiElementWrapper(PsiElement psiElement, PsiFile psiFile) {
+        this(psiElement, psiFile, null);
+    }
+
+    public PsiElementWrapper(PsiElement psiElement, PsiFile psiFile, PsiElement deReferencedPsiElement) {
         this.psiElement = psiElement;
         this.psiFile = psiFile;
+        this.deReferencedPsiElement = deReferencedPsiElement;
     }
 
     @Contract(pure = true)
@@ -52,6 +55,14 @@ public class PsiElementWrapper implements PsiElement {
     @Override
     public @NotNull Language getLanguage() {
         return psiElement.getLanguage();
+    }
+
+    public PsiElement getDeReferencedPsiElement() {
+        return deReferencedPsiElement;
+    }
+
+    public void setDeReferencedPsiElement(PsiElement deReferencedPsiElement) {
+        this.deReferencedPsiElement = deReferencedPsiElement;
     }
 
     @Contract(pure = true)
@@ -102,9 +113,9 @@ public class PsiElementWrapper implements PsiElement {
         return (psiFile != null) ? psiFile : psiElement.getContainingFile();
     }
 
-    public PsiFile setContainingFile(PsiFile psiFlie) throws PsiInvalidElementAccessException {
-        return this.psiFile = psiFile;
-    }
+//    public PsiFile setContainingFile(PsiFile psiFlie) throws PsiInvalidElementAccessException {
+//        return this.psiFile = psiFile;
+//    }
 
     @Contract(pure = true)
     @Override

@@ -6,6 +6,8 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -26,6 +28,7 @@ public class JPlusPsiReference extends PsiReferenceBase<PsiElement> {
         String symbol = getValue();
 
         var javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jplusPsiFile);
+        PsiElement deReferencedElement = findCorrespondingJavaElement(javaFile, myElement.getTextOffset());
         PsiElement resolved = PsiResolver.resolveSymbol(javaFile, symbol);
         if (resolved == null) return null;
 
@@ -35,6 +38,14 @@ public class JPlusPsiReference extends PsiReferenceBase<PsiElement> {
             if (psiClass != null) return psiClass;
         }
 
-        return new PsiElementWrapper(resolved, jplusPsiFile);
+        if (resolved instanceof PsiNamedElement psiNamedElement) {
+            return new PsiNamedElementWrapper(psiNamedElement, jplusPsiFile, deReferencedElement);
+        } else {
+            return new PsiElementWrapper(resolved, jplusPsiFile, deReferencedElement);
+        }
+    }
+
+    private @Nullable PsiElement findCorrespondingJavaElement(PsiJavaFile javaPsiFile, int offset) {
+        return javaPsiFile.findElementAt(offset);
     }
 }
