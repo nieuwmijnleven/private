@@ -31,6 +31,6 @@ public class JPlusGotoDefinitionHandler implements GotoDeclarationHandler {
 
     @Override
     public @Nullable String getActionText(@Nullable com.intellij.openapi.actionSystem.DataContext context) {
-        return "Go to Definition (JPlus → Java)";
+        return "Go to Definition";
     }
 }
