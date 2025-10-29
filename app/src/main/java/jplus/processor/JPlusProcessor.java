@@ -7,6 +7,9 @@ import jplus.base.JPlus20Parser;
 import jplus.base.SymbolTable;
 import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.JPlusParserRuleContext;
+import jplus.generator.TextChangeRange;
+import jplus.util.FragmentedText;
+import jplus.util.Utils;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -15,22 +18,26 @@ import java.util.List;
 
 public class JPlusProcessor {
 
-    private final String text;
+    private final String originalText;
+    private final TextChangeRange originalTextRange;
     private JPlus20Parser parser;
     private JPlusParserRuleContext parseTree;
     private SymbolTable symbolTable;
     private boolean nullabilityChecked = false;
     private boolean symbolsAnalyzed = false;
 
-    public JPlusProcessor(String text) {
-        this.text = text;
+    public JPlusProcessor(String originalText) {
+        this.originalText = originalText;
+        this.originalTextRange = Utils.computeTextChangeRange(originalText, 0, originalText.length()-1);
     }
 
-    /**
-     * 1️⃣ Parsing 단계: parseTree 생성
-     */
     public void process() throws Exception {
-        CharStream input = CharStreams.fromString(text);
+//        CodeGeneratorContext context = CodeGeneratorContext.getInstance();
+//        context.setOriginal(text);
+//        TextChangeRange range = Utils.computeTextChangeRange(text, 0, text.length()-1);
+//        context.setFragmentedText(new FragmentedText(range, text));
+
+        CharStream input = CharStreams.fromString(originalText);
         JPlus20Lexer lexer = new JPlus20Lexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         parser = new JPlus20Parser(tokens);
@@ -38,10 +45,6 @@ public class JPlusProcessor {
         parseTree = parser.start_();
     }
 
-    /**
-     * 2️⃣ Nullability 체크
-     * @return true if passed
-     */
     public List<NullabilityChecker.NullabilityIssue> checkNullability() {
         if (parseTree == null) {
             throw new IllegalStateException("Call process() first.");
@@ -53,9 +56,6 @@ public class JPlusProcessor {
         return nullabilityChecker.getIssues();
     }
 
-    /**
-     * 3️⃣ Symbol 분석
-     */
     public void analyzeSymbols() {
         if (parseTree == null) {
             throw new IllegalStateException("Call process() first.");
@@ -67,15 +67,15 @@ public class JPlusProcessor {
         symbolsAnalyzed = true;
     }
 
-    /**
-     * 4️⃣ Boilerplate 코드 생성
-     */
     public String generateJavaCode() {
         if (!nullabilityChecked || !symbolsAnalyzed) {
             throw new IllegalStateException("Must perform nullability check and symbol analysis first.");
         }
-        parseTree.getText();
-        BoilerplateCodeGenerator generator = new BoilerplateCodeGenerator(symbolTable);
+
+        String generated = parseTree.getText();
+        TextChangeRange generatedRange = Utils.computeTextChangeRange(generated, 0, generated.length()-1);
+        FragmentedText fragmentedText = new FragmentedText(generatedRange, generated);
+        BoilerplateCodeGenerator generator = new BoilerplateCodeGenerator(symbolTable, fragmentedText);
         generator.visit(parseTree);
         return generator.generate();
     }
@@ -83,12 +83,16 @@ public class JPlusProcessor {
     public String compile() {
         try {
             process();
+            checkNullability();
+            analyzeSymbols();
+            return generateJavaCode();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace(System.err);
+//            System.err.println(e);
+//            throw new RuntimeException(e);
         }
-        checkNullability();
-        analyzeSymbols();
-        return generateJavaCode();
+
+        return null;
     }
 
     // Getter

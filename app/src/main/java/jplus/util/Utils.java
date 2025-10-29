@@ -14,7 +14,9 @@ public class Utils {
     private Utils() {}
 
     public static String getTokenString(ParserRuleContext ctx) {
-        return ctx.start.getTokenSource().getInputStream().getText(Interval.of(ctx.start.getStartIndex(), ctx.stop.getStopIndex()));
+        int startIndex = ctx.start.getStartIndex();
+        int stopIndex = (ctx.stop != null) ? ctx.stop.getStopIndex() : ctx.start.getStopIndex();
+        return ctx.start.getTokenSource().getInputStream().getText(Interval.of(startIndex, stopIndex));
     }
 
     public static String indent(String string, int n) {
@@ -106,7 +108,7 @@ public class Utils {
             System.err.println("text.length() = " + text.length());
             System.err.println("startOffset = " + startOffset);
             System.err.println("endOffset = " + endOffset);
-            throw new IllegalArgumentException("Invalid start or end offset" + "text.length() = " + text.length() + "startOffset = " + startOffset + "endOffset = " + endOffset);
+            throw new IllegalArgumentException("Invalid start or end offset: " + "text.length() = " + text.length() + ", startOffset = " + startOffset + ", endOffset = " + endOffset);
         }
 
         int line = 1;
@@ -206,8 +208,10 @@ public class Utils {
 //    }
 
     public static TextChangeRange getTextChangeRange(String original, ParserRuleContext ctx) {
-        int startOffset = ctx.start.getStartIndex();
-        int endOffset = ctx.stop.getStopIndex();
-        return Utils.computeTextChangeRange(original, startOffset, endOffset);
+        int startIndex = ctx.start.getStartIndex();
+        int stopIndex = (ctx.stop != null) ? ctx.stop.getStopIndex() : ctx.start.getStopIndex();
+        System.err.println("original = " + original);
+        System.err.println("Utils.getTokenString() = " + Utils.getTokenString(ctx));
+        return Utils.computeTextChangeRange(original, startIndex, stopIndex);
     }
 }

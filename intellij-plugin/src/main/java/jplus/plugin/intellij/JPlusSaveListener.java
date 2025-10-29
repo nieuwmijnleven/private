@@ -19,7 +19,6 @@ public class JPlusSaveListener implements FileDocumentManagerListener {
     @Override
     public void beforeDocumentSaving(@NotNull com.intellij.openapi.editor.Document document) {
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
-        System.err.println("file.getName() = " + file.getName());
         if (file != null && file.getName().endsWith(".jplus")) {
             fileService.compileAndWriteToJava(file, document.getText());
         }

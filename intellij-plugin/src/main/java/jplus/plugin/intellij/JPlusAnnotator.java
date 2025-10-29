@@ -31,13 +31,10 @@ public class JPlusAnnotator implements Annotator {
                             .range(new TextRange(issue.getOffset(), issue.getOffset()))
                             .create();
                 }
-
             }
-
-
         } catch (Exception e) {
-            System.err.println(e);
-            throw new RuntimeException(e);
+            //System.err.println(e.getMessage());
+            //throw new RuntimeException(e);
         }
     }
 }

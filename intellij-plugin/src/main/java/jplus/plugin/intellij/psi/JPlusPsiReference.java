@@ -1,5 +1,6 @@
 package jplus.plugin.intellij.psi;
 
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.JavaPsiFacade;
@@ -7,8 +8,10 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReferenceBase;
@@ -31,7 +34,10 @@ public class JPlusPsiReference extends PsiReferenceBase<PsiElement> {
         PsiFile jplusPsiFile = myElement.getContainingFile();
         String symbol = getValue();
 
-        var javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jplusPsiFile);
+//        var javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jplusPsiFile);
+        PsiJavaFile javaFile = (PsiJavaFile) PsiFileFactory.getInstance(project)
+                .createFileFromText("Temp.java", JavaFileType.INSTANCE, jplusPsiFile.getText());
+//        if (javaFile == null) return null;
 //        int newOffset = JPlusUtil.findNewOffset(jplusPsiFile.getText(), javaFile.getText(), myElement.getTextRange().getStartOffset());
         int offset = myElement.getTextOffset();
 

@@ -19,7 +19,7 @@ public class JPlusUtil {
     public static PsiJavaFile createJavaPsiFromJPlus(Project project, PsiFile jplusFile) {
         JPlusProcessor processor = new JPlusProcessor(jplusFile.getText());
         String javaText = processor.compile();
-        if (javaText.isEmpty()) return null;
+        if (javaText == null || javaText.isEmpty()) return null;
 
 //        LightVirtualFile vFile = new LightVirtualFile(
 //                "Temp.java",

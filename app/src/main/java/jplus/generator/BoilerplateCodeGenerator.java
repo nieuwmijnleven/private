@@ -32,12 +32,13 @@ import java.util.Map;
 public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
 
     private final SymbolTable symbolTable;
+    private final FragmentedText fragmentedText;
     private final List<ApplyStatement> applyStatementList = new ArrayList<>();
-    private final CodeGeneratorContext codeGeneratorCtx = CodeGeneratorContext.getInstance();
     private final Map<String, ApplyFeatureProcessor> strategyMap = new HashMap<>();
 
-    public BoilerplateCodeGenerator(SymbolTable symbolTable) {
+    public BoilerplateCodeGenerator(SymbolTable symbolTable, FragmentedText fragmentedText) {
         this.symbolTable = symbolTable;
+        this.fragmentedText = fragmentedText;
         registerStrategies();
     }
 
@@ -106,7 +107,6 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
                 .findFirst()
                 .ifPresent(stmt -> stmt.setQualifiedName(topLevelClass));
 
-        FragmentedText fragmentedText = codeGeneratorCtx.getFragmentedText();
         int baseIndent = 4;
         for (ApplyStatement applyStatement : applyStatementList) {
             String qualifiedName = applyStatement.getQualifiedName();

@@ -38,8 +38,8 @@ public class Main {
         SymbolTable symbolTable = symbolAnalyzer.getTopLevelSymbolTable();
 //        System.out.println(symbolTable.toString());
 
-        BoilerplateCodeGenerator boilerplateCodeGenerator = new BoilerplateCodeGenerator(symbolTable);
-        boilerplateCodeGenerator.visit(jPlusParserRuleContext);
-        System.out.println(boilerplateCodeGenerator.generate());
+//        BoilerplateCodeGenerator boilerplateCodeGenerator = new BoilerplateCodeGenerator(symbolTable);
+//        boilerplateCodeGenerator.visit(jPlusParserRuleContext);
+//        System.out.println(boilerplateCodeGenerator.generate());
     }
 }
