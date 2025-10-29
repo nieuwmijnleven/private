@@ -25,42 +25,21 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
 
+    <projectListeners>
+        <listener class="jplus.plugin.intellij.JPlusSaveListener" topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+    </projectListeners>
+
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <fileTypeFactory implementation="jplus.plugin.intellij.JPlusFileTypeFactory"/>
         <lang.syntaxHighlighterFactory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusSyntaxHighlighterFactory"/>
-<!--        <lang.commenter language="JPlus" implementationClass="jplus.plugin.intellij.JPlusCommenter" />-->
-<!--        <indexPatternBuilder implementation="jplus.plugin.intellij.psi.JPlusIndexPatternBuilder"/>-->
-<!--        <lang.braceMatcher language="JPlus" implementationClass="jplus.plugin.intellij.editor.JPlusBraceMatcher"/>-->
-<!--        <colorSettingsPage implementation="jplus.plugin.intellij.configdialogs.JPlusColorsPage"/>-->
-<!--        <additionalTextAttributes scheme="Default" file="colorSchemes/JPlusDefault.xml"/>-->
-<!--        <additionalTextAttributes scheme="Darcula" file="colorSchemes/JPlusDarcula.xml"/>-->
         <completion.contributor language="JPlus" implementationClass="jplus.plugin.intellij.JPlusCompletionContributor"/>
         <gotoDeclarationHandler implementation="jplus.plugin.intellij.JPlusGotoDefinitionHandler"/>
         <lang.ast.factory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>
         <lang.parserDefinition language="JPlus" implementationClass="jplus.plugin.intellij.JPlusParserDefinition"/>
+        <lang.commenter language="JPlus" implementationClass="jplus.plugin.intellij.JPlusLanguageCommenter"/>
         <renamePsiElementProcessor order="first" implementation="jplus.plugin.intellij.JPlusRenameProcessor"/>
-<!--        <lang.ast.factory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>-->
-<!--        <lang.psiStructureViewFactory language="JPlus"-->
-<!--                                      implementationClass="jplus.plugin.intellij.structview.JPlusStructureViewFactory"/>-->
-<!--        <lang.foldingBuilder language="JPlus" implementationClass="jplus.plugin.intellij.folding.JPlusFoldingBuilder" />-->
-<!--        <iconProvider implementation="jplus.plugin.intellij.JPlusIconProvider"/>-->
-
-<!--        <externalAnnotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusExternalAnnotator"/>-->
-<!--        <lang.findUsagesProvider language="JPlus"-->
-<!--                                 implementationClass="jplus.plugin.intellij.JPlusFindUsagesProvider"/>-->
-
-<!--        <defaultLiveTemplates file="/liveTemplates/lexer/user.xml"/>-->
-<!--        <liveTemplateContext contextId="OTHER" implementation="jplus.plugin.intellij.templates.ANTLRGenericContext"/>-->
-<!--        <liveTemplateContext contextId="OTHER" implementation="jplus.plugin.intellij.templates.OutsideRuleContext"/>-->
-<!--        <projectConfigurable groupId="language"-->
-<!--                             id="jplus.plugin.intellij.configdialogs.JPlusProjectSettings"-->
-<!--                             displayName="JPlus default project settings"-->
-<!--                             instance="jplus.plugin.intellij.configdialogs.JPlusProjectSettings"/>-->
-<!--        <projectService serviceImplementation="jplus.plugin.intellij.configdialogs.JPlusGrammarPropertiesComponent"/>-->
-<!--        <lang.refactoringSupport language="JPlus" implementationClass="jplus.plugin.intellij.refactor.JPlusRefactoringSupport"/>-->
-<!--        <completion.contributor language="JPlus"-->
-<!--                                implementationClass="jplus.plugin.intellij.completion.JPlusCompletionContributor"/>-->
+        <annotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusAnnotator"/>
     </extensions>
 </idea-plugin>

@@ -9,11 +9,9 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReferenceBase;
-import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.PsiVariable;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -34,16 +32,16 @@ public class JPlusPsiReference extends PsiReferenceBase<PsiElement> {
         String symbol = getValue();
 
         var javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jplusPsiFile);
-        PsiElement deReferencedElement = findCorrespondingJavaElement(javaFile, myElement.getTextOffset());
+        int newOffset = JPlusUtil.findNewOffset(jplusPsiFile.getText(), javaFile.getText(), myElement.getTextRange().getStartOffset());
 
-        String packageName = javaFile.getPackageName();
-
-        if (!(deReferencedElement instanceof PsiIdentifier)) return null;
+        PsiElement deReferencedElement = JPlusUtil.findCorrespondingPsiElement(javaFile, newOffset);
+        if (deReferencedElement == null || !(deReferencedElement instanceof PsiIdentifier)) return null;
 
         PsiElement resolved = PsiTreeUtil.getParentOfType(deReferencedElement, false, PsiJavaCodeReferenceElement.class);
         if (resolved != null) {
             var refElement = (PsiJavaCodeReferenceElement) resolved;
             String qualfiedName = refElement.getQualifiedName();
+            String packageName = javaFile.getPackageName();
             if (!qualfiedName.startsWith(packageName)) {
                 PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(qualfiedName, GlobalSearchScope.allScope(project));
                 if (psiClass != null) return psiClass;
@@ -60,9 +58,5 @@ public class JPlusPsiReference extends PsiReferenceBase<PsiElement> {
         } else {
             return new PsiElementWrapper(resolved, jplusPsiFile);
         }
-    }
-
-    private @Nullable PsiElement findCorrespondingJavaElement(PsiJavaFile javaPsiFile, int offset) {
-        return javaPsiFile.findElementAt(offset);
     }
 }
