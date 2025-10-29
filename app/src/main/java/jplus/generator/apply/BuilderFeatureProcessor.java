@@ -53,8 +53,8 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
 
         builder += fieldDeclarations.stream().collect(Collectors.joining("\n", "\n", "\n"));
         builder += methodDeclarations.stream().collect(Collectors.joining("\n\n", "\n", "\n"));
-        builder += "\n" + indentation + "public User build() {\n";
-        builder += doubleIndentation + "return new User(" + nonStaticFieldList.stream().collect(Collectors.joining(", ")) + ");\n";
+        builder += "\n" + indentation + "public " + context.getTargetClass() + " build() {\n";
+        builder += doubleIndentation + "return new " + context.getTargetClass() + "(" + nonStaticFieldList.stream().collect(Collectors.joining(", ")) + ");\n";
         builder += indentation + "}\n";
         builder += "}\n";
 

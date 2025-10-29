@@ -32,9 +32,10 @@ public class JPlusPsiReference extends PsiReferenceBase<PsiElement> {
         String symbol = getValue();
 
         var javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jplusPsiFile);
-        int newOffset = JPlusUtil.findNewOffset(jplusPsiFile.getText(), javaFile.getText(), myElement.getTextRange().getStartOffset());
+//        int newOffset = JPlusUtil.findNewOffset(jplusPsiFile.getText(), javaFile.getText(), myElement.getTextRange().getStartOffset());
+        int offset = myElement.getTextOffset();
 
-        PsiElement deReferencedElement = JPlusUtil.findCorrespondingPsiElement(javaFile, newOffset);
+        PsiElement deReferencedElement = JPlusUtil.findCorrespondingPsiElement(javaFile, offset);
         if (deReferencedElement == null || !(deReferencedElement instanceof PsiIdentifier)) return null;
 
         PsiElement resolved = PsiTreeUtil.getParentOfType(deReferencedElement, false, PsiJavaCodeReferenceElement.class);
