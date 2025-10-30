@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
     @Override
     public void process(ApplyFeatureProcessingContext context) {
-        if (context.hasProcessed()) return;
+        if (context.hasProcessed("builder")) return;
 
         if (context.getClassSymbolTable().contains("Builder", TypeInfo.Type.Class)) {
             return;
@@ -63,6 +63,7 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
         builder += "}\n";
 
         context.appendMethodPartText(builder);
-        ApplyFeatureProcessor.super.process(context);
+//        ApplyFeatureProcessor.super.process(context);
+        context.addProcessedAction("builder");
     }
 }

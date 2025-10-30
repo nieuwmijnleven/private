@@ -105,9 +105,6 @@ public class Utils {
 
     public static TextChangeRange computeTextChangeRange(String text, int startOffset, int endOffset) {
         if (startOffset < 0 || endOffset < startOffset || endOffset >= text.length()) {
-            System.err.println("text.length() = " + text.length());
-            System.err.println("startOffset = " + startOffset);
-            System.err.println("endOffset = " + endOffset);
             throw new IllegalArgumentException("Invalid start or end offset: " + "text.length() = " + text.length() + ", startOffset = " + startOffset + ", endOffset = " + endOffset);
         }
 
@@ -210,8 +207,6 @@ public class Utils {
     public static TextChangeRange getTextChangeRange(String original, ParserRuleContext ctx) {
         int startIndex = ctx.start.getStartIndex();
         int stopIndex = (ctx.stop != null) ? ctx.stop.getStopIndex() : ctx.start.getStopIndex();
-        System.err.println("original = " + original);
-        System.err.println("Utils.getTokenString() = " + Utils.getTokenString(ctx));
         return Utils.computeTextChangeRange(original, startIndex, stopIndex);
     }
 }
