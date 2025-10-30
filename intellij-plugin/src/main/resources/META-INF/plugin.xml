@@ -2,7 +2,6 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>jplus.plugin</id>
-
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
     <name>JPlus</name>
@@ -28,6 +27,8 @@
     <projectListeners>
         <listener class="jplus.plugin.intellij.JPlusSaveListener" topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
     </projectListeners>
+
+    <idea-version since-build="251.*" until-build="252.*"/>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->

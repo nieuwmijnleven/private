@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.Collections;
 
 public class PsiElementWrapper implements PsiElement {
 
@@ -279,14 +280,14 @@ public class PsiElementWrapper implements PsiElement {
     @ApiStatus.OverrideOnly
     @Override
     public @NotNull Collection<? extends @NotNull PsiSymbolDeclaration> getOwnDeclarations() {
-        return psiElement.getOwnDeclarations();
+        return Collections.emptyList();
     }
 
     @ApiStatus.Experimental
     @ApiStatus.OverrideOnly
     @Override
     public @NotNull Collection<? extends @NotNull PsiSymbolReference> getOwnReferences() {
-        return psiElement.getOwnReferences();
+        return Collections.emptyList();
     }
 
     @Contract(pure = true)
