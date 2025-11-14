@@ -12,7 +12,15 @@ public class SymbolInfo {
     private final TextChangeRange range;
     private final String originalText;
     private final List<Modifier> modifierList;
+
+    private ResolvingStatus resolvingStatus = ResolvingStatus.RESOLVED;
     private SymbolTable symbolTable;
+
+    public enum ResolvingStatus {
+        RESOLVING,
+        RESOLVED,
+        UNRESOLVED
+    }
 
     public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
         this.symbol = symbol;
@@ -57,6 +65,14 @@ public class SymbolInfo {
 
     public void setSymbolTable(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
+    }
+
+    public ResolvingStatus getResolvingStatus() {
+        return resolvingStatus;
+    }
+
+    public void setResolvingStatus(ResolvingStatus resolvingStatus) {
+        this.resolvingStatus = resolvingStatus;
     }
 
     public static SymbolInfo copyOf(SymbolInfo src) {

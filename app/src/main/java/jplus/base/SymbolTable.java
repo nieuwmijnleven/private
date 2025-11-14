@@ -35,6 +35,11 @@ public class SymbolTable {
         return symbolMap.get(name);
     }
 
+    public void merge(SymbolTable table) {
+        table.symbolMap.forEach(symbolMap::putIfAbsent);
+        table.enclosing.forEach(enclosing::putIfAbsent);
+    }
+
     public boolean isEmpty() {
         return symbolMap.isEmpty();
     }

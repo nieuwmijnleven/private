@@ -2,22 +2,19 @@ package jplus.analyzer;
 
 import jplus.base.JPlus20Parser;
 import jplus.base.JPlus20ParserBaseVisitor;
-import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
-import jplus.generator.TextChangeRange;
 import jplus.util.Utils;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.Interval;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
-    private final SymbolTable topLevelSymbolTable;
+    private final SymbolTable globalSymbolTable;
     private SymbolTable currentSymbolTable;
     private String originalText;
     private boolean hasPassed = true;
@@ -46,9 +43,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
     }
 
-    public NullabilityChecker(SymbolTable symbolTable) {
-        this.topLevelSymbolTable = symbolTable;
-        this.currentSymbolTable = symbolTable;
+    public NullabilityChecker(SymbolTable globalSymbolTable) {
+        this.globalSymbolTable = globalSymbolTable;
+        this.currentSymbolTable = globalSymbolTable;
     }
 
     private final List<NullabilityIssue> issues = new ArrayList<>();
@@ -61,6 +58,17 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     public Void visitStart_(JPlus20Parser.Start_Context ctx) {
         this.originalText = ctx.start.getInputStream().toString();
         return super.visitStart_(ctx);
+    }
+
+    @Override
+    public Void visitTopLevelClassOrInterfaceDeclaration(JPlus20Parser.TopLevelClassOrInterfaceDeclarationContext ctx) {
+        if (ctx.classDeclaration() != null) {
+            String className = Utils.getTokenString(ctx.classDeclaration().normalClassDeclaration().typeIdentifier());
+            currentSymbolTable = globalSymbolTable.getEnclosingSymbolTable(className);
+        } else if (ctx.interfaceDeclaration() != null) {
+
+        }
+        return super.visitTopLevelClassOrInterfaceDeclaration(ctx);
     }
 
     @Override
@@ -149,9 +157,22 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     public Void visitExpressionName(JPlus20Parser.ExpressionNameContext ctx) {
         var ambiguousNameCtx = ctx.ambiguousName();
         SymbolInfo symbolInfo = null;
+        SymbolTable symbolTable = currentSymbolTable;
         while (ambiguousNameCtx != null) {
             String symbol = Utils.getTokenString(ambiguousNameCtx.identifier());
-            symbolInfo = currentSymbolTable.resolve(symbol);
+            symbolInfo = symbolTable.resolve(symbol);
+
+            String typeName = symbolInfo.getTypeInfo().getName();
+            SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
+            try {
+                symbolTable = resolver.resolveSymbol(Path.of("./src/test/files"), typeName);
+                SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
+                String className = symInfo.getSymbol();
+                symbolTable = symbolTable.getEnclosingSymbolTable(className);
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+            }
+
             if (symbolInfo.getTypeInfo().isNullable && ambiguousNameCtx.DOT() != null) {
                 int line = ambiguousNameCtx.start.getLine();
                 int column = ambiguousNameCtx.start.getCharPositionInLine();
@@ -180,15 +201,17 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
         var identifierList = ctx.classOrInterfaceTypeToInstantiate().identifier();
-        SymbolTable classSymbolTable = topLevelSymbolTable;
+        SymbolTable classSymbolTable = globalSymbolTable;
         String className = null;
         for (JPlus20Parser.IdentifierContext identifierContext : identifierList) {
             className = Utils.getTokenString(identifierContext);
-            classSymbolTable = classSymbolTable.getEnclosingSymbolTable(className);
+//            classSymbolTable = classSymbolTable.getEnclosingSymbolTable(className);
+            SymbolInfo symbolInfo = globalSymbolTable.resolveInCurrent(className);
+            if (symbolInfo != null) classSymbolTable = symbolInfo.getSymbolTable();
         }
 
         if (classSymbolTable.isEmpty()) {
-            classSymbolTable = topLevelSymbolTable.findLowContextSymbolTable(className);
+            classSymbolTable = classSymbolTable.findLowContextSymbolTable(className);
 //            System.err.println("findLowContextSymbolTable = " + classSymbolTable);
         }
 //        System.err.println("className = " + className);

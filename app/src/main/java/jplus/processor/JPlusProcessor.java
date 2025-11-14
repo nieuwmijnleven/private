@@ -25,6 +25,7 @@ public class JPlusProcessor {
     private final TextChangeRange originalTextRange;
     private JPlus20Parser parser;
     private JPlusParserRuleContext parseTree;
+    private SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
     private boolean nullabilityChecked = false;
     private boolean symbolsAnalyzed = false;
@@ -32,6 +33,7 @@ public class JPlusProcessor {
     public JPlusProcessor(String originalText) {
         this.originalText = originalText;
         this.originalTextRange = Utils.computeTextChangeRange(originalText, 0, originalText.length()-1);
+        this.globalSymbolTable = new SymbolTable(null);
     }
 
     public JPlusProcessor(Path filePath) throws Exception {
@@ -53,26 +55,26 @@ public class JPlusProcessor {
         return parseTree.toStringTree(parser);
     }
 
-    public List<NullabilityChecker.NullabilityIssue> checkNullability() {
-        if (parseTree == null || !symbolsAnalyzed) {
-            throw new IllegalStateException("Call process() and analyzeSymbols() first.");
-        }
-
-        NullabilityChecker nullabilityChecker = new NullabilityChecker(symbolTable);
-        nullabilityChecker.visit(parseTree);
-        nullabilityChecked = true;
-        return nullabilityChecker.getIssues();
-    }
-
     public void analyzeSymbols() {
         if (parseTree == null) {
             throw new IllegalStateException("Call process() first.");
         }
 
-        SymbolAnalyzer symbolAnalyzer = new SymbolAnalyzer();
+        SymbolAnalyzer symbolAnalyzer = new SymbolAnalyzer(globalSymbolTable);
         symbolAnalyzer.visit(parseTree);
         symbolTable = symbolAnalyzer.getTopLevelSymbolTable();
         symbolsAnalyzed = true;
+    }
+
+    public List<NullabilityChecker.NullabilityIssue> checkNullability() {
+        if (parseTree == null || !symbolsAnalyzed) {
+            throw new IllegalStateException("Call process() and analyzeSymbols() first.");
+        }
+
+        NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable);
+        nullabilityChecker.visit(parseTree);
+        nullabilityChecked = true;
+        return nullabilityChecker.getIssues();
     }
 
     public String generateJavaCode() {
@@ -115,4 +117,6 @@ public class JPlusProcessor {
     public SymbolTable getSymbolTable() {
         return symbolTable;
     }
+
+    public SymbolTable getGlobalSymbolTable() { return globalSymbolTable; }
 }

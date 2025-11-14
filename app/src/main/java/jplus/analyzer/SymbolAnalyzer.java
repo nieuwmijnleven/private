@@ -15,9 +15,20 @@ import java.util.stream.Collectors;
 
 public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
 
-    private final SymbolTable topLevelSymbolTable = new SymbolTable(null);
-    private SymbolTable currentSymbolTable = topLevelSymbolTable;
+    private final SymbolTable globalSymbolTable;
+    private final SymbolTable topLevelSymbolTable;
+    private SymbolTable currentSymbolTable;
     private String originalText;
+
+    public SymbolAnalyzer(SymbolTable globalSymbolTable) {
+        this.globalSymbolTable = globalSymbolTable;
+        this.topLevelSymbolTable = new SymbolTable(globalSymbolTable);
+        this.currentSymbolTable = topLevelSymbolTable;
+    }
+
+    public SymbolTable getGlobalSymbolTable() {
+        return globalSymbolTable;
+    }
 
     public SymbolTable getTopLevelSymbolTable() {
         return topLevelSymbolTable;
@@ -60,10 +71,15 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
                 }
             }
 
-            SymbolInfo symbolInfo = new SymbolInfo(className, typeInfo, range, rangeText, modifierList);
+//            SymbolInfo symbolInfo = new SymbolInfo(className, typeInfo, range, rangeText, modifierList);
+            SymbolInfo symbolInfo = SymbolInfo.builder().symbol(className).typeInfo(typeInfo).range(range).originalText(rangeText).modifierList(modifierList).symbolTable(currentSymbolTable).build();
             SymbolTable classSymbolTable = currentSymbolTable.getEnclosingSymbolTable(className);
             symbolInfo.setSymbolTable(classSymbolTable);
             currentSymbolTable.declare(className, symbolInfo);
+
+            globalSymbolTable.declare(className, symbolInfo);
+            globalSymbolTable.addEnclosingSymbolTable(className, currentSymbolTable);
+
             currentSymbolTable = classSymbolTable;
         } else if (ctx.enumDeclaration() != null) {
 
@@ -134,6 +150,7 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
             }
         }
 
+        // 1. reference type
         if (ctx.unannType().unannReferenceType() != null) {
             String typeName = Utils.getTokenString(ctx.unannType().unannReferenceType().unannClassOrInterfaceType().typeIdentifier());
             boolean nullable = ctx.unannType().QUESTION() != null ? true : false;
