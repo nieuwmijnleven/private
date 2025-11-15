@@ -24,6 +24,7 @@ public class JPlusProcessor {
     private final String originalText;
     private final TextChangeRange originalTextRange;
     private JPlus20Parser parser;
+    private Path srcDirPath;
     private JPlusParserRuleContext parseTree;
     private SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
@@ -38,6 +39,10 @@ public class JPlusProcessor {
 
     public JPlusProcessor(Path filePath) throws Exception {
         this(Files.readString(filePath, StandardCharsets.UTF_8));
+    }
+
+    public void setSrcDirPath(Path srcDirPath) {
+        this.srcDirPath = srcDirPath;
     }
 
     public void process() throws Exception {
@@ -72,6 +77,7 @@ public class JPlusProcessor {
         }
 
         NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable);
+        nullabilityChecker.setSrcDirPath(srcDirPath);
         nullabilityChecker.visit(parseTree);
         nullabilityChecked = true;
         return nullabilityChecker.getIssues();

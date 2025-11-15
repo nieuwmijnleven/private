@@ -17,6 +17,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     private final SymbolTable globalSymbolTable;
     private SymbolTable currentSymbolTable;
     private String originalText;
+    private Path srcDirPath;
     private boolean hasPassed = true;
 
     public static class NullabilityIssue {
@@ -52,6 +53,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     public List<NullabilityIssue> getIssues() {
         return issues;
+    }
+
+    public void setSrcDirPath(Path srcDirPath) {
+        this.srcDirPath = srcDirPath;
     }
 
     @Override
@@ -165,7 +170,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
             SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
             try {
-                symbolTable = resolver.resolveSymbol(Path.of("./src/test/files"), typeInfo.getName(), typeInfo.getType());
+                symbolTable = resolver.resolveSymbol(srcDirPath, typeInfo.getName(), typeInfo.getType());
                 SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
                 String className = symInfo.getSymbol();
                 symbolTable = symbolTable.getEnclosingSymbolTable(className);

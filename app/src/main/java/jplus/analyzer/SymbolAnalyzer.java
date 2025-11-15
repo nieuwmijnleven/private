@@ -141,19 +141,26 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitFieldDeclaration(JPlus20Parser.FieldDeclarationContext ctx) {
+        boolean hasNullableAnnotation = false;
         List<Modifier> modifierList = new ArrayList<>();
         if (ctx.fieldModifier() != null) {
             for (var fieldModifierContext : ctx.fieldModifier()) {
-                if (fieldModifierContext.annotation() == null) {
+                if (fieldModifierContext.annotation() != null) {
+                    String annotation = Utils.getTokenString(fieldModifierContext.annotation());
+                    if ("@Nullable".equals(annotation)) {
+                        hasNullableAnnotation = true;
+                    }
+                } else {
                     modifierList.add(Modifier.valueOf(Utils.getTokenString(fieldModifierContext).toUpperCase()));
                 }
             }
         }
 
-        // 1. reference type
+
+
         if (ctx.unannType().unannReferenceType() != null) {
             String typeName = Utils.getTokenString(ctx.unannType().unannReferenceType().unannClassOrInterfaceType().typeIdentifier());
-            boolean nullable = ctx.unannType().QUESTION() != null ? true : false;
+            boolean nullable = (hasNullableAnnotation || ctx.unannType().QUESTION() != null) ? true : false;
             TypeInfo typeInfo = new TypeInfo(typeName, nullable, TypeInfo.Type.Reference);
             TextChangeRange range = Utils.getTextChangeRange(this.originalText, ctx);
             String rangeText = Utils.getTokenString(ctx);

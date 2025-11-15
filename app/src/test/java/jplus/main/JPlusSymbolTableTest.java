@@ -27,8 +27,9 @@ public class JPlusSymbolTableTest {
     }
 
     @Test
-    void testNullableType() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/User.jplus"));
+    void testSymbolResolver() throws Exception {
+        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/SymbolResolver/User.jplus"));
+        processor.setSrcDirPath(Path.of("./src/test/files/SymbolResolver"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -44,5 +45,26 @@ public class JPlusSymbolTableTest {
                 "Error: (line:27, column:21) The 2nd argument of the User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:28, column:21) The 1st argument of the User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:28, column:36) The 1st argument of the Address constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+    }
+
+    @Test
+    void testNullableAnnotation() throws Exception {
+        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserAnnotation.jplus"));
+        processor.setSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.process();
+        processor.analyzeSymbols();
+
+        var issues = processor.checkNullability();
+        if (!issues.isEmpty()) {
+            issues.forEach(nullabilityIssue -> {
+                System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+//                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+            });
+        }
+
+        assertEquals("Error: (line:16, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:27, column:31) The 2nd argument of the UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:28, column:31) The 1st argument of the UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:28, column:56) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 }

@@ -1,0 +1,10 @@
+package jplus.example;
+
+import javax.annotation.Nullable;
+
+public class StreetAnnotation {
+    @Nullable String name;
+    StreetAnnotation(String name) {
+        this.name = name;
+    }
+}
