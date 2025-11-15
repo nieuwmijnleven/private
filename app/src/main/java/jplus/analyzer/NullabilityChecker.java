@@ -161,11 +161,11 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         while (ambiguousNameCtx != null) {
             String symbol = Utils.getTokenString(ambiguousNameCtx.identifier());
             symbolInfo = symbolTable.resolve(symbol);
+            TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
-            String typeName = symbolInfo.getTypeInfo().getName();
             SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
             try {
-                symbolTable = resolver.resolveSymbol(Path.of("./src/test/files"), typeName);
+                symbolTable = resolver.resolveSymbol(Path.of("./src/test/files"), typeInfo.getName(), typeInfo.getType());
                 SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
                 String className = symInfo.getSymbol();
                 symbolTable = symbolTable.getEnclosingSymbolTable(className);

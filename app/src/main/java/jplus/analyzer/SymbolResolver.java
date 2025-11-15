@@ -1,6 +1,8 @@
 package jplus.analyzer;
 
+import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
+import jplus.base.TypeInfo;
 import jplus.processor.JPlusProcessor;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -17,7 +19,12 @@ public class SymbolResolver {
 
     }
 
-    public SymbolTable resolveSymbol(Path src, String symbol) throws Exception {
+    public SymbolTable resolveSymbol(Path src, String symbol, TypeInfo.Type type) throws Exception {
+        if (globalSymbolTable.contains(symbol, type)) {
+            SymbolInfo symInfo = globalSymbolTable.resolve(symbol);
+            return symInfo.getSymbolTable();
+        }
+
         Path filePath = src.resolve(symbol + ".jplus");
         JPlusProcessor processor = new JPlusProcessor(filePath);
         processor.process();
@@ -28,5 +35,4 @@ public class SymbolResolver {
 
         return processor.getSymbolTable();
     }
-
 }
