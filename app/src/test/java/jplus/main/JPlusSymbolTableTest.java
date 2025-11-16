@@ -67,4 +67,51 @@ public class JPlusSymbolTableTest {
                 "Error: (line:28, column:31) The 1st argument of the UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:28, column:56) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
+
+
+
+    @Test
+    void testNullableConstructorParamAnnotation() throws Exception {
+        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserConstructorParamAnnotation.jplus"));
+        processor.setSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.process();
+//        System.err.println(processor.getParseTreeString());
+        processor.analyzeSymbols();
+
+        var issues = processor.checkNullability();
+        if (!issues.isEmpty()) {
+            issues.forEach(nullabilityIssue -> {
+                System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+//                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+            });
+        }
+
+        assertEquals("Error: (line:13, column:8) cannot assign addr(nullable) to this.address(non-nullable).\n" +
+                "Error: (line:18, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:30, column:47) The 1st argument of the UserConstructorParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:30, column:88) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+    }
+
+    @Test
+    void testNullableMethodParamAnnotation() throws Exception {
+        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserMethodParamAnnotation.jplus"));
+        processor.setSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.process();
+        System.err.println(processor.getParseTreeString());
+        processor.analyzeSymbols();
+
+        var issues = processor.checkNullability();
+        if (!issues.isEmpty()) {
+            issues.forEach(nullabilityIssue -> {
+                System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+            });
+        }
+
+        assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:33, column:42) The 2nd argument of the UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:42) The 1st argument of the UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:78) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:37, column:8) The 1st argument of the UserMethodParamAnnotation.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+    }
 }

@@ -99,21 +99,32 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
 
         var formalParameterList = ctx.constructorDeclarator().formalParameterList().formalParameter();
         for (var formalParameterContext : formalParameterList) {
+            boolean hasNullableAnnotation = false;
             List<Modifier> paramModifierList = new ArrayList<>();
             if (formalParameterContext.variableModifier() != null) {
                 for (var variableModifierContext : formalParameterContext.variableModifier()) {
-                    paramModifierList.add(Modifier.valueOf(Utils.getTokenString(variableModifierContext).toUpperCase()));
+                    if (variableModifierContext.annotation() != null) {
+                        String annotation = Utils.getTokenString(variableModifierContext.annotation());
+//                        System.err.println("annotation = " + annotation);
+                        if ("@Nullable".equals(annotation)) {
+                            hasNullableAnnotation = true;
+                        }
+                    } else {
+                        paramModifierList.add(Modifier.valueOf(Utils.getTokenString(variableModifierContext).toUpperCase()));
+                    }
                 }
             }
 
-            String typeName = Utils.getTokenString(formalParameterContext.unannType());
+            String typeName = Utils.getTokenString(formalParameterContext.unannType()) + (hasNullableAnnotation ? "?" : "");
+//            String typeName = Utils.getTokenString(formalParameterContext.unannType());
             String variableName = Utils.getTokenString(formalParameterContext.variableDeclaratorId());
-            boolean nullable = formalParameterContext.unannType().QUESTION() == null ? true : false;
+            boolean nullable = hasNullableAnnotation || (formalParameterContext.unannType().QUESTION() != null);
             TypeInfo.Type type = formalParameterContext.unannType().unannReferenceType() != null ? TypeInfo.Type.Reference : TypeInfo.Type.Primitive;
             TypeInfo typeInfo = new TypeInfo(typeName, nullable, type);
             TextChangeRange range = Utils.getTextChangeRange(this.originalText, formalParameterContext);
             String rangeText = Utils.getTokenString(formalParameterContext);
             SymbolInfo symbolInfo = new SymbolInfo(variableName, typeInfo, range, rangeText, paramModifierList);
+//            System.err.println("symbolInfo = " + symbolInfo);
             constructorSymbolTable.declare(variableName, symbolInfo);
             typeNameList.add(typeName);
         }
@@ -156,11 +167,9 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
             }
         }
 
-
-
         if (ctx.unannType().unannReferenceType() != null) {
             String typeName = Utils.getTokenString(ctx.unannType().unannReferenceType().unannClassOrInterfaceType().typeIdentifier());
-            boolean nullable = (hasNullableAnnotation || ctx.unannType().QUESTION() != null) ? true : false;
+            boolean nullable = hasNullableAnnotation || (ctx.unannType().QUESTION() != null);
             TypeInfo typeInfo = new TypeInfo(typeName, nullable, TypeInfo.Type.Reference);
             TextChangeRange range = Utils.getTextChangeRange(this.originalText, ctx);
             String rangeText = Utils.getTokenString(ctx);
@@ -194,16 +203,22 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
         var methodDeclarator = ctx.methodHeader().methodDeclarator();
         var formalParameterList = methodDeclarator.formalParameterList() != null ? methodDeclarator.formalParameterList().formalParameter() : new ArrayList<JPlus20Parser.FormalParameterContext>();
         for (var formalParameterContext : formalParameterList) {
+            boolean hasNullableAnnotation = false;
             List<Modifier> paramModifierList = new ArrayList<>();
             if (formalParameterContext.variableModifier() != null) {
                 for (var variableModifierContext : formalParameterContext.variableModifier()) {
-                    paramModifierList.add(Modifier.valueOf(Utils.getTokenString(variableModifierContext).toUpperCase()));
+                    String annotation = Utils.getTokenString(variableModifierContext.annotation());
+                    if ("@Nullable".equals(annotation)) {
+                        hasNullableAnnotation = true;
+                    } else {
+                        paramModifierList.add(Modifier.valueOf(Utils.getTokenString(variableModifierContext).toUpperCase()));
+                    }
                 }
             }
 
-            String typeName = Utils.getTokenString(formalParameterContext.unannType());
+            String typeName = Utils.getTokenString(formalParameterContext.unannType()) + (hasNullableAnnotation ? "?" : "");
             String variableName = Utils.getTokenString(formalParameterContext.variableDeclaratorId());
-            boolean nullable = formalParameterContext.unannType().QUESTION() != null;
+            boolean nullable = hasNullableAnnotation || (formalParameterContext.unannType().QUESTION() != null);
             TypeInfo.Type type = formalParameterContext.unannType().unannReferenceType() != null ? TypeInfo.Type.Reference : TypeInfo.Type.Primitive;
             TypeInfo typeInfo = new TypeInfo(typeName, nullable, type);
             TextChangeRange range = Utils.getTextChangeRange(this.originalText, formalParameterContext);
@@ -224,7 +239,7 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
 
         String methodName = Utils.getTokenString(ctx.methodHeader().methodDeclarator().identifier());
         String symbolName = "^" + methodName + "$_" + typeNameList.stream().collect(Collectors.joining("_"));
-//        System.out.println("method = " + symbolName);
+//        System.err.println("method = " + symbolName);
         TypeInfo typeInfo = new TypeInfo(symbolName, false, TypeInfo.Type.Method);
         TextChangeRange range = Utils.getTextChangeRange(this.originalText, ctx);
         String rangeText = Utils.getTokenString(ctx);
@@ -241,6 +256,14 @@ public class SymbolAnalyzer extends JPlus20ParserBaseVisitor<Void> {
     public Void visitBlock(JPlus20Parser.BlockContext ctx) {
         currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
         super.visitBlock(ctx);
+        currentSymbolTable = currentSymbolTable.getParent();
+        return null;
+    }
+
+    @Override
+    public Void visitConstructorBody(JPlus20Parser.ConstructorBodyContext ctx) {
+        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
+        super.visitConstructorBody(ctx);
         currentSymbolTable = currentSymbolTable.getParent();
         return null;
     }
