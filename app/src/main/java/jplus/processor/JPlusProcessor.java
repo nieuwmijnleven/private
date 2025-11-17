@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JPlusProcessor {
@@ -24,7 +25,7 @@ public class JPlusProcessor {
     private final String originalText;
     private final TextChangeRange originalTextRange;
     private JPlus20Parser parser;
-    private Path srcDirPath;
+    private List<Path> srcDirPathList;
     private JPlusParserRuleContext parseTree;
     private SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
@@ -35,14 +36,15 @@ public class JPlusProcessor {
         this.originalText = originalText;
         this.originalTextRange = Utils.computeTextChangeRange(originalText, 0, originalText.length()-1);
         this.globalSymbolTable = new SymbolTable(null);
+        this.srcDirPathList = new ArrayList<>();
     }
 
     public JPlusProcessor(Path filePath) throws Exception {
         this(Files.readString(filePath, StandardCharsets.UTF_8));
     }
 
-    public void setSrcDirPath(Path srcDirPath) {
-        this.srcDirPath = srcDirPath;
+    public void addSrcDirPath(Path srcDirPath) {
+        this.srcDirPathList.add(srcDirPath);
     }
 
     public void process() throws Exception {
@@ -77,7 +79,7 @@ public class JPlusProcessor {
         }
 
         NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable);
-        nullabilityChecker.setSrcDirPath(srcDirPath);
+        nullabilityChecker.setSrcDirPathList(srcDirPathList);
         nullabilityChecker.visit(parseTree);
         nullabilityChecked = true;
         return nullabilityChecker.getIssues();

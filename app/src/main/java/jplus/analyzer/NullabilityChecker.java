@@ -7,6 +7,7 @@ import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.util.Utils;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     private final SymbolTable globalSymbolTable;
     private SymbolTable currentSymbolTable;
     private String originalText;
-    private Path srcDirPath;
+    private List<Path> srcDirPathList;
     private boolean hasPassed = true;
 
     public static class NullabilityIssue {
@@ -47,6 +48,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     public NullabilityChecker(SymbolTable globalSymbolTable) {
         this.globalSymbolTable = globalSymbolTable;
         this.currentSymbolTable = globalSymbolTable;
+        this.srcDirPathList = new ArrayList<>();
     }
 
     private final List<NullabilityIssue> issues = new ArrayList<>();
@@ -55,8 +57,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return issues;
     }
 
-    public void setSrcDirPath(Path srcDirPath) {
-        this.srcDirPath = srcDirPath;
+    public void addSrcDirPath(Path srcDirPath) {
+        this.srcDirPathList.add(srcDirPath);
+    }
+
+    public void setSrcDirPathList(List<Path> srcDirPathList) {
+        this.srcDirPathList = srcDirPathList;
     }
 
     @Override
@@ -201,7 +207,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
             SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
             try {
-                symbolTable = resolver.resolveSymbol(srcDirPath, typeInfo.getName(), typeInfo.getType());
+                symbolTable = resolver.resolveSymbolFromSource(srcDirPathList.get(0), typeInfo.getName(), typeInfo.getType());
                 SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
                 String className = symInfo.getSymbol();
                 symbolTable = symbolTable.getEnclosingSymbolTable(className);
@@ -476,12 +482,44 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             SymbolInfo symInfo = currentSymbolTable.resolve(instanceName);
             System.err.println("symInfo = " + symInfo);
 
-            if (symInfo == null) return super.visitMethodInvocation(ctx);
+//            if (symInfo == null) return super.visitMethodInvocation(ctx);
 
-            String typeName = symInfo.getTypeInfo().getName();
-            System.err.println("typeName = " + typeName);
-            SymbolTable classSymbolTable = globalSymbolTable.resolveInCurrent(typeName).getSymbolTable();
-            System.err.println("classSymbolTable = " + classSymbolTable);
+            String typeName = null;
+            SymbolTable classSymbolTable = null;
+            if (symInfo == null) {
+                System.err.println("instanceName = " + instanceName);
+                String[] tokens = instanceName.split("\\.");
+//                typeName = tokens[0];
+                for (int i = 0; i < tokens.length; i++) {
+                    String token = tokens[i];
+                    System.err.println("token = " + token);
+                    BytecodeSymbolAnalyzer symbolAnalyzer = new BytecodeSymbolAnalyzer(globalSymbolTable);
+                    try {
+                        if (i == 0) token = "java.lang." + token;
+                        if (typeName == null) typeName = token;
+                        else {
+                            symInfo = classSymbolTable.resolveInCurrent(token);
+                            typeName = symInfo.getTypeInfo().getName();
+                            System.err.println("typeName = " + typeName);
+                        }
+                        classSymbolTable = symbolAnalyzer.analyzeSymbol(Path.of("/home/user/miniconda3/envs/java_dev/jmods/java.base.jmod"), typeName);
+                        String className = classSymbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
+                        classSymbolTable = classSymbolTable.getEnclosingSymbolTable(className);
+                        System.err.println("className = " + className);
+                        System.err.println("classSymbolTable = " + classSymbolTable);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+
+            } else {
+                typeName = symInfo.getTypeInfo().getName();
+                System.err.println("typeName = " + typeName);
+                classSymbolTable = globalSymbolTable.resolveInCurrent(typeName).getSymbolTable();
+                System.err.println("classSymbolTable = " + classSymbolTable);
+            }
+
 
             List<String> argumentList = new ArrayList<>();
             for (JPlus20Parser.ExpressionContext expressionContext : ctx.argumentList().expression()) {
@@ -495,6 +533,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
             String matchedMethod = null;
             for (String method : methodListWithSameArity) {
+                if (!method.contains(methodName)) continue;
+
                 int index = method.indexOf("$_");
                 String[] paramTypes = method.substring(index + 2).split("_");
                 boolean matched = true;

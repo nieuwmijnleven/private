@@ -29,7 +29,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testSymbolResolver() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/SymbolResolver/User.jplus"));
-        processor.setSrcDirPath(Path.of("./src/test/files/SymbolResolver"));
+        processor.addSrcDirPath(Path.of("./src/test/files/SymbolResolver"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -50,7 +50,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testNullableAnnotation() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserAnnotation.jplus"));
-        processor.setSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -73,7 +73,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testNullableConstructorParamAnnotation() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserConstructorParamAnnotation.jplus"));
-        processor.setSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -95,7 +95,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testNullableMethodParamAnnotation() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserMethodParamAnnotation.jplus"));
-        processor.setSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
         System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
