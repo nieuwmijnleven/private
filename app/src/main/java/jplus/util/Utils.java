@@ -52,6 +52,55 @@ public class Utils {
         return stream.collect(Collectors.joining("\n", "", ""));
     }
 
+    public static boolean isJavaPrimtive(String javaPrimitive) {
+        switch (javaPrimitive) {
+            case "byte":
+            case "char":
+            case "double":
+            case "float":
+            case "int":
+            case "long":
+            case "short":
+            case "boolean":
+            case "void":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static String jvmPrimtiveToJavaPrimitive(String jvmPrimitive) {
+        switch(jvmPrimitive) {
+            case "B": return "byte";
+            case "C": return "char";
+            case "D": return "double";
+            case "F": return "float";
+            case "I": return "int";
+            case "J": return "long";
+            case "S": return "short";
+            case "Z": return "boolean";
+            case "V": return "void";
+            default: throw new IllegalArgumentException(jvmPrimitive + "is not jvm primitive type.");
+        }
+    }
+
+    public static boolean isJvmPrimtive(String jvmPrimitive) {
+        switch(jvmPrimitive) {
+            case "B":
+            case "C":
+            case "D":
+            case "F":
+            case "I":
+            case "J":
+            case "S":
+            case "Z":
+            case "V":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static String convertToPascalCase(String s) {
         return s.substring(0,1).toUpperCase() + s.substring(1);
     }

@@ -311,8 +311,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private boolean judgeType(String type, String tokenString) {
         type = type.endsWith("?") ? type.substring(0, type.length()-1) : type;
-        if ("String".equals(type) && !"null".equals(tokenString)) {
-            return tokenString.startsWith("\"") && tokenString.endsWith("\"");
+        if (("String".equals(type) || "java.lang.String".equals(type)) && !"null".equals(tokenString)) {
+            return (tokenString.startsWith("\"") && tokenString.endsWith("\"")) || (tokenString.indexOf("\"") != tokenString.lastIndexOf("\""));
         } else if ("byte".equals(type) || "short".equals(type) || "int".equals(type) || "long".equals(type)) {
             try { Integer.parseInt(tokenString); return true; } catch(NumberFormatException nfe) { return false; }
         } else if ("float".equals(type)) {
@@ -327,8 +327,11 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             return true;
         } else if (tokenString.contains("new ") && tokenString.contains(type)) {
             return true;
+        } else if (type.endsWith("[]")) {
+            return true;
         } else {
-            throw new IllegalArgumentException("type = " + type + ", tokenString = " + tokenString);
+            //throw new IllegalArgumentException("type = " + type + ", tokenString = " + tokenString);
+            return false;
         }
     }
 
@@ -463,6 +466,20 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitMethodInvocation(JPlus20Parser.MethodInvocationContext ctx) {
+        System.err.println("Method Invocation: " + Utils.getTokenString(ctx));
+        String methodInvocationCode = Utils.getTokenString(ctx);
+
+        JavacMethodInspector inspector = new JavacMethodInspector(this.originalText);
+        try {
+            inspector.analyze();
+            inspector.collectMethodInvocationInfo();
+            System.err.println("inspector.collectMethodInvocationInfo() called");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        JavacMethodInspector.MethodInvocationInfo methodInvocationInfo = inspector.findMethodInvocation(methodInvocationCode);
+        System.err.println("methodInvocationInfo = " + methodInvocationInfo);
+
         if (ctx.typeName() != null) {
             String instanceName = Utils.getTokenString(ctx.typeName());
             String methodName = Utils.getTokenString(ctx.identifier());
@@ -524,6 +541,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             List<String> argumentList = new ArrayList<>();
             for (JPlus20Parser.ExpressionContext expressionContext : ctx.argumentList().expression()) {
                 String argument = Utils.getTokenString(expressionContext);
+                if ("null".equals(argument)) {
+                    argument = "<nulltype>";
+                }
                 argumentList.add(argument);
             }
 
@@ -531,15 +551,21 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             List<String> methodList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Method));
             List<String> methodListWithSameArity = methodList.stream().filter(s -> s.split("_").length == arity + 1).toList();
 
+            System.err.println("MethodList = " + methodList);
+            System.err.println("methodListWithSameArity = " + methodListWithSameArity);
+
             String matchedMethod = null;
             for (String method : methodListWithSameArity) {
                 if (!method.contains(methodName)) continue;
-
+                System.err.println("method = " + method);
                 int index = method.indexOf("$_");
                 String[] paramTypes = method.substring(index + 2).split("_");
+
                 boolean matched = true;
                 for (int i = 0; i < paramTypes.length; i++) {
-                    if(!judgeType(paramTypes[i], argumentList.get(i))) {
+                    System.err.println("argumentList.get(i) = " + argumentList.get(i));
+                    System.err.println("argTypes.get(i) = " + methodInvocationInfo.argTypes.get(i));
+                    if(!paramTypes[i].equals(methodInvocationInfo.argTypes.get(i)) && !(!Utils.isJavaPrimtive(paramTypes[i]) && "<nulltype>".equals(methodInvocationInfo.argTypes.get(i)))) {
                         matched = false;
                         break;
                     }
