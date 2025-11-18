@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private final SymbolTable globalSymbolTable;
+    private JavacMethodInspector inspector;
     private SymbolTable currentSymbolTable;
     private String originalText;
     private List<Path> srcDirPathList;
@@ -68,6 +69,14 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitStart_(JPlus20Parser.Start_Context ctx) {
         this.originalText = ctx.start.getInputStream().toString();
+        this.inspector = new JavacMethodInspector(this.originalText);
+        try {
+            inspector.analyze();
+            inspector.collectMethodInvocationInfo();
+            //System.err.println("inspector.collectMethodInvocationInfo() called");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return super.visitStart_(ctx);
     }
 
@@ -136,7 +145,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             boolean hasNullableAnnotation = false;
             for (var variableModifierContext : formalParameterContext.variableModifier()) {
                 String annotation = Utils.getTokenString(variableModifierContext.annotation());
-                System.err.println("annotation = " + annotation);
+                //System.err.println("annotation = " + annotation);
                 if ("@Nullable".equals(annotation)) {
                     hasNullableAnnotation = true;
                 }
@@ -148,7 +157,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
         String methodName = Utils.getTokenString(ctx.methodHeader().methodDeclarator().identifier());
         String symbolName = "^" + methodName + "$_" + typeNameList.stream().collect(Collectors.joining("_"));
-        System.err.println("methodName = " + symbolName);
+        //System.err.println("methodName = " + symbolName);
 
         currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbolName);
         super.visitMethodDeclaration(ctx);
@@ -469,16 +478,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         System.err.println("Method Invocation: " + Utils.getTokenString(ctx));
         String methodInvocationCode = Utils.getTokenString(ctx);
 
-        JavacMethodInspector inspector = new JavacMethodInspector(this.originalText);
-        try {
-            inspector.analyze();
-            inspector.collectMethodInvocationInfo();
-            System.err.println("inspector.collectMethodInvocationInfo() called");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        JavacMethodInspector.MethodInvocationInfo methodInvocationInfo = inspector.findMethodInvocation(methodInvocationCode);
-        System.err.println("methodInvocationInfo = " + methodInvocationInfo);
+        var methodInvocationInfo = inspector.findMethodInvocation(methodInvocationCode);
+        //System.err.println("methodInvocationInfo = " + methodInvocationInfo);
 
         if (ctx.typeName() != null) {
             String instanceName = Utils.getTokenString(ctx.typeName());
@@ -495,21 +496,21 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 hasPassed = false;
             }
 
-            System.err.println("instanceName = " + instanceName);
+            //System.err.println("instanceName = " + instanceName);
             SymbolInfo symInfo = currentSymbolTable.resolve(instanceName);
-            System.err.println("symInfo = " + symInfo);
+            //System.err.println("symInfo = " + symInfo);
 
 //            if (symInfo == null) return super.visitMethodInvocation(ctx);
 
             String typeName = null;
             SymbolTable classSymbolTable = null;
             if (symInfo == null) {
-                System.err.println("instanceName = " + instanceName);
+                //System.err.println("instanceName = " + instanceName);
                 String[] tokens = instanceName.split("\\.");
 //                typeName = tokens[0];
                 for (int i = 0; i < tokens.length; i++) {
                     String token = tokens[i];
-                    System.err.println("token = " + token);
+                    //System.err.println("token = " + token);
                     BytecodeSymbolAnalyzer symbolAnalyzer = new BytecodeSymbolAnalyzer(globalSymbolTable);
                     try {
                         if (i == 0) token = "java.lang." + token;
@@ -517,13 +518,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                         else {
                             symInfo = classSymbolTable.resolveInCurrent(token);
                             typeName = symInfo.getTypeInfo().getName();
-                            System.err.println("typeName = " + typeName);
+                            //System.err.println("typeName = " + typeName);
                         }
                         classSymbolTable = symbolAnalyzer.analyzeSymbol(Path.of("/home/user/miniconda3/envs/java_dev/jmods/java.base.jmod"), typeName);
                         String className = classSymbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
                         classSymbolTable = classSymbolTable.getEnclosingSymbolTable(className);
-                        System.err.println("className = " + className);
-                        System.err.println("classSymbolTable = " + classSymbolTable);
+                        //System.err.println("className = " + className);
+                        //System.err.println("classSymbolTable = " + classSymbolTable);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -532,9 +533,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
             } else {
                 typeName = symInfo.getTypeInfo().getName();
-                System.err.println("typeName = " + typeName);
+                //System.err.println("typeName = " + typeName);
                 classSymbolTable = globalSymbolTable.resolveInCurrent(typeName).getSymbolTable();
-                System.err.println("classSymbolTable = " + classSymbolTable);
+                //System.err.println("classSymbolTable = " + classSymbolTable);
             }
 
 
@@ -551,20 +552,20 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             List<String> methodList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Method));
             List<String> methodListWithSameArity = methodList.stream().filter(s -> s.split("_").length == arity + 1).toList();
 
-            System.err.println("MethodList = " + methodList);
-            System.err.println("methodListWithSameArity = " + methodListWithSameArity);
+            //System.err.println("MethodList = " + methodList);
+            //System.err.println("methodListWithSameArity = " + methodListWithSameArity);
 
             String matchedMethod = null;
             for (String method : methodListWithSameArity) {
                 if (!method.contains(methodName)) continue;
-                System.err.println("method = " + method);
+                //System.err.println("method = " + method);
                 int index = method.indexOf("$_");
                 String[] paramTypes = method.substring(index + 2).split("_");
 
                 boolean matched = true;
                 for (int i = 0; i < paramTypes.length; i++) {
-                    System.err.println("argumentList.get(i) = " + argumentList.get(i));
-                    System.err.println("argTypes.get(i) = " + methodInvocationInfo.argTypes.get(i));
+                    //System.err.println("argumentList.get(i) = " + argumentList.get(i));
+                    //System.err.println("argTypes.get(i) = " + methodInvocationInfo.argTypes.get(i));
                     if(!paramTypes[i].equals(methodInvocationInfo.argTypes.get(i)) && !(!Utils.isJavaPrimtive(paramTypes[i]) && "<nulltype>".equals(methodInvocationInfo.argTypes.get(i)))) {
                         matched = false;
                         break;
@@ -577,16 +578,16 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 }
             }
 
-            System.err.println("matchedMethod = " + matchedMethod);
+            //System.err.println("matchedMethod = " + matchedMethod);
             if (matchedMethod != null) {
                 int index = matchedMethod.indexOf("$_");
                 String[] paramTypes = matchedMethod.substring(index + 2).split("_");
                 for (int i = 0; i < paramTypes.length; i++) {
                     String paramType = paramTypes[i];
                     String argument = argumentList.get(i);
-                    System.err.println("paramType = " + paramType);
-                    System.err.println("argument = " + argument);
-                    if (!paramType.endsWith("?") && "null".equals(argumentList.get(i))) {
+                    //System.err.println("paramType = " + paramType);
+                    //System.err.println("argument = " + argument);
+                    if (!paramType.endsWith("?") && "<nulltype>".equals(argumentList.get(i))) {
                         int line = ctx.getStart().getLine();
                         int column = ctx.getStart().getCharPositionInLine();
                         int offset = ctx.getStart().getStartIndex();

@@ -121,7 +121,7 @@ public class BytecodeSymbolAnalyzer {
     //   classes/java/lang/String.class
     // ---------------------------------------------------------
     private static List<byte[]> loadFromJMod(Path jmodPath) throws IOException {
-        System.out.println("---- loadFromJMod ----");
+//        System.out.println("---- loadFromJMod ----");
         List<byte[]> list = new ArrayList<>();
 
         try (ZipFile zip = new ZipFile(jmodPath.toFile())) {
@@ -133,7 +133,7 @@ public class BytecodeSymbolAnalyzer {
                 // .jmod 내부는 classes/~~ 경로에 class 파일 존재
                 if (entry.getName().startsWith("classes/") &&
                         entry.getName().endsWith(".class")) {
-                    System.out.println("entry = " + entry.getName());
+//                    System.out.println("entry = " + entry.getName());
                     list.add(zip.getInputStream(entry).readAllBytes());
                 }
             }
@@ -143,13 +143,13 @@ public class BytecodeSymbolAnalyzer {
     }
 
     private byte[] loadFromJMod(Path jmodPath, String fqn) throws IOException {
-        System.out.println("---- loadFromJMod ----");
-        System.out.println("fqn = " + fqn);
+//        System.out.println("---- loadFromJMod ----");
+//        System.out.println("fqn = " + fqn);
 
         List<byte[]> list = new ArrayList<>();
         try (ZipFile zip = new ZipFile(jmodPath.toFile())) {
             String entryName = "classes/" + fqn.replace(".", "/") + ".class";
-            System.out.println("entryName = " + entryName);
+//            System.out.println("entryName = " + entryName);
             
             ZipEntry entry = zip.getEntry(entryName);
             if (entry != null) {
@@ -234,8 +234,8 @@ public class BytecodeSymbolAnalyzer {
                                              String sig, String[] ex) {
 
                 final SymbolTable classSymbolTable = currentSymbolTable;
-                System.err.println("[visitMethod] name = " + name);
-                System.err.println("[visitMethod] desc = " + desc);
+//                System.err.println("[visitMethod] name = " + name);
+//                System.err.println("[visitMethod] desc = " + desc);
 
 
 
@@ -278,11 +278,10 @@ public class BytecodeSymbolAnalyzer {
                     @Override
                     public void visitEnd() {
                         if (returnNullable) {
-                            System.err.println("[Nullable Return] " + className + "." + name + " " + desc);
+                            //System.err.println("[Nullable Return] " + className + "." + name + " " + desc);
                         }
                         paramNullable.forEach((i, a) -> {
-                            System.err.println("[Nullable Param] " + className + "." + name
-                                    + " param#" + i + " " + desc);
+                            //System.err.println("[Nullable Param] " + className + "." + name + " param#" + i + " " + desc);
                         });
 
                         int paramStartIndex = 1;
@@ -305,12 +304,12 @@ public class BytecodeSymbolAnalyzer {
                         }
 
                         Arrays.asList(paramTypes).forEach(paramType -> {
-                            System.err.println("paramType = " + paramType);
+                            //System.err.println("paramType = " + paramType);
                         });
 
 
                         String methodSymbol = "^" + name + "$_" + String.join("_", paramTypes);
-                        System.err.println("[visitMethod] = " + methodSymbol);
+                        //System.err.println("[visitMethod] = " + methodSymbol);
 
                         TypeInfo typeInfo = new TypeInfo(methodSymbol, false, TypeInfo.Type.Method);
                         SymbolInfo.Builder symbolInfoBuilder = SymbolInfo.builder();
