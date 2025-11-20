@@ -55,6 +55,13 @@ public class JPlusProcessor {
         parseTree = parser.start_();
     }
 
+    public String generateJavaCodeWithoutBoilerplate() {
+        if (parseTree == null) {
+            throw new IllegalStateException("Call process() first.");
+        }
+        return parseTree.getText();
+    }
+
     public String getParseTreeString() {
         if (parseTree == null) {
             throw new IllegalStateException("Call process() first.");

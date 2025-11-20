@@ -114,4 +114,14 @@ public class JPlusSymbolTableTest {
                 "Error: (line:34, column:78) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:37, column:8) The 1st argument of the UserMethodParamAnnotation.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
+
+
+    @Test
+    void testConvertJavaWithNullableAnnotation() throws Exception {
+        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/User.jplus"));
+        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        processor.process();
+//        System.err.println(processor.getParseTreeString());
+        System.err.println(processor.generateJavaCodeWithoutBoilerplate());
+    }
 }

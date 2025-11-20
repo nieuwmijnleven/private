@@ -1,6 +1,7 @@
 package jplus.generator;
 
 import jplus.base.JPlus20Parser.ApplyDeclarationContext;
+import jplus.base.JPlus20Parser.TopLevelClassOrInterfaceDeclarationContext;
 import jplus.base.JPlus20Parser.ExpressionNameContext;
 import jplus.base.JPlus20Parser.FieldAccessContext;
 import jplus.base.JPlus20Parser.MethodInvocationContext;
@@ -35,6 +36,13 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             String replaced = Utils.getTokenString(ApplyDeclarationCtx).replaceFirst("^", "//").replaceAll("\n", "\n//");
             _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
             return null;
+        } else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
+            String topLevelClassText = processDefaultText();
+            String replaced = "import org.jspecify.annotations.Nullable;\n\n" + topLevelClassText;
+            String originalText = topLevelClassContext.start.getInputStream().toString();
+            TextChangeRange range = Utils.getTextChangeRange(originalText, topLevelClassContext);
+            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+            return replaced;
         } else if (this instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
             return replaceNullType(unannTypeCtx);
         } else if (this instanceof NullCoalescingExpressionContext nullCoalescingCtx && nullCoalescingCtx.ELVIS() != null) {
@@ -49,10 +57,37 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             return replaceNullsafeOperator(expressionNameContext);
         }
 
+        /*else if (this instanceof FieldDeclarationContext fieldDeclarationContext) {
+            String fieldDeclarationText = Utils.getTokenString(fieldDeclarationContext);
+
+            boolean hasNullableAnnotation = false;
+            if (fieldDeclarationContext.fieldModifier() != null) {
+                for (var fieldModifierContext : fieldDeclarationContext.fieldModifier()) {
+                    if (fieldModifierContext.annotation() != null) {
+                        String annotation = Utils.getTokenString(fieldModifierContext.annotation());
+                        if ("@Nullable".equals(annotation)) {
+                            hasNullableAnnotation = true;
+                        }
+                    }
+                }
+            }
+
+            if (!hasNullableAnnotation && fieldDeclarationContext.unannType().QUESTION() != null) {
+                String typeName = Utils.getTokenString(fieldDeclarationContext.unannType().unannReferenceType());
+                String originalText = this.start.getInputStream().toString();
+                TextChangeRange range = Utils.getTextChangeRange(originalText, fieldDeclarationContext);
+                String replaced = "@Nullable " + fieldDeclarationText;
+                _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+                return replaced;
+            }
+
+            return fieldDeclarationText;
+        }*/
+
         return processDefaultText();
     }
 
-    private String replaceNullType(UnannTypeContext ctx) {
+    /*private String replaceNullType(UnannTypeContext ctx) {
         String original = Utils.getTokenString(ctx);
         if (ctx.QUESTION() != null) {
             String replaced = original.substring(0, original.length()-1);
@@ -62,6 +97,18 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             return replaced;
         }
         return original;
+    }*/
+
+    private String replaceNullType(UnannTypeContext ctx) {
+        String unannTypeText = Utils.getTokenString(ctx);
+        if (ctx.QUESTION() != null) {
+            String replaced = "@Nullable " + unannTypeText.substring(0, unannTypeText.length()-1);
+            String originalText = ctx.start.getInputStream().toString();
+            TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
+            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+            return replaced;
+        }
+        return unannTypeText;
     }
 
     private String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
