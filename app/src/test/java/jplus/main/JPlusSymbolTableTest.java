@@ -1,6 +1,7 @@
 package jplus.main;
 
 import jplus.processor.JPlusProcessor;
+import jplus.processor.JavaProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,6 +123,13 @@ public class JPlusSymbolTableTest {
         processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
-        System.err.println(processor.generateJavaCodeWithoutBoilerplate());
+        String javaCode = processor.generateJavaCodeWithoutBoilerplate();
+        System.err.println(javaCode);
+
+        JavaProcessor javaProcessor = new JavaProcessor(javaCode);
+        javaProcessor.process();
+        javaProcessor.analyzeSymbols();
+
+
     }
 }
