@@ -27,6 +27,7 @@ public class JPlusProcessor {
     private JPlus20Parser parser;
     private List<Path> srcDirPathList;
     private JPlusParserRuleContext parseTree;
+    private JavaProcessor javaProcessor;
     private SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
     private boolean nullabilityChecked = false;
@@ -53,6 +54,12 @@ public class JPlusProcessor {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         parser = new JPlus20Parser(tokens);
         parseTree = parser.start_();
+
+        String javaCode = generateJavaCodeWithoutBoilerplate();
+        System.err.println("[JavaCodeWithoutBoilerplate] = " + javaCode);
+
+        javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
+        javaProcessor.process();
     }
 
     public String generateJavaCodeWithoutBoilerplate() {
@@ -74,9 +81,11 @@ public class JPlusProcessor {
             throw new IllegalStateException("Call process() first.");
         }
 
-        SymbolAnalyzer symbolAnalyzer = new SymbolAnalyzer(globalSymbolTable);
-        symbolAnalyzer.visit(parseTree);
-        symbolTable = symbolAnalyzer.getTopLevelSymbolTable();
+//        SymbolAnalyzer symbolAnalyzer = new SymbolAnalyzer(globalSymbolTable);
+//        symbolAnalyzer.visit(parseTree);
+//        symbolTable = symbolAnalyzer.getTopLevelSymbolTable();
+        javaProcessor.analyzeSymbols();
+        symbolTable = javaProcessor.getSymbolTable();
         symbolsAnalyzed = true;
     }
 
@@ -85,7 +94,7 @@ public class JPlusProcessor {
             throw new IllegalStateException("Call process() and analyzeSymbols() first.");
         }
 
-        NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable);
+        NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable, javaProcessor.getMethodInvocationManager());
         nullabilityChecker.setSrcDirPathList(srcDirPathList);
         nullabilityChecker.visit(parseTree);
         nullabilityChecked = true;

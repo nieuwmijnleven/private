@@ -31,6 +31,8 @@ class User {
         User user2 = new User("Jane Smith", null);
         User user3 = new User(null, new AddressAnnotation(null));
 
+        user2.updateAddress(null);
+
         // Null-safe access
         System.out.println(user1.getDisplayName() + "'s city: " + user1.getStreet()); // Jeroen's city: New Amsterdam
         System.out.println(user2.getDisplayName() + "'s city: " + user2.getStreet()); // Jane Smith's city: No Address

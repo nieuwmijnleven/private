@@ -9,6 +9,7 @@ import jplus.analyzer.NullabilityChecker;
 import jplus.analyzer.SymbolAnalyzer;
 import jplus.base.JPlus20Lexer;
 import jplus.base.JPlus20Parser;
+import jplus.base.JavaMethodInvocationManager;
 import jplus.base.SymbolTable;
 import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.JPlusParserRuleContext;
@@ -37,6 +38,7 @@ public class JavaProcessor {
     private final String source;
     private SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
+    private JavaSymbolAnalyzer symbolAnalyzer;
     private boolean symbolsAnalyzed = false;
 
     private JavacTask task;
@@ -47,6 +49,11 @@ public class JavaProcessor {
     public JavaProcessor(String source) {
         this.source = source;
         this.globalSymbolTable = new SymbolTable(null);
+    }
+
+    public JavaProcessor(String source, SymbolTable globalSymbolTable) {
+        this.source = source;
+        this.globalSymbolTable = globalSymbolTable;
     }
 
     public JavaProcessor(Path filePath) throws Exception {
@@ -81,22 +88,21 @@ public class JavaProcessor {
             throw new IllegalStateException("Call process() first.");
         }
 
-//        JavaSymbolAnalyzer symbolAnalyzer = new JavaSymbolAnalyzer(trees, globalSymbolTable);
-
+        symbolAnalyzer = null;
         for (CompilationUnitTree ast : asts) {
-//            System.err.println("ast = " + ast);
-            new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable).scan(ast, null);
+            symbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable);
+            symbolAnalyzer.scan(ast, null);
         }
-
-//        JavaSymbolAnalyzer symbolAnalyzer = new JavaSymbolAnalyzer(ast, trees, globalSymbolTable);
-//        symbolAnalyzer.visit(parseTree);
-//        symbolTable = symbolAnalyzer.getTopLevelSymbolTable();
-//        symbolsAnalyzed = true;
+        symbolsAnalyzed = false;
     }
 
     public SymbolTable getSymbolTable() {
-        return symbolTable;
+        return symbolAnalyzer.getTopLevelSymbolTable();
     }
 
     public SymbolTable getGlobalSymbolTable() { return globalSymbolTable; }
+
+    public JavaMethodInvocationManager getMethodInvocationManager() {
+        return symbolAnalyzer.getJavaMethodInvocationManager();
+    }
 }

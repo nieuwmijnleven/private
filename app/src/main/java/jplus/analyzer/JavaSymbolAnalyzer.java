@@ -9,12 +9,13 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.PrimitiveTypeTree;
-import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
+import jplus.base.JavaMethodInvocationManager;
+import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -37,6 +38,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private final SymbolTable globalSymbolTable;
     private final SymbolTable topLevelSymbolTable;
     private SymbolTable currentSymbolTable;
+    private JavaMethodInvocationManager javaMethodInvocationManager;
 
     public JavaSymbolAnalyzer(String source, CompilationUnitTree ast, Trees trees, SymbolTable globalSymbolTable) {
         this.source = source;
@@ -45,6 +47,19 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         this.globalSymbolTable = globalSymbolTable;
         this.topLevelSymbolTable = new SymbolTable(globalSymbolTable);
         this.currentSymbolTable = topLevelSymbolTable;
+        this.javaMethodInvocationManager = new JavaMethodInvocationManager();
+    }
+
+    public SymbolTable getGlobalSymbolTable() {
+        return globalSymbolTable;
+    }
+
+    public SymbolTable getTopLevelSymbolTable() {
+        return topLevelSymbolTable;
+    }
+
+    public JavaMethodInvocationManager getJavaMethodInvocationManager() {
+        return javaMethodInvocationManager;
     }
 
     @Override
@@ -262,8 +277,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
         int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
+        if (endPos < 0 && "constructor".equals(methodName)) {
+            endPos = startPos + 1;
+        }
         TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
-        String rangeText = node.toString();
+        String rangeText = source.substring(startPos, endPos);
 
         SymbolInfo symbolInfo = new SymbolInfo(symbolName, typeInfo, range, rangeText, modifierList);
         symbolInfo.setSymbolTable(methodSymbolTable);
@@ -342,8 +360,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
-        String methodInvocationCode = node.toString().replace("\\'", "'");
-        System.err.println("methodInvocationCode = " + methodInvocationCode);
+//        String methodInvocationCode = node.toString().replace("\\'", "'");
+        //String methodInvocationCode = node.toString();
+        //System.err.println("methodInvocationCode = " + methodInvocationCode);
 
         String instanceName = null;
         String methodName = "";
@@ -357,8 +376,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             methodName = ((IdentifierTree) methodSelect).getName().toString();
         }
 
-        System.err.println("instanceName = " + instanceName);
-        System.err.println("methodName = " + methodName);
+        //System.err.println("instanceName = " + instanceName);
+        //System.err.println("methodName = " + methodName);
 
         List<String> argStrings = new ArrayList<>();
         List<String> argTypes = new ArrayList<>();
@@ -368,8 +387,37 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             argTypes.add(argType != null ? argType.toString() : "unknown");
         }
 
+        //System.err.println("argTypes = " + argTypes);
 
+        TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
+        String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
 
+        //System.err.println("returnType = " + returnType);
+
+        int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
+        int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
+
+        if ("super".equals(methodName) && endPos < 0) {
+            endPos = startPos + 1;
+        }
+
+        TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
+        String rangeText = source.substring(startPos, endPos);
+        //System.err.println("[methodInvocation] rangeText = " + rangeText);
+
+        var methodInvocationInfoBuilder = MethodInvocationInfo.builder();
+        methodInvocationInfoBuilder.instanceName(instanceName)
+                .methodName(methodName)
+                .argTypes(argTypes)
+                .args(argStrings)
+                .returnType(returnType)
+                .source(rangeText)
+                .startPos(startPos)
+                .endPos(endPos);
+
+        javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, rangeText, methodInvocationInfoBuilder.build());
+
+        System.err.println("methodInvocationInfo = " + methodInvocationInfoBuilder.build());
 
         return super.visitMethodInvocation(node, unused);
     }

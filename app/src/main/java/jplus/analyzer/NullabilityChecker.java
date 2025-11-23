@@ -2,6 +2,7 @@ package jplus.analyzer;
 
 import jplus.base.JPlus20Parser;
 import jplus.base.JPlus20ParserBaseVisitor;
+import jplus.base.JavaMethodInvocationManager;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private final SymbolTable globalSymbolTable;
-    private JavacMethodInspector inspector;
+    private JavaMethodInvocationManager methodInvocationManager;
     private SymbolTable currentSymbolTable;
     private String originalText;
     private List<Path> srcDirPathList;
@@ -46,8 +47,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
     }
 
-    public NullabilityChecker(SymbolTable globalSymbolTable) {
+    public NullabilityChecker(SymbolTable globalSymbolTable, JavaMethodInvocationManager methodInvocationManager) {
         this.globalSymbolTable = globalSymbolTable;
+        this.methodInvocationManager = methodInvocationManager;
         this.currentSymbolTable = globalSymbolTable;
         this.srcDirPathList = new ArrayList<>();
     }
@@ -69,14 +71,6 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitStart_(JPlus20Parser.Start_Context ctx) {
         this.originalText = ctx.start.getInputStream().toString();
-        this.inspector = new JavacMethodInspector(this.originalText);
-        try {
-            inspector.analyze();
-            inspector.collectMethodInvocationInfo();
-            //System.err.println("inspector.collectMethodInvocationInfo() called");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
         return super.visitStart_(ctx);
     }
 
@@ -362,7 +356,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         var variableDeclarator = ctx.variableDeclaratorList().variableDeclarator();
         for (JPlus20Parser.VariableDeclaratorContext variableDeclaratorContext : variableDeclarator) {
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
+            System.err.println("[LocalVariable] symbol = " + symbol);
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
+            System.err.println("[LocalVariable] symbolInfo = " + symbolInfo);
+
             if (symbolInfo != null) {
                 TypeInfo typeInfo = symbolInfo.getTypeInfo();
                 if (variableDeclaratorContext.variableInitializer() != null) {
@@ -473,12 +470,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return super.visitEqualityExpression(ctx);
     }
 
-    @Override
+    /*@Override
     public Void visitMethodInvocation(JPlus20Parser.MethodInvocationContext ctx) {
         System.err.println("Method Invocation: " + Utils.getTokenString(ctx));
         String methodInvocationCode = Utils.getTokenString(ctx);
 
-        var methodInvocationInfo = inspector.findMethodInvocation(methodInvocationCode);
+//        var methodInvocationInfo = null;
         //System.err.println("methodInvocationInfo = " + methodInvocationInfo);
 
         if (ctx.typeName() != null) {
@@ -603,7 +600,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
 
         return super.visitMethodInvocation(ctx);
-    }
+    }*/
 
     @Override
     public Void visitPrimaryNoNewArray(JPlus20Parser.PrimaryNoNewArrayContext ctx) {
