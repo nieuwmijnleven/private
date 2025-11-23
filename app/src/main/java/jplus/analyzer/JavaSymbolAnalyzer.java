@@ -107,6 +107,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             return super.visitClass(node, unused);
         } finally {
             currentSymbolTable = currentSymbolTable.getParent();
+            System.err.println("[class] = " + currentSymbolTable);
+            System.err.println("[class] = " + (currentSymbolTable == topLevelSymbolTable));
         }
     }
 
@@ -160,6 +162,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitMethod(MethodTree node, Void unused) {
+        System.err.println("[visitMethod] invoked");
 //        boolean isStatic = node.getModifiers().getFlags().contains(Modifier.STATIC);
 
         if (node.getReturnType() == null) {
@@ -190,6 +193,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private Void processCallable(MethodTree node, Void unused) {
         SymbolTable methodSymbolTable = new SymbolTable(currentSymbolTable);
         List<String> typeNameList = new ArrayList<>();
+        List<String> simpleTypeNameList = new ArrayList<>();
 
         for (VariableTree param : node.getParameters()) {
             List<jplus.base.Modifier> paramModifierList = new ArrayList<>();
@@ -211,17 +215,20 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             // primitive 여부
             Tree typeTree = param.getType();
             String typeName;
+            String simpleTypeName;
             boolean isPrimitive;
 
             if (typeTree instanceof PrimitiveTypeTree) {
                 isPrimitive = true;
                 typeName = typeTree.toString(); // int, boolean 등 그대로
+                simpleTypeName = typeName;
             } else {
                 isPrimitive = false;
                 // Reference 타입: FQN 가져오기
                 TreePath typePath = TreePath.getPath(ast, typeTree);
                 TypeMirror typeMirror = trees.getTypeMirror(typePath);
 
+                simpleTypeName = param.getType().toString();
                 if (typeMirror instanceof DeclaredType dt) {
                     typeName = dt.asElement().toString();
                 } else {
@@ -234,6 +241,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             System.err.println("[method] typeName = " + typeName);
             System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
+            simpleTypeNameList.add(simpleTypeName);
 
             TypeInfo.Type type = (isPrimitive)
                     ? TypeInfo.Type.Primitive
@@ -272,6 +280,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
 
         String symbolName = "^" + methodName + "$_" + String.join("_", typeNameList);
+        String symbolNameWithSimpleTypeName = "^" + methodName + "$_" + String.join("_", simpleTypeNameList);
+        System.err.println("symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
 
         TypeInfo typeInfo = new TypeInfo(symbolName, false, type);
 
@@ -288,6 +298,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         // ---------- 현재 SymbolTable에 등록 ----------
         currentSymbolTable.declare(symbolName, symbolInfo);
+        currentSymbolTable.declare(symbolNameWithSimpleTypeName, symbolInfo);
         System.err.println("[method] currentSymbolTable = "  + currentSymbolTable);
         currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(symbolName, methodSymbolTable);
         System.err.println("[method] methodSymbolTable = "  + methodSymbolTable);
@@ -424,6 +435,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitBlock(BlockTree node, Void unused) {
+        System.err.println("[visitBlock] invoked");
         currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
         try {
             return super.visitBlock(node, unused);
