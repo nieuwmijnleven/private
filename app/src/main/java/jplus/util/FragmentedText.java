@@ -1,9 +1,12 @@
 package jplus.util;
 
+import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class FragmentedText {
     private final String original;
@@ -14,6 +17,11 @@ public class FragmentedText {
         TextChangeRange originalRange;
         String string;
         boolean rangeFixed;
+
+        int transformedStartLine;
+        int transformedStartCol;
+        int transformedEndLine;
+        int transformedEndCol;
 
         public TextFragmentNode(TextChangeRange originalRange, String string, boolean rangeFixed) {
             this.originalRange = originalRange;
@@ -101,6 +109,42 @@ public class FragmentedText {
         if (affectedRangeCount == 0) {
             throw new IllegalStateException(textChangeRange + " " + replace + " " + "No nodes were affected by the given range." + toString());
         }
+    }
+
+    public Set<SourceMappingEntry> buildSourceMap() {
+        Set<SourceMappingEntry> mapping = new HashSet<>();
+
+        int currentLine = originalTextChangeRange.startLine();
+        int currentCol = originalTextChangeRange.startIndex();
+
+        for (TextFragmentNode node : fragmentedNodeList) {
+            node.transformedStartLine = currentLine;
+            node.transformedStartCol = currentCol;
+
+            for (char c : node.string.toCharArray()) {
+                if (c == '\n') {
+                    currentLine++;
+                    currentCol = 0;
+                } else {
+                    currentCol++;
+                }
+            }
+
+            node.transformedEndLine = currentLine;
+            node.transformedEndCol = currentCol;
+
+            mapping.add(new SourceMappingEntry(
+                    node.originalRange,
+                    new TextChangeRange(
+                            node.transformedStartLine,
+                            node.transformedStartCol,
+                            node.transformedEndLine,
+                            node.transformedEndCol
+                    )
+            ));
+        }
+
+        return mapping;
     }
 
     public String debugString() {

@@ -3,21 +3,26 @@ package jplus.analyzer;
 import jplus.base.JPlus20Parser;
 import jplus.base.JPlus20ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
+import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
+import jplus.generator.SourceMappingEntry;
+import jplus.generator.TextChangeRange;
 import jplus.util.Utils;
+import org.antlr.v4.runtime.Token;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private final SymbolTable globalSymbolTable;
+    private final Set<SourceMappingEntry> sourceMappingEntrySet;
     private JavaMethodInvocationManager methodInvocationManager;
     private SymbolTable currentSymbolTable;
     private String originalText;
@@ -49,8 +54,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
     }
 
-    public NullabilityChecker(SymbolTable globalSymbolTable, JavaMethodInvocationManager methodInvocationManager) {
+    public NullabilityChecker(SymbolTable globalSymbolTable, Set<SourceMappingEntry> sourceMappingEntrySet, JavaMethodInvocationManager methodInvocationManager) {
         this.globalSymbolTable = globalSymbolTable;
+        this.sourceMappingEntrySet = sourceMappingEntrySet;
         this.methodInvocationManager = methodInvocationManager;
         this.currentSymbolTable = globalSymbolTable;
         this.srcDirPathList = new ArrayList<>();
@@ -188,12 +194,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
 
                 if (!typeInfo.isNullable() && "null".equals(expression)) {
-                    int line = ctx.getStart().getLine();
-                    int column = ctx.getStart().getCharPositionInLine();
-                    int offset = ctx.getStart().getStartIndex();
-                    String msg = symbol + " is a non-nullable variable. But null value is assigned to it.";
-                    issues.add(new NullabilityIssue(line, column, offset, msg));
-                    hasPassed = false;
+                    reportNullableAccessIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
             }
         }
@@ -488,15 +489,49 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return super.visitEqualityExpression(ctx);
     }
 
-    /*@Override
+    @Override
     public Void visitMethodInvocation(JPlus20Parser.MethodInvocationContext ctx) {
-        System.err.println("Method Invocation: " + Utils.getTokenString(ctx));
-        String methodInvocationCode = Utils.getTokenString(ctx);
+        String invocationCode = Utils.getTokenString(ctx);
+        System.err.println("[MethodInvocation] invocationCode: " + invocationCode);
+        TextChangeRange invocationCodeRange = Utils.computeTextChangeRange(this.originalText, ctx.start.getStartIndex(), ctx.stop.getStopIndex());
+        System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
-//        var methodInvocationInfo = null;
-        //System.err.println("methodInvocationInfo = " + methodInvocationInfo);
+        Optional<TextChangeRange> javaInvocationCodeRange = sourceMappingEntrySet.stream()
+                .filter(sourceMappingEntry -> invocationCodeRange.equals(sourceMappingEntry.getOriginalRange()))
+                .map(SourceMappingEntry::getTransformedRange)
+                .findFirst();
 
-        if (ctx.typeName() != null) {
+        javaInvocationCodeRange.ifPresent(range -> {
+            System.err.println("[MethodInvocation] javaInvocationCodeRange: " + range);
+            Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, range);
+            System.err.println("[MethodInvocation] = " + invocationInfo.get());
+
+            invocationInfo.ifPresent(info -> System.err.println("[MethodInvocation] = " + info));
+
+            Optional<SymbolInfo> instanceSymbolInfo = invocationInfo
+                    .flatMap(info -> Optional.ofNullable(info.instanceName))
+                    .map(name -> currentSymbolTable.resolve(name));
+
+            instanceSymbolInfo.ifPresent(symbolInfo -> {
+                TypeInfo instanceTypeInfo = symbolInfo.getTypeInfo();
+                boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
+
+                invocationInfo.ifPresent(info -> {
+                    if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
+                        String msg = "%s is a nullable variable. But it directly accesses %s(). "
+                                + "Consider using null-safe operator(?.)."
+                                .formatted(info.instanceName, info.methodName);
+                        reportNullableAccessIssue(ctx.start, msg);
+                    }
+                });
+            });
+        });
+
+
+
+
+
+        /*if (ctx.typeName() != null) {
             String instanceName = Utils.getTokenString(ctx.typeName());
             String methodName = Utils.getTokenString(ctx.identifier());
             boolean nullsafe = ctx.NULLSAFE() != null;
@@ -615,10 +650,18 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                     }
                 }
             }
-        }
+        }*/
 
         return super.visitMethodInvocation(ctx);
-    }*/
+    }
+
+    private void reportNullableAccessIssue(Token ctx, String msg) {
+        int line = ctx.getLine();
+        int column = ctx.getCharPositionInLine();
+        int offset = ctx.getStartIndex();
+        issues.add(new NullabilityIssue(line, column, offset, msg));
+        hasPassed = false;
+    }
 
     @Override
     public Void visitPrimaryNoNewArray(JPlus20Parser.PrimaryNoNewArrayContext ctx) {

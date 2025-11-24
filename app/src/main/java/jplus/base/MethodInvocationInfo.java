@@ -11,10 +11,10 @@ public class MethodInvocationInfo {
     public final List<String> argTypes;
     public final String returnType;
     public final String source;
-    public final long startPos;
-    public final long endPos;    
+    public final int startPos;
+    public final int endPos;
 
-    public MethodInvocationInfo(String instanceName, String methodName, List<String> args, List<String> argTypes, String returnType, String source, long startPos, long endPos) {
+    public MethodInvocationInfo(String instanceName, String methodName, List<String> args, List<String> argTypes, String returnType, String source, int startPos, int endPos) {
         this.instanceName = instanceName;
         this.methodName = methodName;
         this.args = args;
@@ -32,8 +32,8 @@ public class MethodInvocationInfo {
         private List<String> argTypes;
         private String returnType;
         private String source;
-        private long startPos;
-        private long endPos;
+        private int startPos;
+        private int endPos;
     
         public Builder instanceName(String instanceName) {
             this.instanceName = instanceName;
@@ -65,12 +65,12 @@ public class MethodInvocationInfo {
             return this;
         }
     
-        public Builder startPos(long startPos) {
+        public Builder startPos(int startPos) {
             this.startPos = startPos;
             return this;
         }
     
-        public Builder endPos(long endPos) {
+        public Builder endPos(int endPos) {
             this.endPos = endPos;
             return this;
         }

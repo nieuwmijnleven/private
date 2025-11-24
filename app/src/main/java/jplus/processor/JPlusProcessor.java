@@ -6,7 +6,9 @@ import jplus.base.JPlus20Lexer;
 import jplus.base.JPlus20Parser;
 import jplus.base.SymbolTable;
 import jplus.generator.BoilerplateCodeGenerator;
+import jplus.generator.CodeGenContext;
 import jplus.generator.JPlusParserRuleContext;
+import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.FragmentedText;
 import jplus.util.Utils;
@@ -19,12 +21,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class JPlusProcessor {
 
     private final String originalText;
     private final TextChangeRange originalTextRange;
     private JPlus20Parser parser;
+    private Set<SourceMappingEntry> sourceMappingEntrySet;
     private List<Path> srcDirPathList;
     private JPlusParserRuleContext parseTree;
     private JavaProcessor javaProcessor;
@@ -57,6 +61,9 @@ public class JPlusProcessor {
 
         String javaCode = generateJavaCodeWithoutBoilerplate();
         System.err.println("[JavaCodeWithoutBoilerplate] = " + javaCode);
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        sourceMappingEntrySet = codeGenContext.getSourceMapping();
+        System.err.println("sourceMappingEntrySet = " + sourceMappingEntrySet);
 
         javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
         javaProcessor.process();
@@ -94,7 +101,7 @@ public class JPlusProcessor {
             throw new IllegalStateException("Call process() and analyzeSymbols() first.");
         }
 
-        NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable, javaProcessor.getMethodInvocationManager());
+        NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable, sourceMappingEntrySet, javaProcessor.getMethodInvocationManager());
         nullabilityChecker.setSrcDirPathList(srcDirPathList);
         nullabilityChecker.visit(parseTree);
         nullabilityChecked = true;

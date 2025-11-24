@@ -12,7 +12,9 @@ import jplus.util.FragmentedText;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -167,6 +169,10 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         TextChangeRange range = Utils.getTextChangeRange(originalText, this);
         FragmentedText fragmentedText = new FragmentedText(range, contextString);
         textChangeRangeStringMap.forEach(fragmentedText::update);
+
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        codeGenContext.addSourceMappingEntrySet(fragmentedText.buildSourceMap());
+
         _getParent().ifPresent(parent -> parent.addTextChangeRange(range, fragmentedText.toString()));
         return fragmentedText.toString();
     }

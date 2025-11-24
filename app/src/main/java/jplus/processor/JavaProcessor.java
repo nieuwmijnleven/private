@@ -10,6 +10,7 @@ import jplus.analyzer.SymbolAnalyzer;
 import jplus.base.JPlus20Lexer;
 import jplus.base.JPlus20Parser;
 import jplus.base.JavaMethodInvocationManager;
+import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolTable;
 import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.JPlusParserRuleContext;
@@ -44,7 +45,7 @@ public class JavaProcessor {
     private JavacTask task;
     private Iterable<? extends CompilationUnitTree> asts;
     private Trees trees;
-    private Map<String, JavacMethodInspector.MethodInvocationInfo> methodInvocationInfoMap;
+    private Map<String, MethodInvocationInfo> methodInvocationInfoMap;
 
     public JavaProcessor(String source) {
         this.source = source;

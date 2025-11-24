@@ -47,7 +47,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         this.globalSymbolTable = globalSymbolTable;
         this.topLevelSymbolTable = new SymbolTable(globalSymbolTable);
         this.currentSymbolTable = topLevelSymbolTable;
-        this.javaMethodInvocationManager = new JavaMethodInvocationManager();
+        this.javaMethodInvocationManager = new JavaMethodInvocationManager(source);
     }
 
     public SymbolTable getGlobalSymbolTable() {
