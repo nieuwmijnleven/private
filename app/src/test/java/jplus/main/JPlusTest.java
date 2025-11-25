@@ -262,7 +262,7 @@ class JPlusTest {
         }
 
         String generatedJavaCode = processor.generateJavaCode();
-//        System.err.println(generatedJavaCode);
+        System.err.println("[BoilerplateCodeGeneration] = " + generatedJavaCode);
         processor = new JPlusProcessor(generatedJavaCode);
         processor.process();
 

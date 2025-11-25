@@ -4,6 +4,10 @@ import java.util.Objects;
 
 public record TextChangeRange(int startLine, int startIndex, int endLine, int inclusiveEndIndex) {
 
+    public static TextChangeRange copyFrom(final TextChangeRange range) {
+        return new TextChangeRange(range.startLine, range.startIndex, range.endLine, range.inclusiveEndIndex);
+    }
+
     public boolean contains(TextChangeRange other) {
         return this.startLine() <= other.startLine()
                 && this.endLine() >= other.endLine()

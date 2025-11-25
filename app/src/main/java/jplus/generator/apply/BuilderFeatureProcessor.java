@@ -3,6 +3,7 @@ package jplus.generator.apply;
 import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
+import jplus.util.CodeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +42,11 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
                 continue;
             }
 
-            fieldDeclarations.add(indentation + "private " + typeInfo.getName() + " " + fieldName + ";");
-            methodDeclarations.add(indentation + "public Builder " + fieldName + "(" + typeInfo.getName() + " " + fieldName + ") {\n" +
+            String typeName = typeInfo.getName();
+            String simpleTypeName = CodeUtils.getSimpleName(typeName);
+
+            fieldDeclarations.add(indentation + "private " + simpleTypeName + " " + fieldName + ";");
+            methodDeclarations.add(indentation + "public Builder " + fieldName + "(" + simpleTypeName + " " + fieldName + ") {\n" +
                     doubleIndentation + "this." + fieldName + " = " + fieldName + ";\n" +
                     doubleIndentation + "return this;\n" +
                     indentation + "}"

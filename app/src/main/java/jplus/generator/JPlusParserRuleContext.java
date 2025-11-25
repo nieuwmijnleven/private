@@ -1,5 +1,6 @@
 package jplus.generator;
 
+import jplus.base.JPlus20Parser;
 import jplus.base.JPlus20Parser.ApplyDeclarationContext;
 import jplus.base.JPlus20Parser.TopLevelClassOrInterfaceDeclarationContext;
 import jplus.base.JPlus20Parser.ExpressionNameContext;
@@ -36,16 +37,17 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             String originalText = ApplyDeclarationCtx.start.getInputStream().toString();
             TextChangeRange range = Utils.getTextChangeRange(originalText, ApplyDeclarationCtx);
             String replaced = Utils.getTokenString(ApplyDeclarationCtx).replaceFirst("^", "//").replaceAll("\n", "\n//");
-            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+//            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+            updateFragmentedText(range, replaced);
             return null;
-        } else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
+        } /*else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
             String topLevelClassText = processDefaultText();
             String replaced = "import org.jspecify.annotations.Nullable;\n\n" + topLevelClassText;
             String originalText = topLevelClassContext.start.getInputStream().toString();
             TextChangeRange range = Utils.getTextChangeRange(originalText, topLevelClassContext);
             _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
             return replaced;
-        } else if (this instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
+        }*/ else if (this instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
             return replaceNullType(unannTypeCtx);
         } else if (this instanceof NullCoalescingExpressionContext nullCoalescingCtx && nullCoalescingCtx.ELVIS() != null) {
             return replaceElvisOperator(nullCoalescingCtx);
@@ -89,6 +91,12 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return processDefaultText();
     }
 
+    private void updateFragmentedText(TextChangeRange range, String replaced) {
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+        fragmentedText.update(range, replaced);
+    }
+
     /*private String replaceNullType(UnannTypeContext ctx) {
         String original = Utils.getTokenString(ctx);
         if (ctx.QUESTION() != null) {
@@ -107,7 +115,8 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             String replaced = "@Nullable " + unannTypeText.substring(0, unannTypeText.length()-1);
             String originalText = ctx.start.getInputStream().toString();
             TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
-            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+//            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+            updateFragmentedText(range, replaced);
             return replaced;
         }
         return unannTypeText;
@@ -131,8 +140,8 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
         String originalText = ctx.start.getInputStream().toString();
         TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
-        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-
+//        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+        updateFragmentedText(range, replaced);
         return replaced;
     }
 
@@ -148,38 +157,48 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
         String originalText = this.start.getInputStream().toString();
         TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
-        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+        //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+        updateFragmentedText(range, replaced);
 
         return replaced;
     }
 
     private String processDefaultText() {
-        String contextString = Utils.getTokenString(this);
+//        String contextString = Utils.getTokenString(this);
 
         // force children to compute text and update map if needed
         for (int i = 0; i < getChildCount(); i++) {
             getChild(i).getText();
         }
 
-        if (textChangeRangeStringMap.isEmpty()) {
-            return contextString;
+//        if (textChangeRangeStringMap.isEmpty()) {
+//            return contextString;
+//        }
+
+//        String originalText = this.start.getInputStream().toString();
+//        TextChangeRange range = Utils.getTextChangeRange(originalText, this);
+//        FragmentedText fragmentedText = new FragmentedText(range, contextString);
+//        CodeGenContext codeGenContext = CodeGenContext.current();
+//        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+//        textChangeRangeStringMap.forEach(fragmentedText::update);
+
+//        CodeGenContext codeGenContext = CodeGenContext.current();
+//        codeGenContext.addSourceMappingEntrySet(fragmentedText.buildSourceMap());
+
+//        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, fragmentedText.toString()));
+
+        if (this instanceof JPlus20Parser.Start_Context startCtx) {
+            CodeGenContext codeGenContext = CodeGenContext.current();
+            FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+            return fragmentedText.toString();
+        } else {
+            return null;
         }
-
-        String originalText = this.start.getInputStream().toString();
-        TextChangeRange range = Utils.getTextChangeRange(originalText, this);
-        FragmentedText fragmentedText = new FragmentedText(range, contextString);
-        textChangeRangeStringMap.forEach(fragmentedText::update);
-
-        CodeGenContext codeGenContext = CodeGenContext.current();
-        codeGenContext.addSourceMappingEntrySet(fragmentedText.buildSourceMap());
-
-        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, fragmentedText.toString()));
-        return fragmentedText.toString();
     }
 
-    public void addTextChangeRange(TextChangeRange range, String replaced) {
-        this.textChangeRangeStringMap.put(range, replaced);
-    }
+//    public void addTextChangeRange(TextChangeRange range, String replaced) {
+//        this.textChangeRangeStringMap.put(range, replaced);
+//    }
 
     public String getFlattenedText() {
         return super.getText();

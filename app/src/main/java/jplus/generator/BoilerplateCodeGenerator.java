@@ -121,13 +121,16 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
 
             SymbolTable enclosingSymbolTable = symbolTable;
             for (int i = 0; i < classNames.length - 1; ++i) {
-                if (symbolTable.resolve(classNames[i]) == null) {
+                if (enclosingSymbolTable.resolve(classNames[i]) == null) {
                     throw new IllegalStateException(classNames[i] + " is not found in SymbolTable");
                 }
                 enclosingSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(classNames[i]);
             }
 
+            System.err.println("targetClass = " + targetClass);
+            System.err.println("enclosingSymbolTable = " + enclosingSymbolTable);
             SymbolInfo symbolInfo = enclosingSymbolTable.resolve(targetClass);
+            System.err.println("SymbolInfo = " + symbolInfo);
             TextChangeRange range = symbolInfo.getRange();
             String classText = symbolInfo.getOriginalText();
             TextChangeRange methodRange = new TextChangeRange(

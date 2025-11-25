@@ -20,11 +20,14 @@ import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.TextChangeRange;
+import jplus.util.CodeUtils;
+import jplus.util.ConstructorUtils;
 import jplus.util.Utils;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
@@ -68,6 +71,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         Element element = trees.getElement(classPath);
         TypeMirror typeMirror = trees.getTypeMirror(classPath);
         String typeName = typeMirror.toString();
+        String simpleTypeName = node.getSimpleName().toString();
 
         TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
         typeInfoBuilder.name(typeName)
@@ -79,7 +83,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
 
         SymbolInfo classSymbolInfo = SymbolInfo.builder()
-                .symbol(typeName)
+                .symbol(simpleTypeName)
                 .typeInfo(typeInfoBuilder.build())
                 .symbolTable(currentSymbolTable)
                 .originalText(source.substring(startPos, endPos))
@@ -90,9 +94,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             currentSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
         }
 
-        currentSymbolTable.declare(typeName, classSymbolInfo);
+        currentSymbolTable.declare(simpleTypeName, classSymbolInfo);
         globalSymbolTable.declare(typeName, classSymbolInfo);
-        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(typeName, new SymbolTable(currentSymbolTable));
+        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(simpleTypeName, new SymbolTable(currentSymbolTable));
 
         for (Tree member : node.getMembers()) {
             if (member instanceof VariableTree var) {
@@ -275,6 +279,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         String methodName = node.getName().toString();
         TypeInfo.Type type = TypeInfo.Type.Method;
         if (methodName.equals("<init>")) {
+            if (!ConstructorUtils.isExplicitConstructor(node, trees, getCurrentPath())) {
+                return super.visitMethod(node, unused);
+            }
             methodName = "constructor";
             type = TypeInfo.Type.Constructor;
         }
@@ -402,8 +409,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
         String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
+//        String simpleReturnType = CodeUtils.getSimpleReturnTypeName(returnTypeMirror);
 
-        //System.err.println("returnType = " + returnType);
+//        System.err.println("returnType = " + returnType);
+//        System.err.println("simpleReturnType = " + simpleReturnType);
 
         int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
         int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);

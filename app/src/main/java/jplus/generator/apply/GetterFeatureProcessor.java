@@ -3,6 +3,7 @@ package jplus.generator.apply;
 import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
+import jplus.util.CodeUtils;
 import jplus.util.Utils;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class GetterFeatureProcessor implements ApplyFeatureProcessor {
             SymbolInfo symbolInfo = context.getClassSymbolTable().resolve(fieldName);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
             String typeName = typeInfo.getName();
+            String simpleTypeName = CodeUtils.getSimpleName(typeName);
 
             List<Modifier> excludedModifiers = List.of(Modifier.STATIC);
             if (symbolInfo.getModifierList().stream().anyMatch(modifier -> excludedModifiers.contains(modifier))) {
@@ -30,7 +32,7 @@ public class GetterFeatureProcessor implements ApplyFeatureProcessor {
 
             StringBuilder methodPartText = new StringBuilder();
             methodPartText.append("\n");
-            methodPartText.append("public ").append(typeName).append(" ").append(methodName).append("() {\n");
+            methodPartText.append("public ").append(simpleTypeName).append(" ").append(methodName).append("() {\n");
             methodPartText.append(context.getIndentation()).append("return ").append(fieldName).append(";\n");
             methodPartText.append("}\n");
 

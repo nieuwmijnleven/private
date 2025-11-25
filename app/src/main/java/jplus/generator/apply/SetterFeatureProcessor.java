@@ -4,6 +4,7 @@ import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
+import jplus.util.CodeUtils;
 import jplus.util.Utils;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class SetterFeatureProcessor implements ApplyFeatureProcessor {
             SymbolInfo symbolInfo = classSymbolTable.resolve(fieldName);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
             String typeName = typeInfo.getName();
+            String simpleTypeName = CodeUtils.getSimpleName(typeName);
 
             List<Modifier> excludedModifiers = List.of(Modifier.FINAL, Modifier.STATIC);
             if (symbolInfo.getModifierList().stream().anyMatch(modifier -> excludedModifiers.contains(modifier))) {
@@ -33,7 +35,7 @@ public class SetterFeatureProcessor implements ApplyFeatureProcessor {
 
             StringBuffer methodPartText = new StringBuffer();
             methodPartText.append("\n");
-            methodPartText.append("public ").append("void").append(" ").append(methodName).append("(").append(typeName).append(" ").append(fieldName).append(")").append(" {\n");
+            methodPartText.append("public ").append("void").append(" ").append(methodName).append("(").append(simpleTypeName).append(" ").append(fieldName).append(")").append(" {\n");
             methodPartText.append(context.getIndentation()).append("this.").append(fieldName).append(" = ").append(fieldName).append(";\n").append("}\n");
 
             context.appendMethodPartText(methodPartText.toString());

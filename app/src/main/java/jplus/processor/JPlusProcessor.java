@@ -61,9 +61,9 @@ public class JPlusProcessor {
 
         String javaCode = generateJavaCodeWithoutBoilerplate();
         System.err.println("[JavaCodeWithoutBoilerplate] = " + javaCode);
-        CodeGenContext codeGenContext = CodeGenContext.current();
-        sourceMappingEntrySet = codeGenContext.getSourceMapping();
-        System.err.println("sourceMappingEntrySet = " + sourceMappingEntrySet);
+//        CodeGenContext codeGenContext = CodeGenContext.current();
+//        sourceMappingEntrySet = codeGenContext.getSourceMapping();
+//        System.err.println("sourceMappingEntrySet = " + sourceMappingEntrySet);
 
         javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
         javaProcessor.process();
@@ -73,6 +73,8 @@ public class JPlusProcessor {
         if (parseTree == null) {
             throw new IllegalStateException("Call process() first.");
         }
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        codeGenContext.setFragmentedText(new FragmentedText(originalText));
         return parseTree.getText();
     }
 
@@ -116,16 +118,20 @@ public class JPlusProcessor {
         String generated = parseTree.getText();
         int startIndex = parseTree.start.getStartIndex();
         int stopIndex = parseTree.stop.getStopIndex();
-        TextChangeRange generatedRange = Utils.computeTextChangeRange(originalText, startIndex, stopIndex);
-        FragmentedText fragmentedText = new FragmentedText(generatedRange, generated);
+
+        String startWhiteSpace = originalText.substring(0, startIndex);
+        String fullyGenerated = startWhiteSpace + generated;
+
+//        TextChangeRange generatedRange = Utils.computeTextChangeRange(originalText, startIndex, stopIndex);
+        FragmentedText fragmentedText = new FragmentedText(fullyGenerated);
 
         BoilerplateCodeGenerator generator = new BoilerplateCodeGenerator(symbolTable, fragmentedText);
         generator.visit(parseTree);
-        String javaCode = generator.generate();
-
-        FragmentedText fragmentedTextForOriginalText = new FragmentedText(originalTextRange, originalText);
-        fragmentedTextForOriginalText.update(generatedRange, javaCode);
-        return fragmentedTextForOriginalText.toString();
+//
+//        FragmentedText fragmentedTextForOriginalText = new FragmentedText(originalTextRange, originalText);
+//        fragmentedTextForOriginalText.update(generatedRange, javaCode);
+//        return fragmentedTextForOriginalText.toString();
+        return generator.generate();
     }
 
     public String compile() {

@@ -91,25 +91,31 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitTopLevelClassOrInterfaceDeclaration(JPlus20Parser.TopLevelClassOrInterfaceDeclarationContext ctx) {
-        if (ctx.classDeclaration() != null) {
-            String className = this.packageName + "." + Utils.getTokenString(ctx.classDeclaration().normalClassDeclaration().typeIdentifier());
-            System.err.println("className = " + className);
-            Optional<SymbolInfo> classSymbolInfo = Optional.ofNullable(globalSymbolTable.resolveInCurrent(className));
-            currentSymbolTable = classSymbolInfo.orElseThrow(() -> new IllegalStateException()).getSymbolTable();
-            System.err.println("[NullabilityChecker][TopLevelClass] currentSymbolTable = " + currentSymbolTable);
-        } else if (ctx.interfaceDeclaration() != null) {
-
+        String className = Utils.getTokenString(ctx.classDeclaration().normalClassDeclaration().typeIdentifier());
+        if (this.packageName != null) {
+            className = this.packageName + "." + className;
         }
+        System.err.println("className = " + className);
+
+        SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(className);
+        if (classSymbolInfo == null) {
+            throw new IllegalStateException("Symbol not found: " + className);
+        }
+        currentSymbolTable = classSymbolInfo.getSymbolTable();
+
         return super.visitTopLevelClassOrInterfaceDeclaration(ctx);
     }
 
     @Override
     public Void visitClassDeclaration(JPlus20Parser.ClassDeclarationContext ctx) {
         if (ctx.normalClassDeclaration() != null) {
-            String className = this.packageName + "." + Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
+            String className = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
+            if (this.packageName != null) {
+                className = this.packageName + "." + className;
+            }
             System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
-            currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(className);
             System.err.println("[NullabilityChecker][ClassDecl] currentSymbolTable = " + currentSymbolTable);
+            currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(className);
         } else if (ctx.enumDeclaration() != null) {
 
         } else if (ctx.recordDeclaration() != null) {
@@ -188,6 +194,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         for (var variableDeclaratorContext : ctx.variableDeclaratorList().variableDeclarator()) {
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
+            System.err.println("[NullabilityChecker][FieldDecl] currentSymbolTable = " + currentSymbolTable);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
             if (variableDeclaratorContext.variableInitializer() != null) {
