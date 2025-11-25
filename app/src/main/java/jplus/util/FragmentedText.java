@@ -6,12 +6,14 @@ import jplus.generator.TextChangeRange;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class FragmentedText {
     private final String original;
     private final TextChangeRange originalTextChangeRange;
     private final List<TextFragmentNode> fragmentedNodeList;
+    private final List<TextFragmentNode> unchangedRangeList;
 
     static class TextFragmentNode {
         TextChangeRange originalRange;
@@ -54,10 +56,39 @@ public class FragmentedText {
         this.originalTextChangeRange = range;
         this.fragmentedNodeList = new LinkedList<>();
         this.fragmentedNodeList.add(new TextFragmentNode(range, original, false, null));
+        this.unchangedRangeList = new LinkedList<>();
     }
 
     public FragmentedText(String original) {
         this(Utils.computeTextChangeRange(original, 0, original.length()-1), original);
+    }
+
+    public String getOriginalText() {
+        return this.original;
+    }
+
+    public Optional<String> findFragmentedText(TextChangeRange range) {
+        System.err.println("[findFragmentedText] range = " + range);
+        for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
+            System.err.println("[findFragmentedText] originalRange = " + textFragmentNode.originalRange);
+            if (range.equals(textFragmentNode.originalRange)) {
+                return Optional.of(textFragmentNode.string);
+            }
+
+            TextFragmentNode prior = textFragmentNode.prior;
+            while (prior != null) {
+                System.err.println("[findFragmentedText] prior = " + prior.originalRange);
+                if (range.equals(prior.originalRange)) {
+                    return Optional.of(prior.string);
+                }
+                prior = prior.prior;
+            }
+        }
+        return Optional.empty();
+    }
+
+    public void add(TextChangeRange textChangeRange, String string) {
+        this.unchangedRangeList.add(new TextFragmentNode(textChangeRange, string, true, null));
     }
 
     public void update(TextChangeRange textChangeRange, String replace) {
@@ -124,6 +155,49 @@ public class FragmentedText {
         }
     }
 
+    private SourceMappingEntry buildSourceMapForPrior(TextFragmentNode prior, SourceMappingEntry entry) {
+        //skip
+        int skipOffset = entry.getSource().indexOf(prior.string);
+        if (skipOffset == -1) {
+            throw new IllegalStateException("The recent change must contain the prior chages.");
+        }
+
+        int currentLine = entry.getTransformedRange().startLine();
+        int currentCol = entry.getTransformedRange().startIndex();
+
+        char[] charArray = entry.getSource().toCharArray();
+        for (int offset = 0; offset < skipOffset; ++offset) {
+            char c = charArray[offset];
+            if (c == '\n') {
+                currentLine++;
+                currentCol = 0;
+            } else {
+                currentCol++;
+            }
+        }
+
+        //calculate text range
+        int startLine = currentLine;
+        int startCol = currentCol;
+        int endLine = startLine;
+        int endCol = startCol;
+
+        for (char c : prior.string.toCharArray()) {
+            if (c == '\n') {
+                currentLine++;
+                currentCol = 0;
+            } else {
+                currentCol++;
+            }
+        }
+
+        endLine = currentLine;
+        endCol = currentCol;
+
+        TextChangeRange newRange = new TextChangeRange(startLine, startCol, endLine, endCol);
+        return new SourceMappingEntry(prior.string, prior.originalRange, newRange);
+    }
+
     public Set<SourceMappingEntry> buildSourceMap() {
         Set<SourceMappingEntry> mapping = new HashSet<>();
 
@@ -146,15 +220,35 @@ public class FragmentedText {
             node.transformedEndLine = currentLine;
             node.transformedEndCol = currentCol;
 
-            mapping.add(new SourceMappingEntry(
-                    node.originalRange,
-                    new TextChangeRange(
-                            node.transformedStartLine,
-                            node.transformedStartCol,
-                            node.transformedEndLine,
-                            node.transformedEndCol
-                    )
-            ));
+            SourceMappingEntry entry = new SourceMappingEntry(
+                                            node.string,
+                                            node.originalRange,
+                                            new TextChangeRange(
+                                                node.transformedStartLine,
+                                                node.transformedStartCol,
+                                                node.transformedEndLine,
+                                                node.transformedEndCol
+                                            ));
+
+            mapping.add(entry);
+
+            TextFragmentNode prior = node.prior;
+            while(prior != null) {
+                if (prior.prior != null) mapping.add(buildSourceMapForPrior(prior, entry));
+                prior = prior.prior;
+            }
+
+            for (TextFragmentNode unchangedNode : unchangedRangeList) {
+                if (node.originalRange.equals(unchangedNode.originalRange)) {
+                    System.err.println("node = " + node.string);
+                    System.err.println("unchanged = " + unchangedNode.string);
+                    mapping.add(entry);
+                } else if (node.originalRange.contains(unchangedNode.originalRange)) {
+                    System.err.println("node = " + node.string);
+                    System.err.println("unchanged = " + unchangedNode.string);
+                    mapping.add(buildSourceMapForPrior(unchangedNode, entry));
+                }
+            }
         }
 
         return mapping;

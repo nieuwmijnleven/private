@@ -1,12 +1,22 @@
 package jplus.generator;
 
 public class SourceMappingEntry {
+    private String source;
     private TextChangeRange originalRange;
     private TextChangeRange transformedRange;
 
-    public SourceMappingEntry(TextChangeRange originalRange, TextChangeRange transformedRange) {
+    public SourceMappingEntry(String source, TextChangeRange originalRange, TextChangeRange transformedRange) {
+        this.source = source;
         this.originalRange = originalRange;
         this.transformedRange = transformedRange;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public TextChangeRange getOriginalRange() {

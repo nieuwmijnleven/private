@@ -110,9 +110,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     public Void visitClassDeclaration(JPlus20Parser.ClassDeclarationContext ctx) {
         if (ctx.normalClassDeclaration() != null) {
             String className = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
-            if (this.packageName != null) {
-                className = this.packageName + "." + className;
-            }
+//            if (this.packageName != null) {
+//                className = this.packageName + "." + className;
+//            }
             System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
             System.err.println("[NullabilityChecker][ClassDecl] currentSymbolTable = " + currentSymbolTable);
             currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(className);
@@ -178,6 +178,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         String methodName = Utils.getTokenString(ctx.methodHeader().methodDeclarator().identifier());
         String symbolName = "^" + methodName + "$_" + typeNameList.stream().collect(Collectors.joining("_"));
         System.err.println("[MethodDecl] methodName = " + symbolName);
+        System.err.println("[MethodDecl] currentSymbolTable = " + currentSymbolTable);
 
         Optional<SymbolInfo> methodSymbolInfo = Optional.ofNullable(currentSymbolTable.resolveInCurrent(symbolName));
         String fqnSymbolName = methodSymbolInfo.orElseThrow(() -> new IllegalStateException()).getSymbol();
@@ -504,6 +505,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
         Optional<TextChangeRange> javaInvocationCodeRange = sourceMappingEntrySet.stream()
+                .peek(sourceMappingEntry -> System.err.println("originalRange = " + sourceMappingEntry.getOriginalRange()))
                 .filter(sourceMappingEntry -> invocationCodeRange.equals(sourceMappingEntry.getOriginalRange()))
                 .map(SourceMappingEntry::getTransformedRange)
                 .findFirst();
@@ -525,8 +527,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
                 invocationInfo.ifPresent(info -> {
                     if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
-                        String msg = "%s is a nullable variable. But it directly accesses %s(). "
-                                + "Consider using null-safe operator(?.)."
+                        String msg = ("%s is a nullable variable. But it directly accesses %s(). "
+                                + "Consider using null-safe operator(?.).")
                                 .formatted(info.instanceName, info.methodName);
                         reportNullableAccessIssue(ctx.start, msg);
                     }

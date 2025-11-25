@@ -61,8 +61,8 @@ public class JPlusProcessor {
 
         String javaCode = generateJavaCodeWithoutBoilerplate();
         System.err.println("[JavaCodeWithoutBoilerplate] = " + javaCode);
-//        CodeGenContext codeGenContext = CodeGenContext.current();
-//        sourceMappingEntrySet = codeGenContext.getSourceMapping();
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        sourceMappingEntrySet = codeGenContext.getFragmentedText().buildSourceMap();
 //        System.err.println("sourceMappingEntrySet = " + sourceMappingEntrySet);
 
         javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);

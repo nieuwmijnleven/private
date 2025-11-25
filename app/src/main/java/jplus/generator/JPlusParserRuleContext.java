@@ -40,14 +40,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 //            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
             updateFragmentedText(range, replaced);
             return null;
-        } /*else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
-            String topLevelClassText = processDefaultText();
-            String replaced = "import org.jspecify.annotations.Nullable;\n\n" + topLevelClassText;
-            String originalText = topLevelClassContext.start.getInputStream().toString();
-            TextChangeRange range = Utils.getTextChangeRange(originalText, topLevelClassContext);
-            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-            return replaced;
-        }*/ else if (this instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
+        } else if (this instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
             return replaceNullType(unannTypeCtx);
         } else if (this instanceof NullCoalescingExpressionContext nullCoalescingCtx && nullCoalescingCtx.ELVIS() != null) {
             return replaceElvisOperator(nullCoalescingCtx);
@@ -112,7 +105,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     private String replaceNullType(UnannTypeContext ctx) {
         String unannTypeText = Utils.getTokenString(ctx);
         if (ctx.QUESTION() != null) {
-            String replaced = "@Nullable " + unannTypeText.substring(0, unannTypeText.length()-1);
+            String replaced = "@org.jspecify.annotations.Nullable " + unannTypeText.substring(0, unannTypeText.length()-1);
             String originalText = ctx.start.getInputStream().toString();
             TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
 //            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
@@ -164,7 +157,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String processDefaultText() {
-//        String contextString = Utils.getTokenString(this);
+        String contextString = Utils.getTokenString(this);
 
         // force children to compute text and update map if needed
         for (int i = 0; i < getChildCount(); i++) {
@@ -176,10 +169,12 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 //        }
 
 //        String originalText = this.start.getInputStream().toString();
-//        TextChangeRange range = Utils.getTextChangeRange(originalText, this);
 //        FragmentedText fragmentedText = new FragmentedText(range, contextString);
-//        CodeGenContext codeGenContext = CodeGenContext.current();
-//        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+        TextChangeRange range = Utils.getTextChangeRange(fragmentedText.getOriginalText(), this);
+        fragmentedText.add(range, contextString);
+
 //        textChangeRangeStringMap.forEach(fragmentedText::update);
 
 //        CodeGenContext codeGenContext = CodeGenContext.current();
@@ -188,12 +183,26 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 //        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, fragmentedText.toString()));
 
         if (this instanceof JPlus20Parser.Start_Context startCtx) {
+//            CodeGenContext codeGenContext = CodeGenContext.current();
+//            FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+            return fragmentedText.toString();
+        } /*else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
+            int startIndex = topLevelClassContext.start.getStartIndex();
+            int stopIndex = topLevelClassContext.stop.getStopIndex();
             CodeGenContext codeGenContext = CodeGenContext.current();
             FragmentedText fragmentedText = codeGenContext.getFragmentedText();
-            return fragmentedText.toString();
-        } else {
-            return null;
-        }
+            TextChangeRange range = Utils.computeTextChangeRange(fragmentedText.getOriginalText(), startIndex, stopIndex);
+            String topLevelClassText = fragmentedText.findFragmentedText(range).orElseThrow();
+            System.err.println("[topLevelClassContext] topLevelClassText = " + topLevelClassText);
+            String replaced = "import org.jspecify.annotations.Nullable;\n\n" + topLevelClassText;
+            String originalText = topLevelClassContext.start.getInputStream().toString();
+            range = Utils.getTextChangeRange(originalText, topLevelClassContext);
+//            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+//            return replaced;
+            updateFragmentedText(range, replaced);
+        }*/
+
+        return null;
     }
 
 //    public void addTextChangeRange(TextChangeRange range, String replaced) {
