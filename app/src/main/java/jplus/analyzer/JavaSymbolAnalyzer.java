@@ -8,6 +8,7 @@ import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.PrimitiveTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
@@ -26,9 +27,11 @@ import jplus.util.Utils;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
@@ -165,6 +168,79 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     @Override
+    public Void visitNewClass(NewClassTree node, Void unused) {
+        System.err.println("[NewClass] node.getIdentifier() = " + node.getIdentifier());
+        System.err.println("[NewClass] node.toString() = " + node.toString());
+
+        String identifier = node.getIdentifier().toString();
+
+        int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
+        int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
+
+        TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
+        String rangeText = source.substring(startPos, endPos);
+        System.err.println("[NewClass] rangeText = " + rangeText);
+
+        List<String> argStrings = new ArrayList<>();
+        List<String> argTypes = new ArrayList<>();
+        for (ExpressionTree arg : node.getArguments()) {
+            argStrings.add(arg.toString());
+            TypeMirror argType = trees.getTypeMirror(trees.getPath(ast, arg));
+            argTypes.add(argType != null ? argType.toString() : "unknown");
+        }
+
+        System.err.println("[NewClass] argTypes = " + argTypes);
+
+        TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
+        String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
+//        String simpleReturnType = CodeUtils.getSimpleReturnTypeName(returnTypeMirror);
+
+//        System.err.println("returnType = " + returnType);
+//        System.err.println("simpleReturnType = " + simpleReturnType);
+
+
+
+        var methodInvocationInfoBuilder = MethodInvocationInfo.builder();
+        methodInvocationInfoBuilder.instanceName(identifier)
+                .methodName(identifier)
+                .argTypes(argTypes)
+                .args(argStrings)
+//                .returnType(returnType)
+                .source(rangeText)
+                .startPos(startPos)
+                .endPos(endPos);
+
+        var methodPath = trees.getPath(ast, node);
+        if (methodPath != null) {
+
+            Element element = trees.getElement(methodPath);
+            if (element instanceof ExecutableElement ee) {
+
+                // ⬅ 선언된 메서드 타입(ExecutableType)
+                ExecutableType methodType = (ExecutableType) ee.asType();
+
+                List<String> paramTypeList = methodType.getParameterTypes()
+                        .stream()
+                        .map(TypeMirror::toString)
+                        .toList();
+                System.err.println("paramTypeList = " + paramTypeList);
+
+                String retType = methodType.getReturnType().toString();
+
+                methodInvocationInfoBuilder.paramTypes(paramTypeList);
+                methodInvocationInfoBuilder.returnType(retType);
+            }
+        }
+
+        javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, rangeText, methodInvocationInfoBuilder.build());
+
+        System.err.println("[NewClass] methodInvocationInfo = " + methodInvocationInfoBuilder.build());
+
+
+        return super.visitNewClass(node, unused);
+    }
+
+    @Override
     public Void visitMethod(MethodTree node, Void unused) {
         System.err.println("[visitMethod] invoked");
 //        boolean isStatic = node.getModifiers().getFlags().contains(Modifier.STATIC);
@@ -210,7 +286,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             boolean hasNullableAnnotation = param.getModifiers().getAnnotations()
                     .stream()
                     .peek(annotationTree -> System.err.println("[method] annotationTree = " + annotationTree))
-                    .anyMatch(ann -> ann.toString().equals("@Nullable"));
+                    .anyMatch(ann -> ann.toString().endsWith("@Nullable") || ann.toString().endsWith("@org.jspecify.annotations.Nullable"));
 
             // 변수 이름
             String variableName = param.getName().toString();
@@ -242,10 +318,12 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
             // 타입 이름
             String typeNameWithNullability = typeName + (hasNullableAnnotation ? "?" : "");
+            String simpleTypeNameWithNullability = simpleTypeName + (hasNullableAnnotation ? "?" : "");
             System.err.println("[method] typeName = " + typeName);
             System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
+            System.err.println("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
-            simpleTypeNameList.add(simpleTypeName);
+            simpleTypeNameList.add(simpleTypeNameWithNullability);
 
             TypeInfo.Type type = (isPrimitive)
                     ? TypeInfo.Type.Primitive
@@ -288,7 +366,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         String symbolName = "^" + methodName + "$_" + String.join("_", typeNameList);
         String symbolNameWithSimpleTypeName = "^" + methodName + "$_" + String.join("_", simpleTypeNameList);
-        System.err.println("symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
+        System.err.println("[method] symbolName = " + symbolName);
+        System.err.println("[method] symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
 
         TypeInfo typeInfo = new TypeInfo(symbolName, false, type);
 
@@ -405,10 +484,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             argTypes.add(argType != null ? argType.toString() : "unknown");
         }
 
+
         //System.err.println("argTypes = " + argTypes);
 
-        TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
-        String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
+//        TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
+//        String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
 //        String simpleReturnType = CodeUtils.getSimpleReturnTypeName(returnTypeMirror);
 
 //        System.err.println("returnType = " + returnType);
@@ -430,10 +510,34 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .methodName(methodName)
                 .argTypes(argTypes)
                 .args(argStrings)
-                .returnType(returnType)
+//                .returnType(returnType)
                 .source(rangeText)
                 .startPos(startPos)
                 .endPos(endPos);
+
+        var methodPath = trees.getPath(ast, node);
+        if (methodPath != null) {
+
+            Element element = trees.getElement(methodPath);
+            if (element instanceof ExecutableElement ee) {
+
+                // ⬅ 선언된 메서드 타입(ExecutableType)
+                ExecutableType methodType = (ExecutableType) ee.asType();
+
+                List<String> paramTypeList = methodType.getParameterTypes()
+                        .stream()
+                        .map(TypeMirror::toString)
+                        .toList();
+                System.err.println("paramTypeList = " + paramTypeList);
+
+                String retType = methodType.getReturnType().toString();
+
+                methodInvocationInfoBuilder.paramTypes(paramTypeList);
+                methodInvocationInfoBuilder.returnType(retType);
+            }
+        }
+
+
 
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, rangeText, methodInvocationInfoBuilder.build());
 

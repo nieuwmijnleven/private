@@ -89,7 +89,8 @@ public class SymbolInfo {
     @Override
     public String toString() {
         return "SymbolInfo{" +
-                "typeInfo=" + typeInfo +
+                "symbol=" + symbol +
+                ", typeInfo=" + typeInfo +
                 ", range=" + range +
                 ", originalText='" + originalText + '\'' +
                 '}';

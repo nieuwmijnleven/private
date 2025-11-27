@@ -9,16 +9,18 @@ public class MethodInvocationInfo {
     public final String methodName;
     public final List<String> args;
     public final List<String> argTypes;
+    public final List<String> paramTypes;
     public final String returnType;
     public final String source;
     public final int startPos;
     public final int endPos;
 
-    public MethodInvocationInfo(String instanceName, String methodName, List<String> args, List<String> argTypes, String returnType, String source, int startPos, int endPos) {
+    public MethodInvocationInfo(String instanceName, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType, String source, int startPos, int endPos) {
         this.instanceName = instanceName;
         this.methodName = methodName;
         this.args = args;
         this.argTypes = argTypes;
+        this.paramTypes = paramTypes;
         this.returnType = returnType;
         this.source = source;
         this.startPos = startPos;
@@ -30,6 +32,7 @@ public class MethodInvocationInfo {
         private String methodName;
         private List<String> args;
         private List<String> argTypes;
+        private List<String> paramTypes;
         private String returnType;
         private String source;
         private int startPos;
@@ -54,6 +57,11 @@ public class MethodInvocationInfo {
             this.argTypes = argTypes;
             return this;
         }
+
+        public Builder paramTypes(List<String> paramTypes) {
+            this.paramTypes = paramTypes;
+            return this;
+        }
     
         public Builder returnType(String returnType) {
             this.returnType = returnType;
@@ -76,7 +84,7 @@ public class MethodInvocationInfo {
         }
     
         public MethodInvocationInfo build() {
-            return new MethodInvocationInfo(instanceName, methodName, args, argTypes, returnType, source, startPos, endPos);
+            return new MethodInvocationInfo(instanceName, methodName, args, argTypes, paramTypes, returnType, source, startPos, endPos);
         }
     }
     
@@ -91,6 +99,7 @@ public class MethodInvocationInfo {
                 ", methodName='" + methodName + '\'' +
                 ", args=" + args +
                 ", argTypes=" + argTypes +
+                ", paramTypes=" + paramTypes +
                 ", returnType='" + returnType + '\'' +
                 ", source ='" + source + '\'' +
                 ", startPos=" + startPos +

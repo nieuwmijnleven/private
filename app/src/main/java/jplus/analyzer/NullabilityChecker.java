@@ -9,6 +9,7 @@ import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
+import jplus.util.ConstructorUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.Token;
 
@@ -272,6 +273,62 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
+        String instanceCreationCode = Utils.getTokenString(ctx);
+        System.err.println("[InstanceCreationExpression] intanceCreationCode: " + instanceCreationCode);
+        TextChangeRange instanceCreationCodeRange = Utils.computeTextChangeRange(this.originalText, ctx.start.getStartIndex(), ctx.stop.getStopIndex());
+//        TextChangeRange invocationCodeRange = Utils.getTextChangeRange(this.originalText, ctx);
+        System.err.println("[InstanceCreationExpression] invocationCodeRange: " + instanceCreationCodeRange);
+
+        Optional<TextChangeRange> javaInvocationCodeRange = sourceMappingEntrySet.stream()
+                .peek(sourceMappingEntry -> System.err.println("[InstanceCreationExpression] originalRange = " + sourceMappingEntry.getOriginalRange()))
+                .filter(sourceMappingEntry -> instanceCreationCodeRange.equals(sourceMappingEntry.getOriginalRange()))
+                .map(SourceMappingEntry::getTransformedRange)
+                .findFirst();
+
+        javaInvocationCodeRange.ifPresent(range -> {
+            System.err.println("[InstanceCreationExpression] javaInvocationCodeRange: " + range);
+            Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, range);
+
+            invocationInfo.ifPresent(info -> {
+                System.err.println("[InstanceCreationExpression] = " + info);
+
+                Optional<SymbolInfo> classSymbolInfo = Optional.ofNullable(info.instanceName).map(className -> currentSymbolTable.resolve(className));
+
+                classSymbolInfo.ifPresent(symbolInfo -> {
+                    System.err.println("[InstanceCreationExpression] symbolInfo = " + symbolInfo);
+                    System.err.println("[InstanceCreationExpression] symbolTable = " + symbolInfo.getSymbolTable());
+                    SymbolTable symbolTable = symbolInfo.getSymbolTable();
+                    SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
+                    System.err.println("[InstanceCreationExpression] enclosingSymbolTable = " + classSymbolTable);
+
+                    //select candidates
+                    List<String> candidates = ConstructorUtils.getCandidates(info.argTypes);
+                    candidates.forEach(candidate -> System.err.println("[InstanceCreationExpression] candidate = " + candidate));
+
+                });
+            });
+
+
+
+
+            /*instanceSymbolInfo.ifPresent(symbolInfo -> {
+                TypeInfo instanceTypeInfo = symbolInfo.getTypeInfo();
+                boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
+
+                invocationInfo.ifPresent(info -> {
+                    if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
+                        String msg = ("%s is a nullable variable. But it directly accesses %s(). "
+                                + "Consider using null-safe operator(?.).")
+                                .formatted(info.instanceName, info.methodName);
+                        reportNullableAccessIssue(ctx.start, msg);
+                    }
+                });
+            });*/
+        });
+
+
+
+        System.err.println("[UnqualifiedClassInstanceCreationExpression] = " + Utils.getTokenString(ctx));
         var identifierList = ctx.classOrInterfaceTypeToInstantiate().identifier();
         SymbolTable classSymbolTable = globalSymbolTable;
         String className = null;
@@ -502,6 +559,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         String invocationCode = Utils.getTokenString(ctx);
         System.err.println("[MethodInvocation] invocationCode: " + invocationCode);
         TextChangeRange invocationCodeRange = Utils.computeTextChangeRange(this.originalText, ctx.start.getStartIndex(), ctx.stop.getStopIndex());
+//        TextChangeRange invocationCodeRange = Utils.getTextChangeRange(this.originalText, ctx);
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
         Optional<TextChangeRange> javaInvocationCodeRange = sourceMappingEntrySet.stream()
@@ -513,8 +571,6 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         javaInvocationCodeRange.ifPresent(range -> {
             System.err.println("[MethodInvocation] javaInvocationCodeRange: " + range);
             Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, range);
-            System.err.println("[MethodInvocation] = " + invocationInfo.get());
-
             invocationInfo.ifPresent(info -> System.err.println("[MethodInvocation] = " + info));
 
             Optional<SymbolInfo> instanceSymbolInfo = invocationInfo
