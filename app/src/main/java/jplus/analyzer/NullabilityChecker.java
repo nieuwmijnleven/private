@@ -11,6 +11,7 @@ import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.ConstructorUtils;
 import jplus.util.Utils;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
 import java.nio.file.Path;
@@ -271,7 +272,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return super.visitExpressionName(ctx);
     }
 
-    @Override
+    /*@Override
     public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
         String instanceCreationCode = Utils.getTokenString(ctx);
         System.err.println("[InstanceCreationExpression] intanceCreationCode: " + instanceCreationCode);
@@ -321,59 +322,137 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                             String argType = info.argTypes.get(i);
                             System.err.println("paramType = " + paramType + ", argType = " + argType);
                             if (!paramType.endsWith("?") && "<nulltype>".equals(argType)) {
-                                int line = ctx.getStart().getLine();
-                                int column = ctx.getStart().getCharPositionInLine();
-                                int offset = ctx.getStart().getStartIndex();
-
                                 int argIndex = i + 1;
                                 String suffix = getOrdinalSuffix(argIndex);
-                                String msg = "The " + argIndex + suffix + " argument of the " + info.instanceName +
-                                        " constructor is a non-nullable variable, but a null value is assigned to it.";
-                                issues.add(new NullabilityIssue(line, column, offset, msg));
-                                hasPassed = false;
+                                String msg = "The " + argIndex + suffix + " argument of the " + info.instanceName + " constructor is a non-nullable variable, but a null value is assigned to it.";
+                                reportNullableAccessIssue(ctx.start, msg);
                             }
                         }
-
                     }
-
-//                    SymbolTable constructorSymbolTable = null;
-//                    if (constructorSymbolInfo != null) {
-//                        constructorSymbolTable = classSymbolTable.getEnclosingSymbolTable(constructorSymbolInfo.getSymbol());
-//                    }
-
-
                 });
             });
         });
 
         return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+    }*/
+
+    private TextChangeRange getCodeRange(ParserRuleContext ctx) {
+        String code = Utils.getTokenString(ctx);
+        log("[InstanceCreationExpression] code: " + code);
+
+        TextChangeRange codeRange = Utils.getTextChangeRange(originalText, ctx);
+        log("[InstanceCreationExpression] codeRange: " + codeRange);
+
+        return codeRange;
     }
 
-    private boolean judgeType(String type, String tokenString) {
-        type = type.endsWith("?") ? type.substring(0, type.length()-1) : type;
-        if (("String".equals(type) || "java.lang.String".equals(type)) && !"null".equals(tokenString)) {
-            return (tokenString.startsWith("\"") && tokenString.endsWith("\"")) || (tokenString.indexOf("\"") != tokenString.lastIndexOf("\""));
-        } else if ("byte".equals(type) || "short".equals(type) || "int".equals(type) || "long".equals(type)) {
-            try { Integer.parseInt(tokenString); return true; } catch(NumberFormatException nfe) { return false; }
-        } else if ("float".equals(type)) {
-            try { Float.parseFloat(tokenString); return true; } catch(NumberFormatException nfe) { return false; }
-        } else if ("double".equals(type)) {
-            try { Double.parseDouble(tokenString); return true; } catch(NumberFormatException nfe) { return false; }
-        } else if ("boolean".equals(type) && ("true".equals(tokenString) || "false".equals(tokenString))) {
-            return true;
-        } else if ("char".equals(type) && tokenString.length() == 1) {
-            return true;
-        } else if (tokenString.equals("null")) {
-            return true;
-        } else if (tokenString.contains("new ") && tokenString.contains(type)) {
-            return true;
-        } else if (type.endsWith("[]")) {
-            return true;
-        } else {
-            //throw new IllegalArgumentException("type = " + type + ", tokenString = " + tokenString);
-            return false;
+    private Optional<TextChangeRange> findTransformedRange(TextChangeRange instanceRange) {
+        return sourceMappingEntrySet.stream()
+                .peek(entry -> log("[InstanceCreationExpression] originalRange = " + entry.getOriginalRange()))
+                .filter(entry -> instanceRange.equals(entry.getOriginalRange()))
+                .map(SourceMappingEntry::getTransformedRange)
+                .findFirst();
+    }
+
+    private Optional<SymbolInfo> resolveClassSymbol(MethodInvocationInfo info) {
+        return Optional.ofNullable(info.instanceName)
+                .map(className -> {
+                    SymbolInfo symbolInfo = currentSymbolTable.resolve(className);
+                    log("[InstanceCreationExpression] classSymbolInfo = " + symbolInfo);
+                    return symbolInfo;
+                });
+    }
+
+    private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
+        SymbolTable symbolTable = symbolInfo.getSymbolTable();
+        SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
+        log("[InstanceCreationExpression] enclosingSymbolTable = " + classSymbolTable);
+        return classSymbolTable;
+    }
+
+    private Optional<SymbolInfo> resolveConstructor(SymbolTable classSymbolTable, MethodInvocationInfo info) {
+        List<String> candidates = ConstructorUtils.getCandidates(info.paramTypes);
+        //candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
+
+        for (String candidate : candidates) {
+            SymbolInfo constructor = classSymbolTable.resolveInCurrent(candidate);
+            if (constructor != null) {
+                log("[InstanceCreationExpression] found constructor: " + constructor);
+                return Optional.of(constructor);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void validateConstructorArguments(
+            JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx,
+            MethodInvocationInfo info,
+            SymbolInfo constructorSymbolInfo
+    ) {
+        String raw = constructorSymbolInfo.getSymbol().substring("^constructor$_".length());
+        String[] paramTypes = raw.split("_");
+
+        for (int i = 0; i < paramTypes.length; i++) {
+            String paramType = paramTypes[i];
+            String argType = info.argTypes.get(i);
+            log("paramType = " + paramType + ", argType = " + argType);
+
+            if (isInvalidNullAssignment(paramType, argType)) {
+                reportInvalidNull(ctx, info.instanceName, i + 1);
+            }
         }
     }
+
+    private boolean isInvalidNullAssignment(String paramType, String argType) {
+        return !paramType.endsWith("?") && "<nulltype>".equals(argType);
+    }
+
+    private void reportInvalidNull(
+            JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx,
+            String className,
+            int argIndex
+    ) {
+        String suffix = getOrdinalSuffix(argIndex);
+        String msg = "The " + argIndex + suffix +
+                " argument of the " + className +
+                " constructor is a non-nullable variable, but a null value is assigned to it.";
+        reportNullableAccessIssue(ctx.start, msg);
+    }
+
+    private void log(String msg) {
+        System.err.println(msg);
+    }
+
+    @Override
+    public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
+        TextChangeRange codeRange = getCodeRange(ctx);
+        Optional<TextChangeRange> transformedRange = findTransformedRange(codeRange);
+        if (transformedRange.isEmpty()) {
+            return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+        }
+
+        Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, transformedRange.get());
+        if (invocationInfo.isEmpty()) {
+            return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+        }
+
+        MethodInvocationInfo info = invocationInfo.get();
+        log("[InstanceCreationExpression] InvocationInfo = " + info);
+
+        Optional<SymbolInfo> classSymbolInfo = resolveClassSymbol(info);
+        if (classSymbolInfo.isEmpty()) {
+            return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+        }
+
+        SymbolTable classSymbolTable = resolveClassSymbolTable(classSymbolInfo.get());
+        Optional<SymbolInfo> constructorSymbol = resolveConstructor(classSymbolTable, info);
+        if (constructorSymbol.isPresent()) {
+            validateConstructorArguments(ctx, info, constructorSymbol.get());
+        }
+
+        return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+    }
+
 
     private static String getOrdinalSuffix(int number) {
         if (number % 100 >= 11 && number % 100 <= 13) {
