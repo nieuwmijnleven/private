@@ -12,6 +12,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import java.lang.reflect.AnnotatedType;
 
 public class CodeUtils {
     private CodeUtils() {}
@@ -76,6 +77,4 @@ public class CodeUtils {
 
         return true;
     }
-
-
 }

@@ -33,6 +33,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -215,13 +216,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
             Element element = trees.getElement(methodPath);
             if (element instanceof ExecutableElement ee) {
-
+                CleanTypePrinter printer = new CleanTypePrinter();
                 // ⬅ 선언된 메서드 타입(ExecutableType)
                 ExecutableType methodType = (ExecutableType) ee.asType();
-
                 List<String> paramTypeList = methodType.getParameterTypes()
                         .stream()
-                        .map(TypeMirror::toString)
+//                        .map(TypeMirror::toString)
+                        .map(printer::print)
                         .toList();
                 System.err.println("paramTypeList = " + paramTypeList);
 

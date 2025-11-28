@@ -302,96 +302,49 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                     System.err.println("[InstanceCreationExpression] enclosingSymbolTable = " + classSymbolTable);
 
                     //select candidates
-                    List<String> candidates = ConstructorUtils.getCandidates(info.argTypes);
+                    List<String> candidates = ConstructorUtils.getCandidates(info.paramTypes);
                     candidates.forEach(candidate -> System.err.println("[InstanceCreationExpression] candidate = " + candidate));
+
+                    SymbolInfo constructorSymbolInfo = null;
+                    for (String candidate : candidates) {
+                        constructorSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
+                        if (constructorSymbolInfo != null) {
+                            System.err.println("found consturctor: " + constructorSymbolInfo);
+                            break;
+                        }
+                    }
+
+                    if (constructorSymbolInfo != null) {
+                        String[] paramTypes = constructorSymbolInfo.getSymbol().substring("^constructor$_".length()).split("_");
+                        for (int i = 0; i < paramTypes.length; i++) {
+                            String paramType = paramTypes[i];
+                            String argType = info.argTypes.get(i);
+                            System.err.println("paramType = " + paramType + ", argType = " + argType);
+                            if (!paramType.endsWith("?") && "<nulltype>".equals(argType)) {
+                                int line = ctx.getStart().getLine();
+                                int column = ctx.getStart().getCharPositionInLine();
+                                int offset = ctx.getStart().getStartIndex();
+
+                                int argIndex = i + 1;
+                                String suffix = getOrdinalSuffix(argIndex);
+                                String msg = "The " + argIndex + suffix + " argument of the " + info.instanceName +
+                                        " constructor is a non-nullable variable, but a null value is assigned to it.";
+                                issues.add(new NullabilityIssue(line, column, offset, msg));
+                                hasPassed = false;
+                            }
+                        }
+
+                    }
+
+//                    SymbolTable constructorSymbolTable = null;
+//                    if (constructorSymbolInfo != null) {
+//                        constructorSymbolTable = classSymbolTable.getEnclosingSymbolTable(constructorSymbolInfo.getSymbol());
+//                    }
+
 
                 });
             });
-
-
-
-
-            /*instanceSymbolInfo.ifPresent(symbolInfo -> {
-                TypeInfo instanceTypeInfo = symbolInfo.getTypeInfo();
-                boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
-
-                invocationInfo.ifPresent(info -> {
-                    if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
-                        String msg = ("%s is a nullable variable. But it directly accesses %s(). "
-                                + "Consider using null-safe operator(?.).")
-                                .formatted(info.instanceName, info.methodName);
-                        reportNullableAccessIssue(ctx.start, msg);
-                    }
-                });
-            });*/
         });
-
-
-
-        System.err.println("[UnqualifiedClassInstanceCreationExpression] = " + Utils.getTokenString(ctx));
-        var identifierList = ctx.classOrInterfaceTypeToInstantiate().identifier();
-        SymbolTable classSymbolTable = globalSymbolTable;
-        String className = null;
-        for (JPlus20Parser.IdentifierContext identifierContext : identifierList) {
-            className = Utils.getTokenString(identifierContext);
-//            classSymbolTable = classSymbolTable.getEnclosingSymbolTable(className);
-            SymbolInfo symbolInfo = globalSymbolTable.resolveInCurrent(className);
-            if (symbolInfo != null) classSymbolTable = symbolInfo.getSymbolTable();
-        }
-
-        if (classSymbolTable.isEmpty()) {
-            classSymbolTable = classSymbolTable.findLowContextSymbolTable(className);
-//            System.err.println("findLowContextSymbolTable = " + classSymbolTable);
-        }
-//        System.err.println("className = " + className);
-
-        List<String> argumentList = new ArrayList<>();
-        for (JPlus20Parser.ExpressionContext expressionContext : ctx.argumentList().expression()) {
-            String argument = Utils.getTokenString(expressionContext);
-            argumentList.add(argument);
-        }
-
-        int arity = argumentList.size();
-        List<String> constructorList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Constructor));
-        List<String> constructorListWithSameArity = constructorList.stream().filter(s -> s.split("_").length == arity + 1).toList();
-
-        String matchedConstructor = null;
-        for (String constructor : constructorListWithSameArity) {
-            String[] paramTypes = constructor.substring("^constructor$_".length()).split("_");
-            boolean matched = true;
-            for (int i = 0; i < paramTypes.length; i++) {
-                if(!judgeType(paramTypes[i], argumentList.get(i))) {
-                    matched = false;
-                    break;
-                }
-            }
-
-            if (matched) {
-                matchedConstructor = constructor;
-                break;
-            }
-        }
-
-//        System.err.println("matchedConstructor = " + matchedConstructor);
-        if (matchedConstructor != null) {
-            String[] paramTypes = matchedConstructor.substring("^constructor$_".length()).split("_");
-            for (int i = 0; i < paramTypes.length; i++) {
-                String paramType = paramTypes[i];
-                String argument = argumentList.get(i);
-                if (!paramType.endsWith("?") && "null".equals(argumentList.get(i))) {
-                    int line = ctx.getStart().getLine();
-                    int column = ctx.getStart().getCharPositionInLine();
-                    int offset = ctx.getStart().getStartIndex();
-
-                    int argIndex = i + 1;
-                    String suffix = getOrdinalSuffix(argIndex);
-                    String msg = "The " + argIndex + suffix + " argument of the " + className +
-                            " constructor is a non-nullable variable, but a null value is assigned to it.";
-                    issues.add(new NullabilityIssue(line, column, offset, msg));
-                    hasPassed = false;
-                }
-            }
-        }
 
         return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
     }
