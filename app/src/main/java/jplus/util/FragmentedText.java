@@ -107,6 +107,11 @@ public class FragmentedText {
         return updated;
     }
 
+    public void update(TextChangeRange textChangeRange, String replace) {
+        split(textChangeRange);
+        replace(textChangeRange, replace);
+    }
+
     //split overlap range
     private void split(TextChangeRange textChangeRange) {
         for (int i = 0; i < fragmentedNodeList.size(); ++i) {
@@ -152,8 +157,6 @@ public class FragmentedText {
             }
 
             TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
-            priorNode.prior = node.prior;
-
             node.originalRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapStart, overlapEnd);
             node.string = node.string.substring(relStart, relEnd);
             node.rangeFixed = false;
@@ -161,10 +164,7 @@ public class FragmentedText {
         }
     }
 
-    public void update(TextChangeRange textChangeRange, String replace) {
-
-        split(textChangeRange);
-
+    private void replace(TextChangeRange textChangeRange, String replace) {
         int affectedRangeCount = 0;
         boolean replaced = false;
         for (int i = 0; i < fragmentedNodeList.size(); ++i) {
