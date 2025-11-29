@@ -293,11 +293,6 @@ public class FragmentedText {
             remainderList.addAll(deletedFragmentedNodeList);
 
             for (TextFragmentNode remainNode : remainderList) {
-                /*if (node.originalRange.equals(unchangedNode.originalRange)) {
-                    System.err.println("node = " + node.string);
-                    System.err.println("unchanged = " + unchangedNode.string);
-                    mapping.add(entry);
-                } else*/
                 if (node.originalRange.contains(remainNode.originalRange) && remainNode.rangeFixed) {
                     System.err.println("node = " + node.string);
                     System.err.println("unchanged = " + remainNode.string);
@@ -333,12 +328,5 @@ public class FragmentedText {
             sb.append(node.string);
         }
         return sb.toString();
-
-//        StringBuilder sb = new StringBuilder();
-//        System.err.println("fragmentedNodeList.size() = " + fragmentedNodeList.size());
-//        fragmentedNodeList.forEach(textFragmentNode -> {
-//            sb.append(textFragmentNode.string);
-//        });
-//        return sb.toString();
     }
 }

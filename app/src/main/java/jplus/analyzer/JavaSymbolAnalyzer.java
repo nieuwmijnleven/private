@@ -131,6 +131,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
         System.err.println("[Field] fieldModifierList " + fieldModifierList);
 
+        String fieldName = node.getName().toString();
         String fieldTypeName;
         if (fieldTypeMirror instanceof DeclaredType dt) {
             fieldTypeName = dt.asElement().toString();
@@ -138,10 +139,15 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             fieldTypeName = fieldTypeMirror.toString(); // primitive 등
         }
 
+        System.err.println("[field] fieldTypeName = " + fieldTypeName);
+        System.err.println("[field] fieldName = " + fieldName);
+
         boolean hasNullableAnnotation = false;
         for (AnnotationMirror annotationMirror : fieldTypeMirror.getAnnotationMirrors()) {
-            if (annotationMirror.getAnnotationType().toString().endsWith(".Nullable")) {
+            DeclaredType annType = annotationMirror.getAnnotationType();
+            if (annType.toString().endsWith("@Nullable") || annType.toString().endsWith("@org.jspecify.annotations.Nullable")) {
                 hasNullableAnnotation = true;
+                break;
             }
         }
 
@@ -155,7 +161,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
 
         SymbolInfo fieldSymbolInfo = SymbolInfo.builder()
-                .symbol(fieldTypeName)
+                .symbol(fieldName)
                 .typeInfo(typeInfoBuilder.build())
                 .symbolTable(currentSymbolTable)
                 .modifierList(fieldModifierList)
@@ -163,7 +169,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .range(range)
                 .build();
 
-        currentSymbolTable.declare(node.getName().toString(), fieldSymbolInfo);
+        currentSymbolTable.declare(fieldName, fieldSymbolInfo);
 
         System.err.println("Field: " + node.getName() + ", type = " + fieldTypeName + ", annotationTypeList = " + fieldTypeMirror.getAnnotationMirrors());
     }
@@ -398,7 +404,30 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     @Override
-    public Void visitVariable(VariableTree node, Void unused) {
+    public Void visitVariable(VariableTree node, Void p) {
+        TreePath path = getCurrentPath();
+        Element element = trees.getElement(path);
+
+        if (element == null) {
+            return super.visitVariable(node, p);
+        }
+
+        switch (element.getKind()) {
+            case LOCAL_VARIABLE:
+                handleLocalVariable(node, p);
+                break;
+
+            default:
+                return super.visitVariable(node, p);
+        }
+
+        return super.visitVariable(node, p);
+    }
+
+
+
+
+    private Void handleLocalVariable(VariableTree node, Void unused) {
         List<jplus.base.Modifier> modifierList = new ArrayList<>();
         for (Modifier m : node.getModifiers().getFlags()) {
             modifierList.add(jplus.base.Modifier.valueOf(m.toString().toUpperCase()));
@@ -428,7 +457,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
             // annotation으로 nullable 체크
             for (AnnotationMirror annotationMirror : typeMirror.getAnnotationMirrors()) {
-                if (annotationMirror.getAnnotationType().toString().endsWith(".Nullable")) {
+                DeclaredType annType = annotationMirror.getAnnotationType();
+                if (annType.toString().endsWith("@Nullable") || annType.toString().endsWith("@org.jspecify.annotations.Nullable")) {
                     isNullable = true;
                     break;
                 }

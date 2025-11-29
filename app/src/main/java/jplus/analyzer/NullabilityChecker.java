@@ -139,7 +139,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 for (var variableModifierContext : formalParameterContext.variableModifier()) {
                     if (variableModifierContext.annotation() != null) {
                         String annotation = Utils.getTokenString(variableModifierContext.annotation());
-//                        System.err.println("annotation = " + annotation);
+                        System.err.println("[ConstructorDeclaration] annotation = " + annotation);
                         if ("@Nullable".equals(annotation)) {
                             hasNullableAnnotation = true;
                         }
@@ -152,7 +152,11 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
 
         String symbolName = "^constructor$_" + typeNameList.stream().collect(Collectors.joining("_"));
-        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbolName);
+        System.err.println("SymbolName = " + symbolName);
+        SymbolInfo constructorSymbolInfo = currentSymbolTable.resolveInCurrent(symbolName);
+        System.err.println("constructorSymbolInfo = " + constructorSymbolInfo);
+        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(constructorSymbolInfo.getSymbol());
+        System.err.println("enclosingSymbolTable = " + currentSymbolTable);
         super.visitConstructorDeclaration(ctx);
         currentSymbolTable = currentSymbolTable.getParent();
         return null;
@@ -222,6 +226,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitConstructorBody(JPlus20Parser.ConstructorBodyContext ctx) {
         currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
+        System.err.println("[ConstructorBody] currentSymbolTable = " + currentSymbolTable);
+        System.err.println("[ConstructorBody] currentSymbolTable.getParent() = " + currentSymbolTable.getParent());
         super.visitConstructorBody(ctx);
         currentSymbolTable = currentSymbolTable.getParent();
         return null;
@@ -515,7 +521,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             fullVariableName = Utils.getTokenString(ctx.leftHandSide().arrayAccess());
         }
 
-//        System.err.println("fullVariableName = " + fullVariableName);
+        System.err.println("fullVariableName = " + fullVariableName);
+        System.err.println("currentSymbolTable = " + currentSymbolTable);
 
         String expression = Utils.getTokenString(ctx.expression());
 
@@ -525,7 +532,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         if (thisIndex != -1) {
             variableName = fullVariableName.substring(thisIndex + "this".length() + 1);
             symbolInfo = currentSymbolTable.getParent().getParent().resolve(variableName);
-//            System.err.println("symbolInfo = " + symbolInfo);
+            System.err.println("symbolInfo = " + symbolInfo);
         } else {
             symbolInfo = currentSymbolTable.resolve(fullVariableName);
         }
