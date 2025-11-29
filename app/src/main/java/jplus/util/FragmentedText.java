@@ -3,6 +3,7 @@ package jplus.util;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,9 +68,13 @@ public class FragmentedText {
         return this.original;
     }
 
-    public Optional<String> findFragmentedText(TextChangeRange range) {
+    public Optional<String> findFragmentedTextByRange(TextChangeRange range) {
         System.err.println("[findFragmentedText] range = " + range);
-        for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
+        List<TextFragmentNode> allFragmentNodeList = new ArrayList<>();
+        allFragmentNodeList.addAll(fragmentedNodeList);
+        allFragmentNodeList.addAll(unchangedRangeList);
+
+        for (TextFragmentNode textFragmentNode : allFragmentNodeList) {
             System.err.println("[findFragmentedText] originalRange = " + textFragmentNode.originalRange);
             if (range.equals(textFragmentNode.originalRange)) {
                 return Optional.of(textFragmentNode.string);
@@ -87,12 +92,21 @@ public class FragmentedText {
         return Optional.empty();
     }
 
-    public void add(TextChangeRange textChangeRange, String string) {
-        this.unchangedRangeList.add(new TextFragmentNode(textChangeRange, string, true, null));
+    public String add(TextChangeRange textChangeRange, String string) {
+        FragmentedText fragmentedText = new FragmentedText(textChangeRange, string);
+        for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
+            if (textChangeRange.contains(textFragmentNode.originalRange) && !string.contains(textFragmentNode.string)) {
+                fragmentedText.update(textFragmentNode.originalRange, textFragmentNode.string);
+            }
+        }
+
+        String updated = fragmentedText.toString();
+        this.unchangedRangeList.add(new TextFragmentNode(textChangeRange, updated, true, null));
+        return updated;
     }
 
-    public void update(TextChangeRange textChangeRange, String replace) {
-        int affectedRangeCount = 0;
+    //split overlap range
+    private void split(TextChangeRange textChangeRange) {
         for (int i = 0; i < fragmentedNodeList.size(); ++i) {
             TextFragmentNode node = fragmentedNodeList.get(i);
             TextChangeRange nodeRange = node.originalRange;
@@ -102,9 +116,98 @@ public class FragmentedText {
             }
 
             if (textChangeRange.equals(nodeRange)) {
-                node.string = replace;
-                ++affectedRangeCount;
                 break;
+            }
+
+            if (node.rangeFixed) {
+//                throw new IllegalArgumentException("Cannot partially overwrite a fixed range: " + nodeRange);
+                continue;
+            }
+
+            int nodeStart = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, nodeRange.startLine(), nodeRange.startIndex());
+            int nodeEnd = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, nodeRange.endLine(), nodeRange.inclusiveEndIndex());
+
+            int rangeStart = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, textChangeRange.startLine(), textChangeRange.startIndex());
+            int rangeEnd = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, textChangeRange.endLine(), textChangeRange.inclusiveEndIndex());
+
+            int overlapStart = Math.max(rangeStart, nodeStart);
+            int overlapEnd = Math.min(rangeEnd, nodeEnd);
+
+            int relStart = overlapStart - nodeStart;
+            int relEnd = overlapEnd - nodeStart + 1;
+
+            if (overlapStart > nodeStart) {
+                TextChangeRange headRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, nodeStart, overlapStart - 1);
+                String head = node.string.substring(0, relStart);
+                fragmentedNodeList.add(i, new TextFragmentNode(headRange, head, false, null));
+                ++i;
+            }
+
+            if (overlapEnd < nodeEnd) {
+                TextChangeRange tailRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapEnd + 1, nodeEnd);
+                String tail = node.string.substring(relEnd);
+                fragmentedNodeList.add(i + 1, new TextFragmentNode(tailRange, tail, false, null));
+            }
+
+            TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
+            priorNode.prior = node.prior;
+
+            node.originalRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapStart, overlapEnd);
+            node.string = node.string.substring(relStart, relEnd);
+            node.rangeFixed = false;
+            node.prior = priorNode;
+        }
+    }
+
+    public void update(TextChangeRange textChangeRange, String replace) {
+
+        split(textChangeRange);
+
+        int affectedRangeCount = 0;
+        boolean replaced = false;
+        for (int i = 0; i < fragmentedNodeList.size(); ++i) {
+            TextFragmentNode node = fragmentedNodeList.get(i);
+            TextChangeRange nodeRange = node.originalRange;
+
+            if (!textChangeRange.overlaps(nodeRange)) {
+                continue;
+            }
+
+//            if (textChangeRange.equals(nodeRange)) {
+//                if (!replaced) {
+//                    TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
+//                    node.string = replace;
+//                    node.rangeFixed = true;
+//                    node.prior = priorNode;
+//                    replaced = true;
+//                    ++affectedRangeCount;
+//                    continue;
+//                } else {
+//                    fragmentedNodeList.remove(i);
+//                    --i;
+//                }
+//            }
+
+            if (textChangeRange.equals(nodeRange) || textChangeRange.contains(nodeRange)) {
+                System.err.println("nodeRange = " + nodeRange);
+                if (!replaced) {
+                    TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
+                    priorNode.prior = node.prior;
+
+                    node.originalRange = textChangeRange;
+                    node.string = replace;
+                    node.rangeFixed = true;
+                    node.prior = priorNode;
+                    ++affectedRangeCount;
+                    replaced = true;
+                } else {
+//                    TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
+//                    priorNode.prior = node.prior;
+//                    node.prior = priorNode;
+                    fragmentedNodeList.remove(i);
+                    --i;
+                }
+                continue;
             }
 
 //            if (node.rangeFixed) {
@@ -134,21 +237,22 @@ public class FragmentedText {
                 TextChangeRange tailRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapEnd + 1, nodeEnd);
                 String tail = node.string.substring(relEnd);
                 fragmentedNodeList.add(i + 1, new TextFragmentNode(tailRange, tail, false, null));
-                ++i;
             }
 
-            TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
             node.originalRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapStart, overlapEnd);
+            TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
+            priorNode.prior = node.prior;
             node.string = replace;
             node.rangeFixed = true;
             node.prior = priorNode;
 
-            if (node.originalRange.contains(priorNode.originalRange) && !node.string.contains(priorNode.string)) {
-                throw new IllegalStateException("A new change must include the prior changes.");
+            if (priorNode.prior != null && node.originalRange.contains(priorNode.originalRange) && !node.string.contains(priorNode.string)) {
+                throw new IllegalStateException("A new change must include the prior changes. node = " + node + ", priorNode = " + priorNode);
             }
 
             ++affectedRangeCount;
         }
+
 
         if (affectedRangeCount == 0) {
             throw new IllegalStateException("originalRange = " + this.originalTextChangeRange + ", updateRange = " + textChangeRange + ", " + replace + " " + "No nodes were affected by the given range." + toString());
@@ -234,7 +338,7 @@ public class FragmentedText {
 
             TextFragmentNode prior = node.prior;
             while(prior != null) {
-                if (prior.prior != null) mapping.add(buildSourceMapForPrior(prior, entry));
+                if (prior.rangeFixed) mapping.add(buildSourceMapForPrior(prior, entry));
                 prior = prior.prior;
             }
 

@@ -106,7 +106,7 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
     // ---------- Code Generation ----------
 
     public String generate() {
-        String topLevelClass = symbolTable.resolve("^TopLevelClass$").getTypeInfo().getName();
+        String topLevelClass = symbolTable.resolve("^TopLevelClass$").getSymbol();
 
         applyStatementList.stream()
                 .filter(stmt -> "^TopLevelClass$".equals(stmt.getQualifiedName()))
@@ -154,10 +154,10 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
             String doubleIndentation = Utils.indent(" ", baseIndent * 2);
 
             symbolInfo = classSymbolTable.resolve(fieldList.get(fieldList.size()-1));
-            boolean isNullable = symbolInfo.getTypeInfo().isNullable();
+//            boolean isNullable = symbolInfo.getTypeInfo().isNullable();
             int constructorIndent = symbolInfo.getRange().startIndex();
             int endLine = symbolInfo.getRange().endLine();
-            int endIndex = symbolInfo.getRange().inclusiveEndIndex() + (isNullable ? 0 : 1);
+            int endIndex = symbolInfo.getRange().inclusiveEndIndex() + 1;
             TextChangeRange constructorRange = new TextChangeRange(endLine, endIndex, endLine, endIndex);
 
             ApplyFeatureProcessingContext context = processedClassActionContextMap.computeIfAbsent(qualifiedName, k -> {
@@ -184,11 +184,16 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
                 processor.process(context);
             }
 
-            String replacedText = Utils.indentLines(context.getMethodPartText(), indent) + Utils.indentLines("\n}", indent - baseIndent);
-            fragmentedText.update(methodRange, replacedText);
+            String replacedText = "";
+            if (context.getMethodPartText().length() > 0) {
+                replacedText = Utils.indentLines(context.getMethodPartText(), indent) + Utils.indentLines("\n}", indent - baseIndent);
+                fragmentedText.update(methodRange, replacedText);
+            }
 
-            replacedText = Utils.indentLines(context.getConstructorPartText(), constructorIndent) + "\n";
-            fragmentedText.update(constructorRange, replacedText);
+            if (context.getConstructorPartText().length() > 0) {
+                replacedText = Utils.indentLines(context.getConstructorPartText(), constructorIndent) + "\n";
+                fragmentedText.update(constructorRange, replacedText);
+            }
         }
 
         return fragmentedText.toString();

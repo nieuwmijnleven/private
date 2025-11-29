@@ -121,6 +121,7 @@ public class JPlusProcessor {
 
         String startWhiteSpace = originalText.substring(0, startIndex);
         String fullyGenerated = startWhiteSpace + generated;
+        System.err.println("fullyGenerated = " + fullyGenerated);
 
 //        TextChangeRange generatedRange = Utils.computeTextChangeRange(originalText, startIndex, stopIndex);
         FragmentedText fragmentedText = new FragmentedText(fullyGenerated);

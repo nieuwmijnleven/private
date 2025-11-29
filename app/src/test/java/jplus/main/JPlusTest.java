@@ -152,27 +152,27 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "jmllRsMo+kZOWnmV1fd9mexA77M=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "+ywAQ2g9LZV8X6t06BOFGYYvq6E=");
     }
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "W6H7TxROgkYJ3Bc+UuybPP10o2Q=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "+Jk/HCMc+aO9cHbkLSyhYOZ185Q=");
     }
 
     @Test
     void testElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "lJ1j7ieF7Kvd/xvM++eYTxAd+M4=");
+        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "JLeKw5/zB0HliNB2OJbyjEuqodY=");
     }
 
     @Test
     void testCascadingElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "gkYR2fcqei23p1gbxYEcQQXP8Es=");
+        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "pHl0vgUWhwhLU6h8AlMeUVIg3v8=");
     }
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "EQeqIo9gt+H9pgoBDDsVPiRXH0E=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "vpV2giykX65l5vUgOQb2Pg/aSVY=");
     }
 
     @Test
@@ -222,12 +222,12 @@ class JPlusTest {
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jplus", "yZtUmt/+VIn8dxshd7pNCR0wJ/8=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jplus", "OuTw2q0GiXId0x6cj2x3OnZLq2g=");
     }
 
     @Test
     void testApplyConstructorWithNoInSingleClass() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jplus", "wRkgs8GUxa2qJcMTsiTiPkOU9M0=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jplus", "YSbXEa58QeEOGSZ4HHRbKeJPrmE=");
     }
 
     @Test

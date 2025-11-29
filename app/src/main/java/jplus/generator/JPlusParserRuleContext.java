@@ -2,7 +2,6 @@ package jplus.generator;
 
 import jplus.base.JPlus20Parser;
 import jplus.base.JPlus20Parser.ApplyDeclarationContext;
-import jplus.base.JPlus20Parser.TopLevelClassOrInterfaceDeclarationContext;
 import jplus.base.JPlus20Parser.ExpressionNameContext;
 import jplus.base.JPlus20Parser.FieldAccessContext;
 import jplus.base.JPlus20Parser.MethodInvocationContext;
@@ -12,16 +11,21 @@ import jplus.base.JPlus20Parser.UnannTypeContext;
 import jplus.util.FragmentedText;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class JPlusParserRuleContext extends ParserRuleContext {
 
-    private final Map<TextChangeRange, String> textChangeRangeStringMap = new HashMap<>();
+    private static final Map<ParserRuleContext, TextChangeRange> parserRuleContextTextChangeRangeMap = new HashMap<>();
+
+    private static final Map<ParserRuleContext, String> parserRuleContextStringeMap = new HashMap<>();
+
+    private static final Set<ParseTree> parserRuleContextProcessed = new HashSet<>();
 
     public JPlusParserRuleContext(ParserRuleContext parent, int invokingStateNumber) {
         super(parent, invokingStateNumber);
@@ -110,12 +114,73 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
 //            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
             updateFragmentedText(range, replaced);
-            return replaced;
+            return null;
         }
-        return unannTypeText;
+        return null;
     }
 
     private String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
+//        String conditionalOrExpression = ctx.conditionalOrExpression().getText();
+//        for (int i = 0; i < ctx.getChildCount(); i++) {
+//            ctx.getChild(i).getText();
+//        }
+
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            ParseTree child = ctx.getChild(i);
+            if (!parserRuleContextProcessed.contains(child)) {
+                child.getText();
+                parserRuleContextProcessed.add(child);
+            }
+        }
+
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+
+        TextChangeRange conditionalOrExpressionRange = parserRuleContextTextChangeRangeMap.computeIfAbsent(ctx.conditionalOrExpression(), parserRuleContext -> Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx.conditionalOrExpression()));
+//        String contextString = parserRuleContextStringeMap.computeIfAbsent(this, parserRuleContext -> Utils.getTokenString(this));
+
+//        TextChangeRange conditionalOrExpressionRange = Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx.conditionalOrExpression());
+        Optional<String> conditionalOrExpressionString = fragmentedText.findFragmentedTextByRange(conditionalOrExpressionRange);
+
+        Optional<String> expression = Optional.empty();
+        if (ctx.nullCoalescingExpression() != null) {
+//            expression = ctx.nullCoalescingExpression().getText();
+//            TextChangeRange expressionRange = Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx.nullCoalescingExpression());
+//            for (int i = 0; i < ctx.nullCoalescingExpression().getChildCount(); i++) {
+//                ctx.nullCoalescingExpression().getChild(i).getText();
+//            }
+            TextChangeRange expressionRange = parserRuleContextTextChangeRangeMap.computeIfAbsent(ctx.nullCoalescingExpression(), parserRuleContext -> Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx.nullCoalescingExpression()));
+            expression = fragmentedText.findFragmentedTextByRange(expressionRange);
+        } else if (ctx.lambdaExpression() != null) {
+//            for (int i = 0; i < ctx.lambdaExpression().getChildCount(); i++) {
+//                ctx.lambdaExpression().getChild(i).getText();
+//            }
+//            expression = ctx.lambdaExpression().getText();
+//            TextChangeRange expressionRange = Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx.lambdaExpression());
+            TextChangeRange expressionRange = parserRuleContextTextChangeRangeMap.computeIfAbsent(ctx.lambdaExpression(), parserRuleContext -> Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx.lambdaExpression()));
+            expression = fragmentedText.findFragmentedTextByRange(expressionRange);
+        }
+
+        String replaced = "(" +
+                "((" + conditionalOrExpressionString.orElse("null") + ")!=null)?" +
+                "(" + conditionalOrExpressionString.orElse("null") + "):" +
+                "(" + expression.orElse("null") + ")" +
+                ")";
+
+//        String originalText = ctx.start.getInputStream().toString();
+//        TextChangeRange range = Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx);
+        TextChangeRange range = parserRuleContextTextChangeRangeMap.computeIfAbsent(ctx, parserRuleContext -> Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx));
+//        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+        System.err.println("range = " + range);
+        System.err.println("replaced = " + replaced);
+        System.err.println("before debugString = " + fragmentedText.debugString());
+        updateFragmentedText(range, replaced);
+        System.err.println("after debugString = " + fragmentedText.debugString());
+        return null;
+    }
+
+
+    /*private String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
         String conditionalOrExpression = ctx.conditionalOrExpression().getText();
         String expression = "null";
 
@@ -136,10 +201,12 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 //        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
         updateFragmentedText(range, replaced);
         return replaced;
-    }
+    }*/
 
     private String replaceNullsafeOperator(ParserRuleContext ctx) {
-        String tokenString = Utils.getTokenString(ctx).replace("?.", ".");
+        String contextString = parserRuleContextStringeMap.computeIfAbsent(ctx, parserRuleContext -> Utils.getTokenString(ctx));
+
+        String tokenString = contextString.replace("?.", ".");
         String variableName = tokenString.split("\\.")[0];
 
         String replaced = "(" +
@@ -148,20 +215,25 @@ public class JPlusParserRuleContext extends ParserRuleContext {
                 "null" +
                 ")";
 
-        String originalText = this.start.getInputStream().toString();
-        TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
+//        String originalText = this.start.getInputStream().toString();
+//        TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+        TextChangeRange range = parserRuleContextTextChangeRangeMap.computeIfAbsent(ctx, parserRuleContext -> Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx));
         //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
         updateFragmentedText(range, replaced);
 
-        return replaced;
+        return null;
     }
 
     private String processDefaultText() {
-        String contextString = Utils.getTokenString(this);
-
         // force children to compute text and update map if needed
         for (int i = 0; i < getChildCount(); i++) {
-            getChild(i).getText();
+            ParseTree child = getChild(i);
+            if (!parserRuleContextProcessed.contains(child)) {
+                child.getText();
+                parserRuleContextProcessed.add(child);
+            }
         }
 
 //        if (textChangeRangeStringMap.isEmpty()) {
@@ -170,10 +242,10 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
 //        String originalText = this.start.getInputStream().toString();
 //        FragmentedText fragmentedText = new FragmentedText(range, contextString);
-        CodeGenContext codeGenContext = CodeGenContext.current();
-        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
-        TextChangeRange range = Utils.getTextChangeRange(fragmentedText.getOriginalText(), this);
-        fragmentedText.add(range, contextString);
+//        CodeGenContext codeGenContext = CodeGenContext.current();
+//        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+//        TextChangeRange range = Utils.getTextChangeRange(fragmentedText.getOriginalText(), this);
+//        String updatedContextString = fragmentedText.add(range, contextString);
 
 //        textChangeRangeStringMap.forEach(fragmentedText::update);
 
@@ -182,11 +254,19 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
 //        _getParent().ifPresent(parent -> parent.addTextChangeRange(range, fragmentedText.toString()));
 
+        CodeGenContext codeGenContext = CodeGenContext.current();
+        FragmentedText fragmentedText = codeGenContext.getFragmentedText();
         if (this instanceof JPlus20Parser.Start_Context startCtx) {
-//            CodeGenContext codeGenContext = CodeGenContext.current();
-//            FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+            System.err.println("debugString = " + fragmentedText.debugString());
             return fragmentedText.toString();
-        } /*else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
+        } else {
+            System.err.println("ParserRuleContext = " + this.getClass().getSimpleName());
+            TextChangeRange range = parserRuleContextTextChangeRangeMap.computeIfAbsent(this, parserRuleContext -> Utils.getTextChangeRange(fragmentedText.getOriginalText(), this));
+            String contextString = parserRuleContextStringeMap.computeIfAbsent(this, parserRuleContext -> Utils.getTokenString(this));
+            String updatedContextString = fragmentedText.add(range, contextString);
+            return null;
+        }
+            /*else if (this instanceof TopLevelClassOrInterfaceDeclarationContext topLevelClassContext) {
             int startIndex = topLevelClassContext.start.getStartIndex();
             int stopIndex = topLevelClassContext.stop.getStopIndex();
             CodeGenContext codeGenContext = CodeGenContext.current();
@@ -201,8 +281,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 //            return replaced;
             updateFragmentedText(range, replaced);
         }*/
-
-        return null;
     }
 
 //    public void addTextChangeRange(TextChangeRange range, String replaced) {

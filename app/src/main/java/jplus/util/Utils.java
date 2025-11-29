@@ -240,6 +240,9 @@ public class Utils {
     public static TextChangeRange getTextChangeRange(String original, ParserRuleContext ctx) {
         int startIndex = ctx.start.getStartIndex();
         int stopIndex = (ctx.stop != null) ? ctx.stop.getStopIndex() : ctx.start.getStopIndex();
+        if (startIndex < 0 || stopIndex < startIndex || stopIndex >= original.length()) {
+            throw new IllegalArgumentException("Invalid start or end offset: " + "text.length() = " + original.length() + ", startOffset = " + startIndex + ", endOffset = " + stopIndex + ", simpleName = " + ctx.getClass().getSimpleName());
+        }
         return Utils.computeTextChangeRange(original, startIndex, stopIndex);
     }
 }
