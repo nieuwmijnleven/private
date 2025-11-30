@@ -1,7 +1,9 @@
 package jplus.main;
 
+import jplus.analyzer.NullabilityChecker;
 import jplus.processor.JPlusProcessor;
 import jplus.processor.JavaProcessor;
+import jplus.processor.ProjectProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +32,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testSymbolResolver() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/SymbolResolver/User.jplus"));
-        processor.addSrcDirPath(Path.of("./src/test/files/SymbolResolver"));
+//        processor.addSrcDirPath(Path.of("./src/test/files/SymbolResolver"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -51,7 +53,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testNullableAnnotation() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserAnnotation.jplus"));
-        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+//        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -68,22 +70,16 @@ public class JPlusSymbolTableTest {
                 "Error: (line:28, column:31) The 1st argument of the UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:28, column:56) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
-
-
-
     @Test
     void testNullableConstructorParamAnnotation() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserConstructorParamAnnotation.jplus"));
-        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
-        processor.process();
-//        System.err.println(processor.getParseTreeString());
-        processor.analyzeSymbols();
+        ProjectProcessor projectProcessor = new ProjectProcessor(Path.of("./src/test/files/NullableAnnotation"));
+        projectProcessor.buildSymbolTable();
 
-        var issues = processor.checkNullability();
+        var issues = projectProcessor.checkNullability(Path.of("./src/test/files/NullableAnnotation/UserConstructorParamAnnotation.jplus"));
         if (!issues.isEmpty()) {
             issues.forEach(nullabilityIssue -> {
                 System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
-//                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
+                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());
             });
         }
 
@@ -96,7 +92,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testNullableMethodParamAnnotation() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserMethodParamAnnotation.jplus"));
-        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+//        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
         System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -120,7 +116,7 @@ public class JPlusSymbolTableTest {
     @Test
     void testConvertJavaWithNullableAnnotation() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/User.jplus"));
-        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+//        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         String javaCode = processor.generateJavaCodeWithoutBoilerplate();

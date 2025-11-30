@@ -1,6 +1,6 @@
 package jplus.example;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class UserMethodParamAnnotation {
     // Name is required

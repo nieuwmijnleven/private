@@ -3,12 +3,15 @@ package jplus.base;
 import jplus.generator.TextChangeRange;
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class SymbolTable {
+public class SymbolTable implements Iterable<SymbolInfo> {
     private SymbolTable parent;
 
     private final Map<String, SymbolInfo> symbolMap = new HashMap<>();
@@ -33,6 +36,15 @@ public class SymbolTable {
 
     public SymbolInfo resolveInCurrent(String name) {
         return symbolMap.get(name);
+    }
+
+    @Override
+    public Iterator<SymbolInfo> iterator() {
+        return symbolMap.values().iterator();
+    }
+
+    public Collection<SymbolTable> getEnclosingSymbolTables() {
+        return enclosing.values();
     }
 
     public void merge(SymbolTable table) {

@@ -145,6 +145,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         boolean hasNullableAnnotation = false;
         for (AnnotationMirror annotationMirror : fieldTypeMirror.getAnnotationMirrors()) {
             DeclaredType annType = annotationMirror.getAnnotationType();
+            System.err.println("[Field] annType = " + annType.toString());
             if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
                 hasNullableAnnotation = true;
                 break;
@@ -230,7 +231,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 //                        .map(TypeMirror::toString)
                         .map(printer::print)
                         .toList();
-                System.err.println("paramTypeList = " + paramTypeList);
+                System.err.println("[NewClass] paramTypeList = " + paramTypeList);
 
                 String retType = methodType.getReturnType().toString();
 

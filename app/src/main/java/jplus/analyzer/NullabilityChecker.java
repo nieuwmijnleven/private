@@ -10,6 +10,7 @@ import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.ConstructorUtils;
+import jplus.util.SymbolUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -29,7 +30,6 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     private SymbolTable currentSymbolTable;
     private String originalText;
     private String packageName;
-    private List<Path> srcDirPathList;
     private boolean hasPassed = true;
 
     public static class NullabilityIssue {
@@ -61,21 +61,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         this.sourceMappingEntrySet = sourceMappingEntrySet;
         this.methodInvocationManager = methodInvocationManager;
         this.currentSymbolTable = globalSymbolTable;
-        this.srcDirPathList = new ArrayList<>();
     }
 
     private final List<NullabilityIssue> issues = new ArrayList<>();
 
     public List<NullabilityIssue> getIssues() {
         return issues;
-    }
-
-    public void addSrcDirPath(Path srcDirPath) {
-        this.srcDirPathList.add(srcDirPath);
-    }
-
-    public void setSrcDirPathList(List<Path> srcDirPathList) {
-        this.srcDirPathList = srcDirPathList;
     }
 
     @Override
@@ -243,15 +234,29 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             symbolInfo = symbolTable.resolve(symbol);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
-            SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
-            try {
-                symbolTable = resolver.resolveSymbolFromSource(srcDirPathList.get(0), typeInfo.getName(), typeInfo.getType());
-                SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
-                String className = symInfo.getSymbol();
-                symbolTable = symbolTable.getEnclosingSymbolTable(className);
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
+            System.err.println("[ExpressionName] symbol = " + symbol);
+            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
+            System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
+
+            String typeName = typeInfo.getName();
+            if (!SymbolUtils.isFQN(typeName)) {
+                typeName = this.packageName + "." + typeName;
             }
+
+            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
+            symbolTable = classSymbolInfo.getSymbolTable();
+            SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
+            symbolTable = symbolTable.getEnclosingSymbolTable(symInfo.getSymbol());
+
+//            SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
+//            try {
+//                symbolTable = resolver.resolveSymbolFromSource(srcDirPathList.get(0), typeInfo.getName(), typeInfo.getType());
+//                SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
+//                String className = symInfo.getSymbol();
+//                symbolTable = symbolTable.getEnclosingSymbolTable(className);
+//            } catch (Exception e) {
+//                e.printStackTrace(System.err);
+//            }
 
             if (symbolInfo.getTypeInfo().isNullable && ambiguousNameCtx.DOT() != null) {
                 int line = ambiguousNameCtx.start.getLine();
@@ -266,6 +271,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             ambiguousNameCtx = ambiguousNameCtx.ambiguousName();
         }
 
+//        String identifier = Utils.getTokenString(ctx.identifier());
+//        SymbolInfo identifierSymbolInfo = symbolTable.resolveInCurrent(identifier);
+//        System.err.println("[ExpressionName] identifier = " + identifier);
         if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable && ctx.DOT() != null) {
             int line = ctx.start.getLine();
             int column = ctx.start.getCharPositionInLine();
@@ -361,12 +369,23 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     }
 
     private Optional<SymbolInfo> resolveClassSymbol(MethodInvocationInfo info) {
-        return Optional.ofNullable(info.instanceName)
+        Optional<SymbolInfo> classSymbolInfo = Optional.ofNullable(info.instanceName)
                 .map(className -> {
                     SymbolInfo symbolInfo = currentSymbolTable.resolve(className);
                     log("[InstanceCreationExpression] classSymbolInfo = " + symbolInfo);
                     return symbolInfo;
                 });
+
+        if (classSymbolInfo.isEmpty() && info.instanceName != null) {
+            String fqn = this.packageName + "." + info.instanceName;
+            return Optional.ofNullable(fqn).map(className -> {
+                SymbolInfo symbolInfo = currentSymbolTable.resolve(className);
+                log("[InstanceCreationExpression] classSymbolInfo = " + symbolInfo);
+                return symbolInfo;
+            });
+        }
+
+        return classSymbolInfo;
     }
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
@@ -432,6 +451,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
         TextChangeRange codeRange = getCodeRange(ctx);
+        System.err.println("[ClassInstanceCreation] codeRange = " + codeRange);
         Optional<TextChangeRange> transformedRange = findTransformedRange(codeRange);
         if (transformedRange.isEmpty()) {
             return super.visitUnqualifiedClassInstanceCreationExpression(ctx);

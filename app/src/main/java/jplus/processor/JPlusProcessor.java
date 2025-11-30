@@ -1,7 +1,7 @@
 package jplus.processor;
 
 import jplus.analyzer.NullabilityChecker;
-import jplus.analyzer.SymbolAnalyzer;
+import jplus.analyzer.UnresolvedReferenceScanner;
 import jplus.base.JPlus20Lexer;
 import jplus.base.JPlus20Parser;
 import jplus.base.SymbolTable;
@@ -19,12 +19,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class JPlusProcessor {
-
     private final String originalText;
     private final TextChangeRange originalTextRange;
     private JPlus20Parser parser;
@@ -38,18 +36,21 @@ public class JPlusProcessor {
     private boolean symbolsAnalyzed = false;
 
     public JPlusProcessor(String originalText) {
+        this(originalText, new SymbolTable(null));
+    }
+
+    public JPlusProcessor(String originalText, SymbolTable globalSymbolTable) {
         this.originalText = originalText;
         this.originalTextRange = Utils.computeTextChangeRange(originalText, 0, originalText.length()-1);
-        this.globalSymbolTable = new SymbolTable(null);
-        this.srcDirPathList = new ArrayList<>();
+        this.globalSymbolTable = globalSymbolTable;
     }
 
     public JPlusProcessor(Path filePath) throws Exception {
-        this(Files.readString(filePath, StandardCharsets.UTF_8));
+        this(Files.readString(filePath, StandardCharsets.UTF_8), new SymbolTable(null));
     }
 
-    public void addSrcDirPath(Path srcDirPath) {
-        this.srcDirPathList.add(srcDirPath);
+    public JPlusProcessor(Path filePath, SymbolTable globalSymbolTable) throws Exception {
+        this(Files.readString(filePath, StandardCharsets.UTF_8), globalSymbolTable);
     }
 
     public void process() throws Exception {
@@ -96,6 +97,10 @@ public class JPlusProcessor {
         javaProcessor.analyzeSymbols();
         symbolTable = javaProcessor.getSymbolTable();
         symbolsAnalyzed = true;
+
+        UnresolvedReferenceScanner scanner = new UnresolvedReferenceScanner(symbolTable, "jplus.example");
+        List<Path> unsolvedSrcPathList = scanner.findUnresolvedReference();
+        unsolvedSrcPathList.forEach(path -> System.err.println("[UnresolvedReferenceScanner] unsolvedSrcPath = " + path));
     }
 
     public List<NullabilityChecker.NullabilityIssue> checkNullability() {
@@ -104,7 +109,6 @@ public class JPlusProcessor {
         }
 
         NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable, sourceMappingEntrySet, javaProcessor.getMethodInvocationManager());
-        nullabilityChecker.setSrcDirPathList(srcDirPathList);
         nullabilityChecker.visit(parseTree);
         nullabilityChecked = true;
         return nullabilityChecker.getIssues();
