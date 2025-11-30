@@ -145,7 +145,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         boolean hasNullableAnnotation = false;
         for (AnnotationMirror annotationMirror : fieldTypeMirror.getAnnotationMirrors()) {
             DeclaredType annType = annotationMirror.getAnnotationType();
-            if (annType.toString().endsWith("@Nullable") || annType.toString().endsWith("@org.jspecify.annotations.Nullable")) {
+            if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
                 hasNullableAnnotation = true;
                 break;
             }
@@ -458,7 +458,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             // annotation으로 nullable 체크
             for (AnnotationMirror annotationMirror : typeMirror.getAnnotationMirrors()) {
                 DeclaredType annType = annotationMirror.getAnnotationType();
-                if (annType.toString().endsWith("@Nullable") || annType.toString().endsWith("@org.jspecify.annotations.Nullable")) {
+                System.err.println("annType = " + annType.toString());
+                if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
                     isNullable = true;
                     break;
                 }

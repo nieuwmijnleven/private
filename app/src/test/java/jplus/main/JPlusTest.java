@@ -187,17 +187,17 @@ class JPlusTest {
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "jN/DMdHIgKyDAs11SRYagASygi0=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "Dem7Eaug07AYrAhfNbj2eyri7Nc=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "+2gyKfUyySc1XkRvw14TFuasdUo=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "dgle9tqUMEb8QIfJxq50Ga8m7I4=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "LYAPBouq1JKIktjRfP4ImUzs080=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "4LEm3OW11ks5eXv7WMfpSDT3DYQ=");
     }
 
     @Test
