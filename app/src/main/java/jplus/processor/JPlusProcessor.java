@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class JPlusProcessor {
@@ -38,6 +39,8 @@ public class JPlusProcessor {
     private JavaProcessor javaProcessor;
     private SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
+    private String className;
+    private String packageName;
     private boolean nullabilityChecked = false;
     private boolean symbolsAnalyzed = false;
 
@@ -124,21 +127,20 @@ public class JPlusProcessor {
         }
 
         javaProcessor.analyzeSymbols();
+        symbolsAnalyzed = true;
+
         symbolTable = javaProcessor.getSymbolTable().get(0);
-
-        SymbolTable referencedSymbolTable = symbolTable;
-
-        String className = symbolTable.resolve("^TopLevelClass$").getSymbol();
-        String packageName = symbolTable.resolve("^PackageName$").getSymbol();
-        String fullyQualifiedName = packageName + "." + className;
+        className = symbolTable.resolve("^TopLevelClass$").getSymbol();
+        packageName = symbolTable.resolve("^PackageName$").getSymbol();
 
         List<InMemoryJavaFile> inMemoryJavaFiles = new ArrayList<>();
-        inMemoryJavaFiles.add(new InMemoryJavaFile(fullyQualifiedName, javaProcessor.getSource()));
+        inMemoryJavaFiles.add(new InMemoryJavaFile(getFullyQualifiedName(), javaProcessor.getSource()));
 
         while(true) {
             var unresolvedReferenceInfoList = collectUnresolvedReferenceInfo(javaProcessor.getSymbolTable());
             if (unresolvedReferenceInfoList.isEmpty()) break;
 
+            symbolsAnalyzed = false;
             for (var unresolvedReferenceInfo : unresolvedReferenceInfoList) {
                 JPlusProcessor jPlusProcessor = new JPlusProcessor(project, unresolvedReferenceInfo.packageName, unresolvedReferenceInfo.className);
                 jPlusProcessor.process();
@@ -150,7 +152,7 @@ public class JPlusProcessor {
             javaProcessor = new JavaProcessor(inMemoryJavaFiles, globalSymbolTable);
             javaProcessor.process();
             javaProcessor.analyzeSymbols();
-            referencedSymbolTable = javaProcessor.getSymbolTable().get(javaProcessor.getSymbolTable().size()-1);
+
             symbolTable = javaProcessor.getSymbolTable().get(0);
         }
 
@@ -215,6 +217,27 @@ public class JPlusProcessor {
         }
 
         return null;
+    }
+
+    private void assertAnalyzed() {
+        if (!symbolsAnalyzed) {
+            throw new IllegalStateException("analyzeSymbol() not called.");
+        }
+    }
+
+    public String getClassName() {
+        assertAnalyzed();
+        return className;
+    }
+
+    public String getPackageName() {
+        assertAnalyzed();
+        return packageName;
+    }
+
+    public String getFullyQualifiedName() {
+        assertAnalyzed();
+        return Optional.ofNullable(packageName).map(packageName -> packageName + "." + className).orElse(className);
     }
 
     public JPlusParserRuleContext getParseTree() {
