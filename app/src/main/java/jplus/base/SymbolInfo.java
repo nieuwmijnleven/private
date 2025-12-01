@@ -35,6 +35,19 @@ public class SymbolInfo {
         this(symbol, typeInfo, range, originalText, modifierList, null);
     }
 
+    public SymbolInfo(SymbolInfo other) {
+        this.symbol = other.symbol;
+        this.typeInfo = other.typeInfo;
+        this.range = other.range;
+        this.originalText = other.originalText;
+        this.modifierList = other.modifierList;
+        this.symbolTable = other.symbolTable;
+    }
+
+    public static SymbolInfo from(SymbolInfo other) {
+        return new SymbolInfo(other);
+    }
+
     public String getSymbol() {
         return symbol;
     }

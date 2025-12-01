@@ -1,5 +1,6 @@
 package jplus.analyzer;
 
+import jplus.base.Project;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -11,10 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SymbolResolver {
+    private final Project project;
     private final SymbolTable globalSymbolTable;
     private List<Path> srcDirPathList;
 
-    public SymbolResolver(SymbolTable globalSymbolTable) {
+    public SymbolResolver(Project project, SymbolTable globalSymbolTable) {
+        this.project = project;
         this.globalSymbolTable = globalSymbolTable;
         this.srcDirPathList = new ArrayList<>();
     }

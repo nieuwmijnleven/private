@@ -226,6 +226,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitExpressionName(JPlus20Parser.ExpressionNameContext ctx) {
+        System.err.println("[ExpressionName] = code = " + Utils.getTokenString(ctx));
         var ambiguousNameCtx = ctx.ambiguousName();
         SymbolInfo symbolInfo = null;
         SymbolTable symbolTable = currentSymbolTable;
@@ -236,12 +237,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
             System.err.println("[ExpressionName] symbol = " + symbol);
             System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-            System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
 
             String typeName = typeInfo.getName();
             if (!SymbolUtils.isFQN(typeName)) {
                 typeName = this.packageName + "." + typeName;
             }
+            System.err.println("[ExpressionName] typeName = " + typeName);
+            System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
 
             SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
             symbolTable = classSymbolInfo.getSymbolTable();

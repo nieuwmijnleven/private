@@ -31,15 +31,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class JavaProcessor {
-
-    private final String source;
+    private List<InMemoryJavaFile> javaFiles;
+    private String source;
     private SymbolTable globalSymbolTable;
-    private SymbolTable symbolTable;
-    private JavaSymbolAnalyzer symbolAnalyzer;
+    private List<JavaSymbolAnalyzer> symbolAnalyzerList;
     private boolean symbolsAnalyzed = false;
 
     private JavacTask task;
@@ -48,13 +49,23 @@ public class JavaProcessor {
     private Map<String, MethodInvocationInfo> methodInvocationInfoMap;
 
     public JavaProcessor(String source) {
-        this.source = source;
-        this.globalSymbolTable = new SymbolTable(null);
+        this(source, new SymbolTable(null));
     }
 
     public JavaProcessor(String source, SymbolTable globalSymbolTable) {
         this.source = source;
         this.globalSymbolTable = globalSymbolTable;
+        this.javaFiles = new ArrayList<>();
+        this.symbolAnalyzerList = new ArrayList<>();
+        InMemoryJavaFile file = new InMemoryJavaFile("Source", this.source);
+        javaFiles.add(file);
+    }
+
+    public JavaProcessor(List<InMemoryJavaFile> javaFiles, SymbolTable globalSymbolTable) {
+        this.source = javaFiles.get(0).getContent();
+        this.javaFiles = javaFiles;
+        this.globalSymbolTable = globalSymbolTable;
+        this.symbolAnalyzerList = new ArrayList<>();
     }
 
     public JavaProcessor(Path filePath) throws Exception {
@@ -65,18 +76,10 @@ public class JavaProcessor {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-        JavaFileObject file = new SimpleJavaFileObject(URI.create("string:///Source.java"),
-                JavaFileObject.Kind.SOURCE) {
-            @Override
-            public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-                return source;
-            }
-        };
-
         task = (JavacTask) compiler.getTask(
                 null, fileManager, null,
                 List.of("-XDcompilePolicy=simple"), null,
-                List.of(file)
+                javaFiles
         );
 
         asts = task.parse();
@@ -89,21 +92,33 @@ public class JavaProcessor {
             throw new IllegalStateException("Call process() first.");
         }
 
-        symbolAnalyzer = null;
+        int k = 0;
         for (CompilationUnitTree ast : asts) {
-            symbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable);
-            symbolAnalyzer.scan(ast, null);
+            String source = javaFiles.get(k).getContent();
+            JavaSymbolAnalyzer javaSymbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable);
+            javaSymbolAnalyzer.scan(ast, null);
+            symbolAnalyzerList.add(javaSymbolAnalyzer);
+            ++k;
         }
-        symbolsAnalyzed = false;
+
+//        String source = javaFiles.get(0).getContent();
+//        CompilationUnitTree ast = asts.iterator().next();
+//        symbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable);
+//        symbolAnalyzer.scan(ast, null);
+//        symbolsAnalyzed = false;
     }
 
-    public SymbolTable getSymbolTable() {
-        return symbolAnalyzer.getTopLevelSymbolTable();
+    public String getSource() {
+        return source;
+    }
+
+    public List<SymbolTable> getSymbolTable() {
+        return symbolAnalyzerList.stream().map(JavaSymbolAnalyzer::getTopLevelSymbolTable).toList();
     }
 
     public SymbolTable getGlobalSymbolTable() { return globalSymbolTable; }
 
-    public JavaMethodInvocationManager getMethodInvocationManager() {
-        return symbolAnalyzer.getJavaMethodInvocationManager();
+    public List<JavaMethodInvocationManager> getMethodInvocationManager() {
+        return symbolAnalyzerList.stream().map(JavaSymbolAnalyzer::getJavaMethodInvocationManager).toList();
     }
 }

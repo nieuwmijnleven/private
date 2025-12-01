@@ -2,53 +2,79 @@ package jplus.analyzer;
 
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
+import jplus.base.TypeInfo;
 import jplus.util.SymbolUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public class UnresolvedReferenceScanner {
 
     private final SymbolTable symbolTable;
     private final String packageName;
 
-    public UnresolvedReferenceScanner(SymbolTable symbolTable, String packageName) {
-        this.symbolTable = symbolTable;
-        this.packageName = packageName;
+    public static class UnresolvedReferenceInfo {
+        public String className;
+        public String packageName;
+
+        public String getFullyQualifiedName() {
+            return packageName + "." + className;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof UnresolvedReferenceInfo info)) return false;
+            return Objects.equals(className, info.className) && Objects.equals(packageName, info.packageName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(className, packageName);
+        }
     }
 
-    public List<Path> findUnresolvedReference() {
-        List<Path> result = new ArrayList<>();
+    public UnresolvedReferenceScanner(SymbolTable symbolTable) {
+        this.symbolTable = symbolTable;
+        this.packageName = symbolTable.resolve("^PackageName$").getSymbol();
+        System.err.println("[UnresolvedReferenceScanner] packageName = " + this.packageName);
+    }
+
+    public List<UnresolvedReferenceInfo> findUnresolvedReference() {
+        Set<UnresolvedReferenceInfo> unresolvedReferenceInfoList = new HashSet<>();
         for (SymbolInfo unresolved : findUnresolvedSymbols()) {
-            String typeName = unresolved.getTypeInfo().getName();
-            String fqn = this.packageName + "." + typeName;
-            String pathString = fqn.replaceAll("\\.", "/");
-            result.add(Path.of(pathString));
+            UnresolvedReferenceInfo info = new UnresolvedReferenceInfo();
+            info.className = unresolved.getTypeInfo().getName();
+            info.packageName = this.packageName;
+            unresolvedReferenceInfoList.add(info);
         }
-        return result;
+        return unresolvedReferenceInfoList.stream().toList();
     }
 
     private List<SymbolInfo> findUnresolvedSymbols() {
-        List<SymbolInfo> result = new ArrayList<>();
+        List<SymbolInfo> unresolved = new ArrayList<>();
         Deque<SymbolTable> deque = new LinkedList<>();
         deque.add(symbolTable);
         while (!deque.isEmpty()) {
             SymbolTable table = deque.removeFirst();
             for (SymbolInfo symbolInfo : table) {
                 if (checkUnresolvedSymbol(symbolInfo)) {
-                    result.add(symbolInfo);
+                    unresolved.add(symbolInfo);
                 }
             }
             deque.addAll(table.getEnclosingSymbolTables());
         }
-        return result;
+        return unresolved;
     }
 
     private boolean checkUnresolvedSymbol(SymbolInfo symbolInfo) {
-        return !SymbolUtils.isFQN(symbolInfo.getTypeInfo().getName());
+        TypeInfo typeInfo = symbolInfo.getTypeInfo();
+        return typeInfo.getType() != TypeInfo.Type.Method && !SymbolUtils.isFQN(typeInfo.getName());
     }
 
 }

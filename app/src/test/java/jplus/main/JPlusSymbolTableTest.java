@@ -1,6 +1,7 @@
 package jplus.main;
 
 import jplus.analyzer.NullabilityChecker;
+import jplus.base.Project;
 import jplus.processor.JPlusProcessor;
 import jplus.processor.JavaProcessor;
 import jplus.processor.ProjectProcessor;
@@ -72,10 +73,12 @@ public class JPlusSymbolTableTest {
     }
     @Test
     void testNullableConstructorParamAnnotation() throws Exception {
-        ProjectProcessor projectProcessor = new ProjectProcessor(Path.of("./src/test/files/NullableAnnotation"));
-        projectProcessor.buildSymbolTable();
+        Project project = new Project(Path.of("./src/test/files/NullableAnnotation"));
+        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "UserConstructorParamAnnotation");
+        processor.process();
+        processor.analyzeSymbols();
 
-        var issues = projectProcessor.checkNullability(Path.of("./src/test/files/NullableAnnotation/UserConstructorParamAnnotation.jplus"));
+        var issues = processor.checkNullability();
         if (!issues.isEmpty()) {
             issues.forEach(nullabilityIssue -> {
                 System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.getLine(), nullabilityIssue.getColumn(), nullabilityIssue.getMessage());

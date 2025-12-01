@@ -9,6 +9,7 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.PackageTree;
 import com.sun.source.tree.PrimitiveTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
@@ -46,6 +47,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private final SymbolTable topLevelSymbolTable;
     private SymbolTable currentSymbolTable;
     private JavaMethodInvocationManager javaMethodInvocationManager;
+    private String packageName;
 
     public JavaSymbolAnalyzer(String source, CompilationUnitTree ast, Trees trees, SymbolTable globalSymbolTable) {
         this.source = source;
@@ -70,6 +72,12 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     @Override
+    public Void visitPackage(PackageTree node, Void unused) {
+        this.packageName = node.getPackageName().toString();
+        return super.visitPackage(node, unused);
+    }
+
+    @Override
     public Void visitClass(ClassTree node, Void unused) {
         TreePath classPath = getCurrentPath();
         Element element = trees.getElement(classPath);
@@ -86,15 +94,18 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
         TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
 
-        SymbolInfo classSymbolInfo = SymbolInfo.builder()
+        SymbolInfo.Builder symbolInfoBuilder = SymbolInfo.builder()
                 .symbol(simpleTypeName)
                 .typeInfo(typeInfoBuilder.build())
                 .symbolTable(currentSymbolTable)
                 .originalText(source.substring(startPos, endPos))
-                .range(range)
-                .build();
+                .range(range);
+
+        SymbolInfo classSymbolInfo = symbolInfoBuilder.build();
 
         if (topLevelSymbolTable.isEmpty()) {
+            SymbolInfo packageSymbolInfo = symbolInfoBuilder.symbol(this.packageName).build();
+            currentSymbolTable.declare("^PackageName$", packageSymbolInfo);
             currentSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
         }
 
