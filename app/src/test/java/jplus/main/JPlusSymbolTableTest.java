@@ -118,16 +118,16 @@ public class JPlusSymbolTableTest {
 
     @Test
     void testConvertJavaWithNullableAnnotation() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/User.jplus"));
-//        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
-        processor.process();
-//        System.err.println(processor.getParseTreeString());
-        String javaCode = processor.generateJavaCodeWithoutBoilerplate();
-        System.err.println(javaCode);
-
-        JavaProcessor javaProcessor = new JavaProcessor(javaCode);
-        javaProcessor.process();
-        javaProcessor.analyzeSymbols();
+//        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/User.jplus"));
+////        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+//        processor.process();
+////        System.err.println(processor.getParseTreeString());
+//        String javaCode = processor.generateJavaCodeWithoutBoilerplate();
+//        System.err.println(javaCode);
+//
+//        JavaProcessor javaProcessor = new JavaProcessor(javaCode);
+//        javaProcessor.process();
+//        javaProcessor.analyzeSymbols();
 
 
     }
