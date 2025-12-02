@@ -2,6 +2,7 @@ package jplus.main;
 
 import jplus.base.Project;
 import jplus.processor.JPlusProcessor;
+import jplus.util.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -252,19 +253,22 @@ class JPlusTest {
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {
-//        Path filePath = Path.of(fileName);
-//        Path parentDirectory = filePath.getParent();
-//        String className =
-//        Project project = new Project(Path.of("./src/test/files/NullableAnnotation"));
-//        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "UserMethodParamAnnotation");
-//        processor.process();
-////        System.err.println(processor.getParseTreeString());
-//        processor.analyzeSymbols();
+        Path filePath = Path.of(fileName);
+        Path parentDirectory = filePath.getParent();
+        String className = Utils.getFileNameWithoutExtension(filePath);
+        System.err.println("[checkGeneratedCode] parentDirectory = " + parentDirectory.toString());
+        System.err.println("[checkGeneratedCode] className = " + className);
 
-        JPlusProcessor processor = new JPlusProcessor(Path.of(fileName));
+        Project project = new Project(parentDirectory);
+        JPlusProcessor processor = new JPlusProcessor(project, "", className);
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
+
+//        JPlusProcessor processor = new JPlusProcessor(Path.of(fileName));
+//        processor.process();
+////        System.err.println(processor.getParseTreeString());
+//        processor.analyzeSymbols();
 
         var issues = processor.checkNullability();
         if (!issues.isEmpty()) {

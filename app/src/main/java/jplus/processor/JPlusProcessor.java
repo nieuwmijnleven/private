@@ -66,10 +66,26 @@ public class JPlusProcessor {
         this.globalSymbolTable = globalSymbolTable;
     }
 
+//    public JPlusProcessor(Project project, String packageName, String className) throws Exception {
+//        this(project, Files.readString(project.getSrcDir().resolve(packageName.replace(".", "/")).resolve(className + ".jplus"), StandardCharsets.UTF_8), new SymbolTable(null));
+//        System.err.println("[JPlusProcessor] srcPath = " + project.getSrcDir().resolve(packageName.replace(".", "/")).resolve(className + ".jplus"));
+//    }
+
     public JPlusProcessor(Project project, String packageName, String className) throws Exception {
-        this(project, Files.readString(project.getSrcDir().resolve(packageName.replace(".", "/")).resolve(className + ".jplus"), StandardCharsets.UTF_8), new SymbolTable(null));
-        System.err.println("[JPlusProcessor] srcPath = " + project.getSrcDir().resolve(packageName.replace(".", "/")).resolve(className + ".jplus"));
+        this(
+                project,
+                Files.readString(
+                        packageName == null || packageName.isBlank()
+                                ? project.getSrcDir().resolve(className + ".jplus")
+                                : project.getSrcDir()
+                                .resolve(packageName.replace(".", "/"))
+                                .resolve(className + ".jplus"),
+                        StandardCharsets.UTF_8
+                ),
+                new SymbolTable(null)
+        );
     }
+
 
     public JPlusProcessor(Project project, Path filePath, SymbolTable globalSymbolTable) throws Exception {
         this(project, Files.readString(filePath, StandardCharsets.UTF_8), globalSymbolTable);

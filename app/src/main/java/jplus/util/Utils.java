@@ -4,6 +4,7 @@ import jplus.generator.TextChangeRange;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -244,5 +245,11 @@ public class Utils {
             throw new IllegalArgumentException("Invalid start or end offset: " + "text.length() = " + original.length() + ", startOffset = " + startIndex + ", endOffset = " + stopIndex + ", simpleName = " + ctx.getClass().getSimpleName());
         }
         return Utils.computeTextChangeRange(original, startIndex, stopIndex);
+    }
+
+    public static String getFileNameWithoutExtension(Path path) {
+        String name = path.getFileName().toString();
+        int dotIndex = name.lastIndexOf('.');
+        return (dotIndex == -1) ? name : name.substring(0, dotIndex);
     }
 }

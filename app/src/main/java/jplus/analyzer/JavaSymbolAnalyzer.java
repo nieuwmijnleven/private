@@ -32,6 +32,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,46 +131,52 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     private void visitField(VariableTree node, TreePath classPath) {
-        TreePath varPath = new TreePath(classPath, node);
-        Element fieldElement = trees.getElement(varPath);
-        TypeMirror fieldTypeMirror = trees.getTypeMirror(varPath);
-
         List<jplus.base.Modifier> fieldModifierList = new ArrayList<>();
         for (Modifier m : node.getModifiers().getFlags()) {
             fieldModifierList.add(jplus.base.Modifier.valueOf(m.toString().toUpperCase()));
         }
         System.err.println("[Field] fieldModifierList " + fieldModifierList);
 
-        String fieldName = node.getName().toString();
-        String fieldTypeName;
-        if (fieldTypeMirror instanceof DeclaredType dt) {
-            fieldTypeName = dt.asElement().toString();
-        } else {
-            fieldTypeName = fieldTypeMirror.toString(); // primitive 등
-        }
-
-        System.err.println("[field] fieldTypeName = " + fieldTypeName);
-        System.err.println("[field] fieldName = " + fieldName);
-
-        boolean hasNullableAnnotation = false;
-        for (AnnotationMirror annotationMirror : fieldTypeMirror.getAnnotationMirrors()) {
-            DeclaredType annType = annotationMirror.getAnnotationType();
-            System.err.println("[Field] annType = " + annType.toString());
-            if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
-                hasNullableAnnotation = true;
-                break;
-            }
-        }
+        TreePath varPath = new TreePath(classPath, node);
+        Element fieldElement = trees.getElement(varPath);
+        TypeMirror fieldTypeMirror = trees.getTypeMirror(varPath);
 
         TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
-        typeInfoBuilder.name(fieldTypeName)
-                .isNullable(hasNullableAnnotation)
-                .type(TypeInfo.Type.Reference);
+        TypeInfo.Type type = getType(fieldTypeMirror);
+        if (type == TypeInfo.Type.Primitive) {
+            typeInfoBuilder.name(fieldTypeMirror.toString());
+            typeInfoBuilder.isNullable(false);
+        } else if (type == TypeInfo.Type.Reference) {
+            typeInfoBuilder.name(((DeclaredType)fieldTypeMirror).asElement().toString());
+            // annotation으로 nullable 체크
+            boolean isNullable = false;
+            for (AnnotationMirror annotationMirror : fieldTypeMirror.getAnnotationMirrors()) {
+                DeclaredType annType = annotationMirror.getAnnotationType();
+                System.err.println("[Field] annType = " + annType.toString());
+                if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
+                    isNullable = true;
+                    break;
+                }
+            }
+            typeInfoBuilder.isNullable(isNullable);
+        } else if (type == TypeInfo.Type.Unknown) {
+            if (fieldTypeMirror instanceof DeclaredType dt) {
+                typeInfoBuilder.name(dt.asElement().toString());
+            } else {
+                typeInfoBuilder.name(fieldTypeMirror.toString());
+            }
+            typeInfoBuilder.isNullable(false);
+        } else {
+            typeInfoBuilder.name(fieldTypeMirror.toString());
+            typeInfoBuilder.isNullable(false);
+        }
+        typeInfoBuilder.type(type);
 
         int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
         int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
         TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
 
+        String fieldName = node.getName().toString();
         SymbolInfo fieldSymbolInfo = SymbolInfo.builder()
                 .symbol(fieldName)
                 .typeInfo(typeInfoBuilder.build())
@@ -178,10 +185,23 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .originalText(source.substring(startPos, endPos))
                 .range(range)
                 .build();
+        System.err.println("[Field] fieldSymbolInfo = " + fieldSymbolInfo);
 
         currentSymbolTable.declare(fieldName, fieldSymbolInfo);
+    }
 
-        System.err.println("Field: " + node.getName() + ", type = " + fieldTypeName + ", annotationTypeList = " + fieldTypeMirror.getAnnotationMirrors());
+    private TypeInfo.Type getType(TypeMirror fieldTypeMirror) {
+        TypeKind kind = fieldTypeMirror.getKind();
+        System.err.println("[getType] type = " + kind);
+        if (kind.isPrimitive()) {
+            System.err.println("[getType] Primitive type: " + kind);
+            return TypeInfo.Type.Primitive;
+        } else if (kind == TypeKind.DECLARED || kind == TypeKind.ARRAY || kind == TypeKind.TYPEVAR) {
+            System.err.println("[getType] Reference type: " + fieldTypeMirror);
+            return TypeInfo.Type.Reference;
+        } else {
+            return TypeInfo.Type.Unknown;
+        }
     }
 
     @Override
@@ -462,8 +482,33 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         Tree typeTree = node.getType();
         boolean isNullable = false;
 
+        TreePath typePath = TreePath.getPath(getCurrentPath().getCompilationUnit(), typeTree);
+        TypeMirror typeMirror = trees.getTypeMirror(typePath);
+
+        TypeInfo.Type type = getType(typeMirror);
+        if (type == TypeInfo.Type.Primitive) {
+            typeInfoBuilder.name(typeTree.toString());
+            typeInfoBuilder.isNullable(false);
+        } else if (type == TypeInfo.Type.Reference) {
+            typeInfoBuilder.name(((DeclaredType)typeMirror).asElement().toString());
+            // annotation으로 nullable 체크
+            for (AnnotationMirror annotationMirror : typeMirror.getAnnotationMirrors()) {
+                DeclaredType annType = annotationMirror.getAnnotationType();
+                System.err.println("annType = " + annType.toString());
+                if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
+                    isNullable = true;
+                    break;
+                }
+            }
+            typeInfoBuilder.isNullable(isNullable);
+        } else {
+            typeInfoBuilder.name(typeMirror.toString());
+            typeInfoBuilder.isNullable(false);
+        }
+        typeInfoBuilder.type(type);
+
         // primitive 타입 처리
-        if (typeTree instanceof PrimitiveTypeTree) {
+        /*if (typeTree instanceof PrimitiveTypeTree) {
             typeInfoBuilder.name(typeTree.toString());
             typeInfoBuilder.type(TypeInfo.Type.Primitive);
             typeInfoBuilder.isNullable(false);
@@ -490,7 +535,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 }
             }
             typeInfoBuilder.isNullable(isNullable);
-        }
+        }*/
 
         int startPos = (int) trees.getSourcePositions().getStartPosition(getCurrentPath().getCompilationUnit(), node);
         int endPos = (int) trees.getSourcePositions().getEndPosition(getCurrentPath().getCompilationUnit(), node);

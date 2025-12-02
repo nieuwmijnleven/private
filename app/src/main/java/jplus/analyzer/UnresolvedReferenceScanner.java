@@ -76,7 +76,8 @@ public class UnresolvedReferenceScanner {
 
     private boolean checkUnresolvedSymbol(SymbolInfo symbolInfo) {
         TypeInfo typeInfo = symbolInfo.getTypeInfo();
-        return typeInfo.getType() != TypeInfo.Type.Method && !SymbolUtils.isFQN(typeInfo.getName());
+//        return (typeInfo.getType() == TypeInfo.Type.Class || typeInfo.getType() == TypeInfo.Type.Reference) && !SymbolUtils.isFQN(typeInfo.getName());
+        return typeInfo.getType() == TypeInfo.Type.Unknown;
     }
 
 }
