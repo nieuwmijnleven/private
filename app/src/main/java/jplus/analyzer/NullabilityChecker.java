@@ -388,9 +388,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
         SymbolTable symbolTable = symbolInfo.getSymbolTable();
         if (symbolInfo.getTypeInfo().getType() != TypeInfo.Type.Class) {
-            symbolInfo = globalSymbolTable.resolveInCurrent(symbolInfo.getTypeInfo().getName());
-            if (symbolInfo != null) {
-                symbolTable = symbolInfo.getSymbolTable();
+            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(symbolInfo.getTypeInfo().getName());
+            if (classSymbolInfo != null) {
+                symbolTable = classSymbolInfo.getSymbolTable();
+                symbolInfo = classSymbolInfo;
             }
         }
         SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
