@@ -48,6 +48,8 @@ public class UnresolvedReferenceScanner {
     public List<UnresolvedReferenceInfo> findUnresolvedReference() {
         Set<UnresolvedReferenceInfo> unresolvedReferenceInfoList = new HashSet<>();
         for (SymbolInfo unresolved : findUnresolvedSymbols()) {
+            if ("<error>".equals(unresolved.getSymbol())) continue;
+
             UnresolvedReferenceInfo info = new UnresolvedReferenceInfo();
             info.className = unresolved.getTypeInfo().getName();
             info.packageName = this.packageName;

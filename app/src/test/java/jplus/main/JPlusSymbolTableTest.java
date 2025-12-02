@@ -1,10 +1,7 @@
 package jplus.main;
 
-import jplus.analyzer.NullabilityChecker;
 import jplus.base.Project;
 import jplus.processor.JPlusProcessor;
-import jplus.processor.JavaProcessor;
-import jplus.processor.ProjectProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,16 +44,17 @@ public class JPlusSymbolTableTest {
         }
 
         assertEquals("Error: (line:16, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:27, column:21) The 2nd argument of the User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:28, column:21) The 1st argument of the User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:28, column:36) The 1st argument of the Address constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:27, column:21) The 2nd argument of the jplus.example.User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:28, column:21) The 1st argument of the jplus.example.User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:28, column:36) The 1st argument of the jplus.example.Address constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
     @Test
     void testNullableAnnotation() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserAnnotation.jplus"));
-//        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        Project project = new Project(Path.of("./src/test/files/NullableAnnotation"));
+        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "UserAnnotation");
         processor.process();
+//        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
 
         var issues = processor.checkNullability();
@@ -68,9 +66,9 @@ public class JPlusSymbolTableTest {
         }
 
         assertEquals("Error: (line:16, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:27, column:31) The 2nd argument of the UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:28, column:31) The 1st argument of the UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:28, column:56) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:27, column:31) The 2nd argument of the jplus.example.UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:28, column:31) The 1st argument of the jplus.example.UserAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:28, column:56) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
     @Test
     void testNullableConstructorParamAnnotation() throws Exception {

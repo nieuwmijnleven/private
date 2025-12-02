@@ -1,3 +1,5 @@
+package jplus.example;
+
 public class Street {
     String? name;
     Street(String name) {

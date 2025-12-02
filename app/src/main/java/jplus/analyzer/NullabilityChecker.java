@@ -231,11 +231,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         SymbolTable symbolTable = currentSymbolTable;
         while (ambiguousNameCtx != null) {
             String symbol = Utils.getTokenString(ambiguousNameCtx.identifier());
+            System.err.println("[ExpressionName] symbol = " + symbol);
+
             symbolInfo = symbolTable.resolve(symbol);
+            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
+
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
-            System.err.println("[ExpressionName] symbol = " + symbol);
-            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
 
             String typeName = typeInfo.getName();
             if (!SymbolUtils.isFQN(typeName)) {

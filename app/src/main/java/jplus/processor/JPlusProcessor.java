@@ -190,6 +190,7 @@ public class JPlusProcessor {
                 JPlusProcessor dependency = new JPlusProcessor(project, unresolved.packageName, unresolved.className);
                 dependency.process();
                 String javaCode = dependency.generateJavaCodeWithoutBoilerplate();
+                System.err.println("[resolveAllUnresolvedReferences] javaCode = " + javaCode);
                 inMemoryJavaFiles.add(new InMemoryJavaFile(unresolved.getFullyQualifiedName(), javaCode));
             }
 
