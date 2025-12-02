@@ -373,18 +373,26 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private Optional<SymbolInfo> resolveClassSymbol(MethodInvocationInfo info) {
         return Optional.ofNullable(info.instanceName)
-                .map(className -> currentSymbolTable.resolve(className))
-                .map(symbolInfo -> {
-                    TypeInfo typeInfo = symbolInfo.getTypeInfo();
-                    if (typeInfo.getType() != TypeInfo.Type.Class) {
-                        return globalSymbolTable.resolveInCurrent(typeInfo.getName());
-                    }
-                    return symbolInfo;
-                });
+                .map(className -> currentSymbolTable.resolve(className));
+//                .map(symbolInfo -> {
+//                    TypeInfo typeInfo = symbolInfo.getTypeInfo();
+//                    System.err.println("[resolveClassSymbol] typeInfo.getType() = " + typeInfo.getType());
+//                    if (typeInfo.getType() != TypeInfo.Type.Class) {
+//                        SymbolInfo globalSymbolInfo = globalSymbolTable.resolveInCurrent(typeInfo.getName());
+//                        if (globalSymbolInfo != null) return globalSymbolInfo;
+//                    }
+//                    return symbolInfo;
+//                });
     }
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
         SymbolTable symbolTable = symbolInfo.getSymbolTable();
+        if (symbolInfo.getTypeInfo().getType() != TypeInfo.Type.Class) {
+            symbolInfo = globalSymbolTable.resolveInCurrent(symbolInfo.getTypeInfo().getName());
+            if (symbolInfo != null) {
+                symbolTable = symbolInfo.getSymbolTable();
+            }
+        }
         SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
         log("[resolveClassSymbolTable] enclosingSymbolTable = " + classSymbolTable);
         return classSymbolTable;
@@ -660,13 +668,14 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
             //check method parameter nullability
             SymbolTable classSymbolTable = resolveClassSymbolTable(instanceSymbolInfo.get());
+            if (!classSymbolTable.isEmpty()) { //must repair
+                Optional<SymbolInfo> methodSymbol = resolveMethod(classSymbolTable, info);
+                if (methodSymbol.isEmpty()) {
+                    throw new IllegalStateException("cannot find a mapping method.");
+                }
 
-            Optional<SymbolInfo> methodSymbol = resolveMethod(classSymbolTable, info);
-            if (methodSymbol.isEmpty()) {
-                throw new IllegalStateException("cannot find a mapping method.");
+                validateMethodArguments(ctx, info, methodSymbol.get());
             }
-
-            validateMethodArguments(ctx, info, methodSymbol.get());
         });
 
 

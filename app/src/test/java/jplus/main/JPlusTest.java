@@ -147,8 +147,8 @@ class JPlusTest {
 
         String expected = "Error: (line:18, column:15) address is a nullable variable. But it directly accesses city. Consider using null-safe operator(?.).\n" +
                 "Error: (line:37, column:8) nickName is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:42, column:21) The 1st argument of the User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:42, column:36) The 1st argument of the Address constructor is a non-nullable variable, but a null value is assigned to it.\n";
+                "Error: (line:42, column:21) The 1st argument of the jplus.example.User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:42, column:36) The 1st argument of the jplus.example.User.Address constructor is a non-nullable variable, but a null value is assigned to it.\n";
         assertEquals(expected, outContent.toString());
     }
 
@@ -189,17 +189,17 @@ class JPlusTest {
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "Dem7Eaug07AYrAhfNbj2eyri7Nc=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "jN/DMdHIgKyDAs11SRYagASygi0=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "dgle9tqUMEb8QIfJxq50Ga8m7I4=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "+2gyKfUyySc1XkRvw14TFuasdUo=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "4LEm3OW11ks5eXv7WMfpSDT3DYQ=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "LYAPBouq1JKIktjRfP4ImUzs080=");
     }
 
     @Test

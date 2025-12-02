@@ -196,9 +196,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         if (kind.isPrimitive()) {
             System.err.println("[getType] Primitive type: " + kind);
             return TypeInfo.Type.Primitive;
-        } else if (kind == TypeKind.DECLARED || kind == TypeKind.ARRAY || kind == TypeKind.TYPEVAR) {
+        } else if (kind == TypeKind.DECLARED || kind == TypeKind.TYPEVAR) {
             System.err.println("[getType] Reference type: " + fieldTypeMirror);
             return TypeInfo.Type.Reference;
+        } else if (kind == TypeKind.ARRAY) {
+            return TypeInfo.Type.Array;
         } else {
             return TypeInfo.Type.Unknown;
         }
