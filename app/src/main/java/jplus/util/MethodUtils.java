@@ -7,14 +7,10 @@ import com.sun.source.util.TreePath;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConstructorUtils {
+public class MethodUtils {
 
     /**
      * MethodTree가 실제 코드에 존재하는 생성자인지 확인
@@ -44,10 +40,10 @@ public class ConstructorUtils {
         return !ee.isDefault();
     }
 
-    public static List<String> getCandidates(List<String> paramTypes) {
+    public static List<String> getCandidates(String methodName, List<String> paramTypes) {
         List<String> candidates = new ArrayList<>();
         if (!paramTypes.isEmpty()) {
-            generateCandidates(paramTypes, 0, "^constructor$", candidates);
+            generateCandidates(paramTypes, 0, "^"+ methodName + "$", candidates);
         }
         return candidates;
     }

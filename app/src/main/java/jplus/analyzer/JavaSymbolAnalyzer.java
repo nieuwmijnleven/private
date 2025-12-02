@@ -22,8 +22,7 @@ import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.TextChangeRange;
-import jplus.util.CodeUtils;
-import jplus.util.ConstructorUtils;
+import jplus.util.MethodUtils;
 import jplus.util.Utils;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -34,7 +33,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -188,10 +186,25 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitNewClass(NewClassTree node, Void unused) {
-        System.err.println("[NewClass] node.getIdentifier() = " + node.getIdentifier());
-        System.err.println("[NewClass] node.toString() = " + node.toString());
+//        System.err.println("[NewClass] node.getIdentifier() = " + node.getIdentifier());
+//        System.err.println("[NewClass] node.toString() = " + node.toString());
 
-        String identifier = node.getIdentifier().toString();
+//        String identifier = node.getIdentifier().toString();
+
+        // --- Identifier 의 FQN을 추출 ---
+        String fqnIdentifier = null;
+        TreePath idPath = trees.getPath(ast, node.getIdentifier());
+        if (idPath != null) {
+            TypeMirror idType = trees.getTypeMirror(idPath);
+
+            if (idType instanceof DeclaredType dt) {
+                Element e = dt.asElement();
+                if (e instanceof TypeElement te) {
+                    fqnIdentifier = te.getQualifiedName().toString();
+                }
+            }
+        }
+        System.err.println("[NewClass] fqnIdentifier = " + fqnIdentifier);
 
         int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
         int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
@@ -220,8 +233,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
 
         var methodInvocationInfoBuilder = MethodInvocationInfo.builder();
-        methodInvocationInfoBuilder.instanceName(identifier)
-                .methodName(identifier)
+        methodInvocationInfoBuilder.instanceName(fqnIdentifier)
+                .methodName(fqnIdentifier)
                 .argTypes(argTypes)
                 .args(argStrings)
 //                .returnType(returnType)
@@ -376,7 +389,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         String methodName = node.getName().toString();
         TypeInfo.Type type = TypeInfo.Type.Method;
         if (methodName.equals("<init>")) {
-            if (!ConstructorUtils.isExplicitConstructor(node, trees, getCurrentPath())) {
+            if (!MethodUtils.isExplicitConstructor(node, trees, getCurrentPath())) {
                 return super.visitMethod(node, unused);
             }
             methodName = "constructor";

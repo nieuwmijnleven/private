@@ -9,13 +9,12 @@ import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
-import jplus.util.ConstructorUtils;
+import jplus.util.MethodUtils;
 import jplus.util.SymbolUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -354,69 +353,63 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private TextChangeRange getCodeRange(ParserRuleContext ctx) {
         String code = Utils.getTokenString(ctx);
-        log("[InstanceCreationExpression] code: " + code);
+        log("[getCodeRange] code: " + code);
 
         TextChangeRange codeRange = Utils.getTextChangeRange(originalText, ctx);
-        log("[InstanceCreationExpression] codeRange: " + codeRange);
+        log("[getCodeRange] codeRange: " + codeRange);
 
         return codeRange;
     }
 
     private Optional<TextChangeRange> findTransformedRange(TextChangeRange instanceRange) {
         return sourceMappingEntrySet.stream()
-                .peek(entry -> log("[InstanceCreationExpression] originalRange = " + entry.getOriginalRange()))
+                .peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange()))
                 .filter(entry -> instanceRange.equals(entry.getOriginalRange()))
                 .map(SourceMappingEntry::getTransformedRange)
                 .findFirst();
     }
 
     private Optional<SymbolInfo> resolveClassSymbol(MethodInvocationInfo info) {
-        Optional<SymbolInfo> classSymbolInfo = Optional.ofNullable(info.instanceName)
-                .map(className -> {
-                    SymbolInfo symbolInfo = currentSymbolTable.resolve(className);
-                    log("[InstanceCreationExpression] classSymbolInfo = " + symbolInfo);
+        return Optional.ofNullable(info.instanceName)
+                .map(className -> currentSymbolTable.resolve(className))
+                .map(symbolInfo -> {
+                    TypeInfo typeInfo = symbolInfo.getTypeInfo();
+                    if (typeInfo.getType() != TypeInfo.Type.Class) {
+                        return globalSymbolTable.resolveInCurrent(typeInfo.getName());
+                    }
                     return symbolInfo;
                 });
-
-        if (classSymbolInfo.isEmpty() && info.instanceName != null) {
-            String fqn = this.packageName + "." + info.instanceName;
-            return Optional.ofNullable(fqn).map(className -> {
-                SymbolInfo symbolInfo = currentSymbolTable.resolve(className);
-                log("[InstanceCreationExpression] classSymbolInfo = " + symbolInfo);
-                return symbolInfo;
-            });
-        }
-
-        return classSymbolInfo;
     }
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
         SymbolTable symbolTable = symbolInfo.getSymbolTable();
         SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
-        log("[InstanceCreationExpression] enclosingSymbolTable = " + classSymbolTable);
+        log("[resolveClassSymbolTable] enclosingSymbolTable = " + classSymbolTable);
         return classSymbolTable;
     }
 
-    private Optional<SymbolInfo> resolveConstructor(SymbolTable classSymbolTable, MethodInvocationInfo info) {
-        List<String> candidates = ConstructorUtils.getCandidates(info.paramTypes);
-        //candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
+    private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
+        String methodName = info.instanceName.equals(info.methodName) ? "constructor" : info.methodName;
+        List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
+        candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
 
         for (String candidate : candidates) {
-            SymbolInfo constructor = classSymbolTable.resolveInCurrent(candidate);
-            if (constructor != null) {
-                log("[InstanceCreationExpression] found constructor: " + constructor);
-                return Optional.of(constructor);
+            SymbolInfo methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
+            if (methodSymbolInfo != null) {
+                log("[resolveMethod] found method: " + methodSymbolInfo);
+                return Optional.of(methodSymbolInfo);
             }
         }
         return Optional.empty();
     }
 
-    private void validateConstructorArguments(
-            JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx,
+    private void validateMethodArguments(
+            ParserRuleContext ctx,
             MethodInvocationInfo info,
-            SymbolInfo constructorSymbolInfo
+            SymbolInfo methodSymbolInfo
     ) {
-        String raw = constructorSymbolInfo.getSymbol().substring("^constructor$_".length());
+        String methodName = info.instanceName.equals(info.methodName) ? "constructor" : info.methodName;
+        String raw = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
         String[] paramTypes = raw.split("_");
 
         for (int i = 0; i < paramTypes.length; i++) {
@@ -425,7 +418,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             log("paramType = " + paramType + ", argType = " + argType);
 
             if (isInvalidNullAssignment(paramType, argType)) {
-                reportInvalidNull(ctx, info.instanceName, i + 1);
+                reportInvalidNull(ctx, info, i + 1);
             }
         }
     }
@@ -435,14 +428,21 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     }
 
     private void reportInvalidNull(
-            JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx,
-            String className,
+            ParserRuleContext ctx,
+            MethodInvocationInfo info,
             int argIndex
     ) {
         String suffix = getOrdinalSuffix(argIndex);
-        String msg = "The " + argIndex + suffix +
-                " argument of the " + className +
+        String msg = null;
+        if (info.instanceName.equals(info.methodName)) {
+            msg = "The " + argIndex + suffix +
+                " argument of the " + info.instanceName +
                 " constructor is a non-nullable variable, but a null value is assigned to it.";
+        } else {
+            msg = "The " + argIndex + suffix +
+                " argument of the " + info.instanceName + "." + info.methodName + "()" +
+                " is a non-nullable variable, but a null value is assigned to it.";
+        }
         reportNullableAccessIssue(ctx.start, msg);
     }
 
@@ -453,30 +453,35 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
         TextChangeRange codeRange = getCodeRange(ctx);
-        System.err.println("[ClassInstanceCreation] codeRange = " + codeRange);
+
         Optional<TextChangeRange> transformedRange = findTransformedRange(codeRange);
         if (transformedRange.isEmpty()) {
-            return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+            throw new IllegalStateException("cannot find a mapping java code range.");
         }
 
         Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, transformedRange.get());
         if (invocationInfo.isEmpty()) {
-            return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
+            throw new IllegalStateException("cannot find a method invocation info.");
         }
 
-        MethodInvocationInfo info = invocationInfo.get();
-        log("[InstanceCreationExpression] InvocationInfo = " + info);
+        invocationInfo.ifPresent(info -> {
+            log("[InstanceCreationExpression] InvocationInfo = " + info);
 
-        Optional<SymbolInfo> classSymbolInfo = resolveClassSymbol(info);
-        if (classSymbolInfo.isEmpty()) {
-            return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
-        }
+            Optional<SymbolInfo> classSymbolInfo = resolveClassSymbol(info);
+            System.err.println("[InstanceCreationExpression] symbolInfo = " + classSymbolInfo.get());
+            if (classSymbolInfo.isEmpty()) {
+                throw new IllegalStateException("cannot find a symbolinfo related to the symbol(" + info.instanceName + ")");
+            }
 
-        SymbolTable classSymbolTable = resolveClassSymbolTable(classSymbolInfo.get());
-        Optional<SymbolInfo> constructorSymbol = resolveConstructor(classSymbolTable, info);
-        if (constructorSymbol.isPresent()) {
-            validateConstructorArguments(ctx, info, constructorSymbol.get());
-        }
+            SymbolTable classSymbolTable = resolveClassSymbolTable(classSymbolInfo.get());
+
+            Optional<SymbolInfo> constructorSymbol = resolveMethod(classSymbolTable, info);
+            if (constructorSymbol.isEmpty()) {
+                throw new IllegalStateException("cannot find a mapping constructor.");
+            }
+
+            validateMethodArguments(ctx, info, constructorSymbol.get());
+        });
 
         return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
     }
@@ -617,41 +622,54 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitMethodInvocation(JPlus20Parser.MethodInvocationContext ctx) {
-        String invocationCode = Utils.getTokenString(ctx);
-        System.err.println("[MethodInvocation] invocationCode: " + invocationCode);
-        TextChangeRange invocationCodeRange = Utils.computeTextChangeRange(this.originalText, ctx.start.getStartIndex(), ctx.stop.getStopIndex());
-//        TextChangeRange invocationCodeRange = Utils.getTextChangeRange(this.originalText, ctx);
-        System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
+        TextChangeRange invocationCodeRange = getCodeRange(ctx);
 
-        Optional<TextChangeRange> javaInvocationCodeRange = sourceMappingEntrySet.stream()
-                .peek(sourceMappingEntry -> System.err.println("originalRange = " + sourceMappingEntry.getOriginalRange()))
-                .filter(sourceMappingEntry -> invocationCodeRange.equals(sourceMappingEntry.getOriginalRange()))
-                .map(SourceMappingEntry::getTransformedRange)
-                .findFirst();
+        Optional<TextChangeRange> javaInvocationCodeRange = findTransformedRange(invocationCodeRange);
+        if (javaInvocationCodeRange.isEmpty()) {
+            throw new IllegalStateException("cannot find a mapping java code range.");
+        }
 
-        javaInvocationCodeRange.ifPresent(range -> {
-            System.err.println("[MethodInvocation] javaInvocationCodeRange: " + range);
-            Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, range);
-            invocationInfo.ifPresent(info -> System.err.println("[MethodInvocation] = " + info));
+//        System.err.println("[MethodInvocation] javaInvocationCodeRange: " + javaInvocationCodeRange.get());
 
-            Optional<SymbolInfo> instanceSymbolInfo = invocationInfo
-                    .flatMap(info -> Optional.ofNullable(info.instanceName))
-                    .map(name -> currentSymbolTable.resolve(name));
+        Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, javaInvocationCodeRange.get());
+        if (invocationInfo.isEmpty()) {
+            throw new IllegalStateException("cannot find a method invocation info.");
+        }
 
-            instanceSymbolInfo.ifPresent(symbolInfo -> {
-                TypeInfo instanceTypeInfo = symbolInfo.getTypeInfo();
-                boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
+        invocationInfo.ifPresent(info -> {
+            System.err.println("[MethodInvocation] info = " + info);
 
-                invocationInfo.ifPresent(info -> {
-                    if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
-                        String msg = ("%s is a nullable variable. But it directly accesses %s(). "
-                                + "Consider using null-safe operator(?.).")
-                                .formatted(info.instanceName, info.methodName);
-                        reportNullableAccessIssue(ctx.start, msg);
-                    }
-                });
-            });
+            Optional<SymbolInfo> instanceSymbolInfo = resolveClassSymbol(info);
+            if (instanceSymbolInfo.isEmpty()) {
+                return;
+            }
+
+            //check instance nullability
+            System.err.println("[MethodInvocation] symbolInfo = " + instanceSymbolInfo.get());
+            TypeInfo instanceTypeInfo = instanceSymbolInfo.get().getTypeInfo();
+            boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
+
+            if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
+                String msg = ("%s is a nullable variable. But it directly accesses %s(). "
+                        + "Consider using null-safe operator(?.).")
+                        .formatted(info.instanceName, info.methodName);
+                reportNullableAccessIssue(ctx.start, msg);
+            }
+
+            //check method parameter nullability
+            SymbolTable classSymbolTable = resolveClassSymbolTable(instanceSymbolInfo.get());
+
+            Optional<SymbolInfo> methodSymbol = resolveMethod(classSymbolTable, info);
+            if (methodSymbol.isEmpty()) {
+                throw new IllegalStateException("cannot find a mapping method.");
+            }
+
+            validateMethodArguments(ctx, info, methodSymbol.get());
         });
+
+
+
+
 
 
 

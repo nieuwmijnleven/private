@@ -32,9 +32,10 @@ public class JPlusSymbolTableTest {
 
     @Test
     void testSymbolResolver() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/SymbolResolver/User.jplus"));
-//        processor.addSrcDirPath(Path.of("./src/test/files/SymbolResolver"));
+        Project project = new Project(Path.of("./src/test/files/SymbolResolver"));
+        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "User");
         processor.process();
+//        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
 
         var issues = processor.checkNullability();
@@ -88,16 +89,16 @@ public class JPlusSymbolTableTest {
 
         assertEquals("Error: (line:13, column:8) cannot assign addr(nullable) to this.address(non-nullable).\n" +
                 "Error: (line:18, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:30, column:47) The 1st argument of the UserConstructorParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:30, column:88) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:30, column:47) The 1st argument of the jplus.example.UserConstructorParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:30, column:88) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
     @Test
     void testNullableMethodParamAnnotation() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/UserMethodParamAnnotation.jplus"));
-//        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
+        Project project = new Project(Path.of("./src/test/files/NullableAnnotation"));
+        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "UserMethodParamAnnotation");
         processor.process();
-        System.err.println(processor.getParseTreeString());
+//        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
 
         var issues = processor.checkNullability();
@@ -109,10 +110,10 @@ public class JPlusSymbolTableTest {
         }
 
         assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:33, column:42) The 2nd argument of the UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:34, column:42) The 1st argument of the UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:34, column:78) The 1st argument of the AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:37, column:8) The 1st argument of the UserMethodParamAnnotation.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:33, column:42) The 2nd argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:42) The 1st argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:78) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:37, column:8) The 1st argument of the user2.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
 
