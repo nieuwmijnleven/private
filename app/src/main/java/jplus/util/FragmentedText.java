@@ -4,7 +4,6 @@ import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -104,6 +103,8 @@ public class FragmentedText {
         FragmentedText fragmentedText = new FragmentedText(textChangeRange, string);
         for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
             if (textChangeRange.contains(textFragmentNode.originalRange) && !string.contains(textFragmentNode.string)) {
+                System.err.println("textFragmentNode.string = " + textFragmentNode.string);
+                System.err.println("string = " + string);
                 fragmentedText.update(textFragmentNode.originalRange, textFragmentNode.string);
             }
         }
@@ -199,10 +200,12 @@ public class FragmentedText {
                 }
                 continue;
             }
+
+            if (node.string.contains(replace)) ++affectedRangeCount;
         }
 
         if (affectedRangeCount == 0) {
-            throw new IllegalStateException("No nodes were affected by the given range.");
+            throw new IllegalStateException("No nodes were affected by the given range." + "\ntextChangeRange = " + textChangeRange + ", replace = " + replace + ", debugString" + debugString());
         }
     }
 
@@ -210,6 +213,8 @@ public class FragmentedText {
         //skip
         int skipOffset = entry.getSource().indexOf(prior.string);
         if (skipOffset == -1) {
+            System.err.println("entry.getSource() = " + entry.getSource());
+            System.err.println("prior.string = " + prior.string);
             throw new IllegalStateException("The recent change must contain the prior chages.");
         }
 
@@ -297,11 +302,11 @@ public class FragmentedText {
                 deque.addAll(priorNode.priors);
             }
 
-            for (TextFragmentNode remainNode : unchangedRangeList) {
-                if (node.originalRange.contains(remainNode.originalRange) && remainNode.rangeFixed) {
+            for (TextFragmentNode unchangedNode : unchangedRangeList) {
+                if (!node.originalRange.equals(unchangedNode.originalRange) && node.originalRange.contains(unchangedNode.originalRange) && unchangedNode.rangeFixed) {
 //                    System.err.println("node = " + node.string);
 //                    System.err.println("unchanged = " + remainNode.string);
-                    mapping.add(buildSourceMapForPrior(remainNode, entry));
+                    mapping.add(buildSourceMapForPrior(unchangedNode, entry));
                 }
             }
         }

@@ -133,14 +133,14 @@ public class JPlusProcessor {
         assertProcessed();
         CodeGenContext ctx = CodeGenContext.current();
         ctx.setFragmentedText(new FragmentedText(originalText));
-
-        String text = parseTree.getText();
-        sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
-        return text;
+        return parseTree.getText();
     }
 
     private void runInitialJavaProcessing() throws Exception {
         String javaCode = generateJavaCodeWithoutBoilerplate();
+        CodeGenContext ctx = CodeGenContext.current();
+        sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
+
         javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
         javaProcessor.process();
     }

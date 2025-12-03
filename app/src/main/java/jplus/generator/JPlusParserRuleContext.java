@@ -46,8 +46,23 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             return replaceNullsafeOperator(primaryCtx);
         } else if (this instanceof FieldAccessContext fieldAccessCtx && fieldAccessCtx.NULLSAFE() != null) {
             return replaceNullsafeOperator(fieldAccessCtx);
-        } else if (this instanceof MethodInvocationContext methodInvocationCtx && methodInvocationCtx.NULLSAFE() != null) {
-            return replaceNullsafeOperator(methodInvocationCtx);
+        } else if (this instanceof MethodInvocationContext methodInvocationCtx) {
+            if (methodInvocationCtx.NULLSAFE() != null) {
+                return replaceNullsafeOperator(methodInvocationCtx);
+            }
+
+            for (int i = 0; i < getChildCount(); i++) {
+                getChild(i).getText();
+            }
+
+            CodeGenContext codeGenContext = CodeGenContext.current();
+            FragmentedText fragmentedText = codeGenContext.getFragmentedText();
+            TextChangeRange range =Utils.getTextChangeRange(fragmentedText.getOriginalText(), this);
+            String contextString = Utils.getTokenString(this);
+            String updatedContextString = fragmentedText.add(range, contextString);
+            System.err.println("updatedContextString = " + updatedContextString);
+            updateFragmentedText(range, updatedContextString);
+            return null;
         } else if (this instanceof ExpressionNameContext expressionNameContext && expressionNameContext.NULLSAFE() != null) {
             return replaceNullsafeOperator(expressionNameContext);
         }
@@ -204,6 +219,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
     private String replaceNullsafeOperator(ParserRuleContext ctx) {
         String contextString = Utils.getTokenString(ctx);
+        System.err.println("[replaceNullsafeOperator] contextString = " + contextString);
 
         String tokenString = contextString.replace("?.", ".");
         String variableName = tokenString.split("\\.")[0];
@@ -220,8 +236,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         FragmentedText fragmentedText = codeGenContext.getFragmentedText();
         TextChangeRange range = Utils.getTextChangeRange(fragmentedText.getOriginalText(), ctx);
         //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+        System.err.println("before debugString = " + fragmentedText.debugString());
         updateFragmentedText(range, replaced);
-
+        System.err.println("after debugString = " + fragmentedText.debugString());
         return null;
     }
 
@@ -258,6 +275,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             System.err.println("ParserRuleContext = " + this.getClass().getSimpleName());
             TextChangeRange range =Utils.getTextChangeRange(fragmentedText.getOriginalText(), this);
             String contextString = Utils.getTokenString(this);
+            System.err.println("contextString = " + contextString);
             String updatedContextString = fragmentedText.add(range, contextString);
             return null;
         }
