@@ -201,7 +201,7 @@ public class FragmentedText {
                 continue;
             }
 
-            if (node.string.contains(replace)) ++affectedRangeCount;
+            //if (node.string.contains(replace)) ++affectedRangeCount;
         }
 
         if (affectedRangeCount == 0) {

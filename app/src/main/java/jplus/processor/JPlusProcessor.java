@@ -114,15 +114,20 @@ public class JPlusProcessor {
     public void process() throws Exception {
         if (processed) return;
 
-        CharStream input = CharStreams.fromString(originalText);
-        JPlus20Lexer lexer = new JPlus20Lexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        parser = new JPlus20Parser(tokens);
+        CodeGenContext.push();
+        try {
+            CharStream input = CharStreams.fromString(originalText);
+            JPlus20Lexer lexer = new JPlus20Lexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            parser = new JPlus20Parser(tokens);
 
-        parseTree = parser.start_();
-        processed = true;
+            parseTree = parser.start_();
+            processed = true;
 
-        runInitialJavaProcessing();
+            runInitialJavaProcessing();
+        } finally {
+            CodeGenContext.pop();
+        }
     }
 
     // --------------------------------------------------------------
@@ -132,7 +137,7 @@ public class JPlusProcessor {
     private String generateJavaCodeWithoutBoilerplate() {
         assertProcessed();
         CodeGenContext ctx = CodeGenContext.current();
-        ctx.setFragmentedText(new FragmentedText(originalText));
+        if (ctx != null) ctx.setFragmentedText(new FragmentedText(originalText));
         return parseTree.getText();
     }
 

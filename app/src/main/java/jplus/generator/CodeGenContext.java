@@ -2,13 +2,14 @@ package jplus.generator;
 
 import jplus.util.FragmentedText;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CodeGenContext {
-    private static final ThreadLocal<CodeGenContext> threadLocal =
-            ThreadLocal.withInitial(CodeGenContext::new);
+    private static final ThreadLocal<Deque<CodeGenContext>> stackLocal =
+            ThreadLocal.withInitial(ArrayDeque::new);
 
     private FragmentedText fragmentedText;
 
@@ -17,7 +18,16 @@ public class CodeGenContext {
     private CodeGenContext() {}
 
     public static CodeGenContext current() {
-        return threadLocal.get();
+        Deque<CodeGenContext> stack = stackLocal.get();
+        return stack.peek(); // 현재 top
+    }
+
+    public static void push() {
+        stackLocal.get().push(new CodeGenContext());
+    }
+
+    public static void pop() {
+        stackLocal.get().pop();
     }
 
     public FragmentedText getFragmentedText() {
