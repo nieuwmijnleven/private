@@ -1,4 +1,4 @@
-package jplus.analyzer;
+package jplus.analyzer.util;
 
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -7,7 +7,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor14;
-import javax.lang.model.util.Types;
 import java.util.List;
 import java.util.stream.Collectors;
 

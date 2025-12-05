@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 Cheol Jeon <nieuwmijnleven@outlook.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package jplus.processor;
 
 import jplus.analyzer.NullabilityChecker;
@@ -10,9 +26,7 @@ import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.CodeGenContext;
 import jplus.generator.JPlusParserRuleContext;
 import jplus.generator.SourceMappingEntry;
-import jplus.generator.TextChangeRange;
 import jplus.util.FragmentedText;
-import jplus.util.Utils;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -22,9 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-
 
 /**
  * Performs:
@@ -36,16 +48,15 @@ import java.util.Set;
  */
 public class JPlusProcessor {
 
-    private Project project;
+    private final Project project;
     private final String originalText;
-    private final TextChangeRange originalTextRange;
-    private SymbolTable globalSymbolTable;
 
     private JPlus20Parser parser;
     private JPlusParserRuleContext parseTree;
     private Set<SourceMappingEntry> sourceMappingEntrySet;
 
     private JavaProcessor javaProcessor;
+    private final SymbolTable globalSymbolTable;
     private SymbolTable symbolTable;
 
     private String className;
@@ -55,21 +66,11 @@ public class JPlusProcessor {
     private boolean nullabilityChecked = false;
     private boolean symbolsAnalyzed = false;
 
-    public JPlusProcessor(Project project, String originalText) {
-        this(project, originalText, new SymbolTable(null));
-    }
-
     public JPlusProcessor(Project project, String originalText, SymbolTable globalSymbolTable) {
         this.project = project;
         this.originalText = originalText;
-        this.originalTextRange = Utils.computeTextChangeRange(originalText, 0, originalText.length()-1);
         this.globalSymbolTable = globalSymbolTable;
     }
-
-//    public JPlusProcessor(Project project, String packageName, String className) throws Exception {
-//        this(project, Files.readString(project.getSrcDir().resolve(packageName.replace(".", "/")).resolve(className + ".jplus"), StandardCharsets.UTF_8), new SymbolTable(null));
-//        System.err.println("[JPlusProcessor] srcPath = " + project.getSrcDir().resolve(packageName.replace(".", "/")).resolve(className + ".jplus"));
-//    }
 
     public JPlusProcessor(Project project, String packageName, String className) throws Exception {
         this(
@@ -84,11 +85,6 @@ public class JPlusProcessor {
                 ),
                 new SymbolTable(null)
         );
-    }
-
-
-    public JPlusProcessor(Project project, Path filePath, SymbolTable globalSymbolTable) throws Exception {
-        this(project, Files.readString(filePath, StandardCharsets.UTF_8), globalSymbolTable);
     }
 
     public JPlusProcessor(String originalText) {
@@ -150,15 +146,6 @@ public class JPlusProcessor {
         javaProcessor.process();
     }
 
-    /*public String generateJavaCodeWithoutBoilerplate() {
-        if (parseTree == null) {
-            throw new IllegalStateException("Call process() first.");
-        }
-        CodeGenContext codeGenContext = CodeGenContext.current();
-        codeGenContext.setFragmentedText(new FragmentedText(originalText));
-        return parseTree.getText();
-    }*/
-
     public String getParseTreeString() {
         if (parseTree == null) {
             throw new IllegalStateException("Call process() first.");
@@ -192,7 +179,7 @@ public class JPlusProcessor {
         for (SymbolTable symbolTable : symbolTableList) {
             UnresolvedReferenceScanner scanner = new UnresolvedReferenceScanner(symbolTable);
             List<UnresolvedReferenceScanner.UnresolvedReferenceInfo> unresolvedReferenceInfoList = scanner.findUnresolvedReference();
-            unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
+            //unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
             allUnresolvedReferenceInfoList.addAll(unresolvedReferenceInfoList);
         }
         return allUnresolvedReferenceInfoList;
@@ -211,7 +198,7 @@ public class JPlusProcessor {
                 JPlusProcessor dependency = new JPlusProcessor(project, unresolved.packageName, unresolved.className);
                 dependency.process();
                 String javaCode = dependency.generateJavaCodeWithoutBoilerplate();
-                System.err.println("[resolveAllUnresolvedReferences] javaCode = " + javaCode);
+                //System.err.println("[resolveAllUnresolvedReferences] javaCode = " + javaCode);
                 inMemoryJavaFiles.add(new InMemoryJavaFile(unresolved.getFullyQualifiedName(), javaCode));
             }
 
@@ -241,7 +228,7 @@ public class JPlusProcessor {
         int startIndex = parseTree.start.getStartIndex();
         String startWhiteSpace = originalText.substring(0, startIndex);
         String fullyGenerated = startWhiteSpace + generated;
-        System.err.println("fullyGenerated = " + fullyGenerated);
+        //System.err.println("fullyGenerated = " + fullyGenerated);
 
         FragmentedText fragmentedText = new FragmentedText(fullyGenerated);
         BoilerplateCodeGenerator generator = new BoilerplateCodeGenerator(symbolTable, fragmentedText);
@@ -286,10 +273,6 @@ public class JPlusProcessor {
     public String getFullyQualifiedName() {
         assertAnalyzed();
         return packageName == null ? className : packageName + "." + className;
-    }
-
-    public JPlusParserRuleContext getParseTree() {
-        return parseTree;
     }
 
     public SymbolTable getSymbolTable() {

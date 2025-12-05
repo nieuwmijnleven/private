@@ -3,9 +3,7 @@ package jplus.analyzer;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
-import jplus.util.SymbolUtils;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;

@@ -16,6 +16,7 @@ import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
+import jplus.analyzer.util.CleanTypePrinter;
 import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolInfo;
