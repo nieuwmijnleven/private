@@ -619,8 +619,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                         TypeInfo newTypeInfo = TypeInfo.copyOf(typeInfo);
                         newTypeInfo.setNullable(false);
 
-                        SymbolInfo newSymbolInfo = SymbolInfo.copyOf(symbolInfo);
-                        newSymbolInfo.setTypeInfo(newTypeInfo);
+                        SymbolInfo newSymbolInfo = symbolInfo.copyBuilder()
+                                                            .typeInfo(newTypeInfo)
+                                                            .build();
 
                         currentSymbolTable.declare(variableName, newSymbolInfo);
                     }

@@ -4,37 +4,19 @@ import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.Trees;
 import jplus.analyzer.JavaSymbolAnalyzer;
-import jplus.analyzer.JavacMethodInspector;
-import jplus.analyzer.NullabilityChecker;
-import jplus.analyzer.SymbolAnalyzer;
-import jplus.base.JPlus20Lexer;
-import jplus.base.JPlus20Parser;
 import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolTable;
-import jplus.generator.BoilerplateCodeGenerator;
-import jplus.generator.JPlusParserRuleContext;
-import jplus.generator.TextChangeRange;
-import jplus.util.FragmentedText;
-import jplus.util.Utils;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class JavaProcessor {
     private List<InMemoryJavaFile> javaFiles;

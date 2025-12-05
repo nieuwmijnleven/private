@@ -15,9 +15,9 @@ public class JavaMethodInvocationManager {
         this.source = source;
     }
 
-    public void addInvocationInfo(SymbolTable symbolTable, String invocationCode, MethodInvocationInfo invocationInfo) {
+    public void addInvocationInfo(SymbolTable symbolTable, MethodInvocationInfo invocationInfo) {
         var invocationMap = invocationMapInSymbolTable.computeIfAbsent(symbolTable, (k) -> new HashMap<>());
-        invocationMap.put(invocationCode, invocationInfo);
+        invocationMap.put(invocationInfo.source, invocationInfo);
     }
 
     public MethodInvocationInfo getInvocationInfo(SymbolTable symbolTable, String invocationCode) {

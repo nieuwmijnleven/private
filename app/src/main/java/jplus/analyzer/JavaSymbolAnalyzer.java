@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 Cheol Jeon <nieuwmijnleven@outlook.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package jplus.analyzer;
 
 import com.sun.source.tree.BlockTree;
@@ -79,116 +95,122 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitClass(ClassTree node, Void unused) {
-        TreePath classPath = getCurrentPath();
-        Element element = trees.getElement(classPath);
-        TypeMirror typeMirror = trees.getTypeMirror(classPath);
-        String typeName = typeMirror.toString();
-        String simpleTypeName = node.getSimpleName().toString();
-
-        TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
-        typeInfoBuilder.name(typeName)
-                .isNullable(false)
-                .type(TypeInfo.Type.Class);
-
-        int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
-        int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
-        TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
-
-        SymbolInfo.Builder symbolInfoBuilder = SymbolInfo.builder()
-                .symbol(simpleTypeName)
-                .typeInfo(typeInfoBuilder.build())
-                .symbolTable(currentSymbolTable)
-                .originalText(source.substring(startPos, endPos))
-                .range(range);
-
-        SymbolInfo classSymbolInfo = symbolInfoBuilder.build();
-
+        SymbolInfo classSymbolInfo = createClassSymbolInfo(node);
         if (topLevelSymbolTable.isEmpty()) {
-            SymbolInfo packageSymbolInfo = symbolInfoBuilder.symbol(this.packageName).build();
-            currentSymbolTable.declare("^PackageName$", packageSymbolInfo);
+            currentSymbolTable.declare("^PackageName$", classSymbolInfo.copyBuilder().symbol(this.packageName).build());
             currentSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
         }
+        declareClassSymbol(node, classSymbolInfo);
 
-        currentSymbolTable.declare(simpleTypeName, classSymbolInfo);
-        globalSymbolTable.declare(typeName, classSymbolInfo);
-        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(simpleTypeName, new SymbolTable(currentSymbolTable));
-
+        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(node.getSimpleName().toString(), new SymbolTable(currentSymbolTable));
         for (Tree member : node.getMembers()) {
-            if (member instanceof VariableTree var) {
-                visitField(var, classPath);
-            }
+            if (member instanceof VariableTree var) visitField(var, getCurrentPath());
         }
-
-        System.err.println("globalSymbolTable = " + globalSymbolTable);
-        System.err.println("topLevelSymbolTable = " + topLevelSymbolTable);
 
         try {
             return super.visitClass(node, unused);
         } finally {
             currentSymbolTable = currentSymbolTable.getParent();
-            System.err.println("[class] = " + currentSymbolTable);
-            System.err.println("[class] = " + (currentSymbolTable == topLevelSymbolTable));
         }
     }
 
-    private void visitField(VariableTree node, TreePath classPath) {
-        List<jplus.base.Modifier> fieldModifierList = new ArrayList<>();
-        for (Modifier m : node.getModifiers().getFlags()) {
-            fieldModifierList.add(jplus.base.Modifier.valueOf(m.toString().toUpperCase()));
-        }
-        System.err.println("[Field] fieldModifierList " + fieldModifierList);
+    private SymbolInfo createClassSymbolInfo(ClassTree node) {
+        TreePath path = getCurrentPath();
+        TypeMirror typeMirror = trees.getTypeMirror(path);
 
-        TreePath varPath = new TreePath(classPath, node);
-        Element fieldElement = trees.getElement(varPath);
-        TypeMirror fieldTypeMirror = trees.getTypeMirror(varPath);
+        TypeInfo typeInfo = new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Class);
+        int start = (int) trees.getSourcePositions().getStartPosition(ast, node);
+        int end = (int) trees.getSourcePositions().getEndPosition(ast, node);
+        TextChangeRange range = Utils.computeTextChangeRange(source, start, end - 1);
 
-        TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
-        TypeInfo.Type type = getType(fieldTypeMirror);
-        if (type == TypeInfo.Type.Primitive) {
-            typeInfoBuilder.name(fieldTypeMirror.toString());
-            typeInfoBuilder.isNullable(false);
-        } else if (type == TypeInfo.Type.Reference) {
-            typeInfoBuilder.name(((DeclaredType)fieldTypeMirror).asElement().toString());
-            // annotation으로 nullable 체크
-            boolean isNullable = false;
-            for (AnnotationMirror annotationMirror : fieldTypeMirror.getAnnotationMirrors()) {
-                DeclaredType annType = annotationMirror.getAnnotationType();
-                System.err.println("[Field] annType = " + annType.toString());
-                if (annType.toString().endsWith(".Nullable") || annType.toString().equals("org.jspecify.annotations.Nullable")) {
-                    isNullable = true;
-                    break;
-                }
-            }
-            typeInfoBuilder.isNullable(isNullable);
-        } else if (type == TypeInfo.Type.Unknown) {
-            if (fieldTypeMirror instanceof DeclaredType dt) {
-                typeInfoBuilder.name(dt.asElement().toString());
-            } else {
-                typeInfoBuilder.name(fieldTypeMirror.toString());
-            }
-            typeInfoBuilder.isNullable(false);
-        } else {
-            typeInfoBuilder.name(fieldTypeMirror.toString());
-            typeInfoBuilder.isNullable(false);
-        }
-        typeInfoBuilder.type(type);
-
-        int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
-        int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
-        TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
-
-        String fieldName = node.getName().toString();
-        SymbolInfo fieldSymbolInfo = SymbolInfo.builder()
-                .symbol(fieldName)
-                .typeInfo(typeInfoBuilder.build())
+        return SymbolInfo.builder()
+                .symbol(node.getSimpleName().toString())
+                .typeInfo(typeInfo)
                 .symbolTable(currentSymbolTable)
-                .modifierList(fieldModifierList)
-                .originalText(source.substring(startPos, endPos))
+                .originalText(source.substring(start, end))
                 .range(range)
                 .build();
-        System.err.println("[Field] fieldSymbolInfo = " + fieldSymbolInfo);
+    }
 
-        currentSymbolTable.declare(fieldName, fieldSymbolInfo);
+    private void declareClassSymbol(ClassTree node, SymbolInfo classSymbolInfo) {
+        String typeName = classSymbolInfo.getTypeInfo().getName();
+        String simpleName = classSymbolInfo.getSymbol();
+        currentSymbolTable.declare(simpleName, classSymbolInfo);
+        globalSymbolTable.declare(typeName, classSymbolInfo);
+    }
+
+    private void visitField(VariableTree node, TreePath classPath) {
+        TypeMirror typeMirror = trees.getTypeMirror(new TreePath(classPath, node));
+        TypeInfo typeInfo = buildTypeInfo(typeMirror);
+
+        SymbolInfo fieldSymbolInfo = createSymbolInfo(node.getName().toString(), node.getModifiers().getFlags(), typeInfo, node, currentSymbolTable);
+        //System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
+        currentSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
+    }
+
+    private TypeInfo buildTypeInfo(TypeMirror typeMirror) {
+        TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
+        typeInfoBuilder.isNullable(false);
+
+        switch (typeMirror.getKind()) {
+            case BOOLEAN, BYTE, SHORT, INT, LONG, CHAR, FLOAT, DOUBLE -> {
+                typeInfoBuilder.type(TypeInfo.Type.Primitive);
+                typeInfoBuilder.name(typeMirror.toString());
+            }
+            case DECLARED, TYPEVAR -> {
+                typeInfoBuilder.type(TypeInfo.Type.Reference);
+                typeInfoBuilder.name((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString());
+
+                for (AnnotationMirror ann : typeMirror.getAnnotationMirrors()) {
+                    String annName = ann.getAnnotationType().toString();
+                    if (annName.endsWith(".Nullable") || annName.equals("org.jspecify.annotations.Nullable")) {
+                        typeInfoBuilder.isNullable(true);
+                        break;
+                    }
+                }
+            }
+            case ARRAY -> {
+                typeInfoBuilder.type(TypeInfo.Type.Array);
+                typeInfoBuilder.name(typeMirror.toString());
+            }
+            default -> {
+                typeInfoBuilder.type(TypeInfo.Type.Unknown);
+                typeInfoBuilder.name((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString());
+            }
+        }
+
+        return typeInfoBuilder.build();
+    }
+
+    private List<jplus.base.Modifier> convertModifiers(Iterable<Modifier> modifiers) {
+        List<jplus.base.Modifier> result = new ArrayList<>();
+        for (Modifier m : modifiers) result.add(jplus.base.Modifier.valueOf(m.toString().toUpperCase()));
+        return result;
+    }
+
+    private SymbolInfo createSymbolInfo(String name, Iterable<Modifier> modifiers, TypeInfo typeInfo, Tree node, SymbolTable table) {
+        return new SymbolInfo(name, typeInfo, computeRange(node), computeRangeText(node), convertModifiers(modifiers), table);
+    }
+
+    private TextChangeRange computeRange(Tree node) {
+        int start = getSourceStartPosition(node);
+        int end = getSourceEndPosition(node);
+        return Utils.computeTextChangeRange(source, start, end - 1);
+    }
+
+    private String computeRangeText(Tree node) {
+        int start = getSourceStartPosition(node);
+        int end = getSourceEndPosition(node);
+        return (start < end) ? source.substring(start, end) : "";
+    }
+
+    private int getSourceStartPosition(Tree node) {
+        return (int) trees.getSourcePositions().getStartPosition(ast, node);
+    }
+
+    private int getSourceEndPosition(Tree node) {
+        int endPos = (int) trees.getSourcePositions().getEndPosition(ast, node);
+        return endPos < getSourceStartPosition(node) ? getSourceStartPosition(node) + 1 : endPos;
     }
 
     private TypeInfo.Type getType(TypeMirror fieldTypeMirror) {
@@ -207,92 +229,74 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
     }
 
+    private String getQualifiedName(Tree node) {
+        TreePath path = trees.getPath(ast, node);
+        if (path != null) {
+            TypeMirror tm = trees.getTypeMirror(path);
+            if (tm instanceof DeclaredType dt && dt.asElement() instanceof TypeElement te) {
+                return te.getQualifiedName().toString();
+            }
+        }
+
+        if (node instanceof MemberSelectTree mst) {
+            return mst.toString();
+        }
+
+        if (node instanceof IdentifierTree idt) {
+            return idt.getName().toString();
+        }
+
+        return node.toString();
+    }
+
+
     @Override
     public Void visitNewClass(NewClassTree node, Void unused) {
-//        System.err.println("[NewClass] node.getIdentifier() = " + node.getIdentifier());
-//        System.err.println("[NewClass] node.toString() = " + node.toString());
-
-//        String identifier = node.getIdentifier().toString();
-
-        // --- Identifier 의 FQN을 추출 ---
-        String fqnIdentifier = null;
-        TreePath idPath = trees.getPath(ast, node.getIdentifier());
-        if (idPath != null) {
-            TypeMirror idType = trees.getTypeMirror(idPath);
-
-            if (idType instanceof DeclaredType dt) {
-                Element e = dt.asElement();
-                if (e instanceof TypeElement te) {
-                    fqnIdentifier = te.getQualifiedName().toString();
-                }
-            }
-        }
-        System.err.println("[NewClass] fqnIdentifier = " + fqnIdentifier);
-
-        int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
-        int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
-
-        TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
-        String rangeText = source.substring(startPos, endPos);
-        System.err.println("[NewClass] rangeText = " + rangeText);
-
-        List<String> argStrings = new ArrayList<>();
-        List<String> argTypes = new ArrayList<>();
-        for (ExpressionTree arg : node.getArguments()) {
-            argStrings.add(arg.toString());
-            TypeMirror argType = trees.getTypeMirror(trees.getPath(ast, arg));
-            argTypes.add(argType != null ? argType.toString() : "unknown");
-        }
-
-        System.err.println("[NewClass] argTypes = " + argTypes);
-
-        TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
-        String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
-//        String simpleReturnType = CodeUtils.getSimpleReturnTypeName(returnTypeMirror);
-
-//        System.err.println("returnType = " + returnType);
-//        System.err.println("simpleReturnType = " + simpleReturnType);
-
-
-
-        var methodInvocationInfoBuilder = MethodInvocationInfo.builder();
-        methodInvocationInfoBuilder.instanceName(fqnIdentifier)
-                .methodName(fqnIdentifier)
-                .argTypes(argTypes)
-                .args(argStrings)
-//                .returnType(returnType)
-                .source(rangeText)
-                .startPos(startPos)
-                .endPos(endPos);
-
-        var methodPath = trees.getPath(ast, node);
-        if (methodPath != null) {
-
-            Element element = trees.getElement(methodPath);
-            if (element instanceof ExecutableElement ee) {
-                CleanTypePrinter printer = new CleanTypePrinter();
-                // ⬅ 선언된 메서드 타입(ExecutableType)
-                ExecutableType methodType = (ExecutableType) ee.asType();
-                List<String> paramTypeList = methodType.getParameterTypes()
-                        .stream()
-//                        .map(TypeMirror::toString)
-                        .map(printer::print)
-                        .toList();
-                System.err.println("[NewClass] paramTypeList = " + paramTypeList);
-
-                String retType = methodType.getReturnType().toString();
-
-                methodInvocationInfoBuilder.paramTypes(paramTypeList);
-                methodInvocationInfoBuilder.returnType(retType);
-            }
-        }
-
-        javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, rangeText, methodInvocationInfoBuilder.build());
-
-        System.err.println("[NewClass] methodInvocationInfo = " + methodInvocationInfoBuilder.build());
-
-
+        String qualifiedName = getQualifiedName(node);
+        MethodInvocationInfo info = buildMethodInvocationInfo(node, qualifiedName, qualifiedName);
+        javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
+        System.err.println("[NewClass] methodInvocationInfo = " + info);
         return super.visitNewClass(node, unused);
+    }
+
+    private MethodInvocationInfo buildMethodInvocationInfo(Tree node, String instanceName, String methodName) {
+        List<? extends ExpressionTree> args;
+        if (node instanceof MethodInvocationTree mit) {
+            args = mit.getArguments();
+        } else if (node instanceof NewClassTree nct) {
+            args = nct.getArguments();
+        } else {
+            args = List.of();
+        }
+
+        List<String> argStrs = args.stream().map(Object::toString).toList();
+        List<String> argTypes = args.stream()
+                .map(arg -> {
+                    TypeMirror tm = trees.getTypeMirror(trees.getPath(ast, arg));
+                    return tm != null ? tm.toString() : "unknown";
+                })
+                .toList();
+
+        MethodInvocationInfo.Builder builder = MethodInvocationInfo.builder()
+                .instanceName(instanceName)
+                .methodName(methodName)
+                .args(argStrs)
+                .argTypes(argTypes)
+                .source(computeRangeText(node))
+                .startPos(getSourceStartPosition(node))
+                .endPos(getSourceEndPosition(node));
+
+        TreePath path = trees.getPath(ast, node);
+        if (path != null) {
+            Element e = trees.getElement(path);
+            if (e instanceof ExecutableElement ee) {
+                CleanTypePrinter printer = new CleanTypePrinter();
+                List<String> paramTypes = ((ExecutableType) ee.asType()).getParameterTypes().stream().map(printer::print).toList();
+                builder.paramTypes(paramTypes).returnType(((ExecutableType) ee.asType()).getReturnType().toString());
+            }
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -562,91 +566,20 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
-//        String methodInvocationCode = node.toString().replace("\\'", "'");
-        //String methodInvocationCode = node.toString();
-        //System.err.println("methodInvocationCode = " + methodInvocationCode);
-
         String instanceName = null;
         String methodName = "";
 
         ExpressionTree methodSelect = node.getMethodSelect();
-        if (methodSelect instanceof MemberSelectTree) {
-            MemberSelectTree mst = (MemberSelectTree) methodSelect;
+        if (methodSelect instanceof MemberSelectTree mst) {
             instanceName = mst.getExpression().toString();
             methodName = mst.getIdentifier().toString();
-        } else if (methodSelect instanceof IdentifierTree) {
-            methodName = ((IdentifierTree) methodSelect).getName().toString();
+        } else if (methodSelect instanceof IdentifierTree it) {
+            methodName = it.getName().toString();
         }
 
-        //System.err.println("instanceName = " + instanceName);
-        //System.err.println("methodName = " + methodName);
-
-        List<String> argStrings = new ArrayList<>();
-        List<String> argTypes = new ArrayList<>();
-        for (ExpressionTree arg : node.getArguments()) {
-            argStrings.add(arg.toString());
-            TypeMirror argType = trees.getTypeMirror(trees.getPath(ast, arg));
-            argTypes.add(argType != null ? argType.toString() : "unknown");
-        }
-
-
-        //System.err.println("argTypes = " + argTypes);
-
-//        TypeMirror returnTypeMirror = trees.getTypeMirror(trees.getPath(ast, node));
-//        String returnType = returnTypeMirror != null ? returnTypeMirror.toString() : "unknown";
-//        String simpleReturnType = CodeUtils.getSimpleReturnTypeName(returnTypeMirror);
-
-//        System.err.println("returnType = " + returnType);
-//        System.err.println("simpleReturnType = " + simpleReturnType);
-
-        int startPos = (int)trees.getSourcePositions().getStartPosition(ast, node);
-        int endPos = (int)trees.getSourcePositions().getEndPosition(ast, node);
-
-        if ("super".equals(methodName) && endPos < 0) {
-            endPos = startPos + 1;
-        }
-
-        TextChangeRange range = Utils.computeTextChangeRange(source, startPos, endPos - 1);
-        String rangeText = source.substring(startPos, endPos);
-        //System.err.println("[methodInvocation] rangeText = " + rangeText);
-
-        var methodInvocationInfoBuilder = MethodInvocationInfo.builder();
-        methodInvocationInfoBuilder.instanceName(instanceName)
-                .methodName(methodName)
-                .argTypes(argTypes)
-                .args(argStrings)
-//                .returnType(returnType)
-                .source(rangeText)
-                .startPos(startPos)
-                .endPos(endPos);
-
-        var methodPath = trees.getPath(ast, node);
-        if (methodPath != null) {
-
-            Element element = trees.getElement(methodPath);
-            if (element instanceof ExecutableElement ee) {
-
-                // ⬅ 선언된 메서드 타입(ExecutableType)
-                ExecutableType methodType = (ExecutableType) ee.asType();
-
-                List<String> paramTypeList = methodType.getParameterTypes()
-                        .stream()
-                        .map(TypeMirror::toString)
-                        .toList();
-                System.err.println("paramTypeList = " + paramTypeList);
-
-                String retType = methodType.getReturnType().toString();
-
-                methodInvocationInfoBuilder.paramTypes(paramTypeList);
-                methodInvocationInfoBuilder.returnType(retType);
-            }
-        }
-
-
-
-        javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, rangeText, methodInvocationInfoBuilder.build());
-
-        System.err.println("methodInvocationInfo = " + methodInvocationInfoBuilder.build());
+        MethodInvocationInfo info = buildMethodInvocationInfo(node, instanceName, methodName);
+        javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
+        System.err.println("methodInvocationInfo = " + info);
 
         return super.visitMethodInvocation(node, unused);
     }
