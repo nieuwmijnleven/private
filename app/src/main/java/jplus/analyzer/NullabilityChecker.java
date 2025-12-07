@@ -41,35 +41,18 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private final SymbolTable globalSymbolTable;
     private final Set<SourceMappingEntry> sourceMappingEntrySet;
-    private JavaMethodInvocationManager methodInvocationManager;
+    private final JavaMethodInvocationManager methodInvocationManager;
     private SymbolTable currentSymbolTable;
     private String originalText;
     private String packageName;
     private boolean hasPassed = true;
 
-    public static class NullabilityIssue {
-        private final int line;
-        private final int column;
-        private final int offset;
-        private final String message;
-
-        public NullabilityIssue(int line, int column, int offset, String message) {
-            this.line = line;
-            this.column = column;
-            this.offset = offset;
-            this.message = message;
+    public record NullabilityIssue(int line, int column, int offset, String message) {
+            @Override
+            public String toString() {
+                return String.format("Error: (line:%d, column:%d) %s", line, column, message);
+            }
         }
-
-        public int getLine() { return line; }
-        public int getColumn() { return column; }
-        public int getOffset() { return offset; }
-        public String getMessage() { return message; }
-
-        @Override
-        public String toString() {
-            return String.format("Error: (line:%d, column:%d) %s", line, column, message);
-        }
-    }
 
     public NullabilityChecker(SymbolTable globalSymbolTable, Set<SourceMappingEntry> sourceMappingEntrySet, JavaMethodInvocationManager methodInvocationManager) {
         this.globalSymbolTable = globalSymbolTable;
@@ -142,11 +125,11 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             String className = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
             //System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
             enterSymbolTable(className);
-        } else if (ctx.enumDeclaration() != null) {
+        }/* else if (ctx.enumDeclaration() != null) {
 
         } else if (ctx.recordDeclaration() != null) {
 
-        }
+        }*/
 
         try {
             return super.visitClassDeclaration(ctx);
@@ -158,7 +141,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitConstructorDeclaration(JPlus20Parser.ConstructorDeclarationContext ctx) {
         List<String> typeNameList = getTypeNamesFromParameterList(ctx.constructorDeclarator().formalParameterList());
-        String constructorSymbol = "^constructor$_" + typeNameList.stream().collect(Collectors.joining("_"));
+        String constructorSymbol = "^constructor$_" + String.join("_", typeNameList);
         //System.err.println("SymbolName = " + symbolName);
         SymbolInfo constructorSymbolInfo = currentSymbolTable.resolveInCurrent(constructorSymbol);
         if (constructorSymbolInfo == null) throw new IllegalStateException("cannot find the symbol(" + constructorSymbol + ")");
@@ -189,8 +172,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     public Void visitMethodDeclaration(JPlus20Parser.MethodDeclarationContext ctx) {
         List<String> typeNameList = getTypeNamesFromParameterList(ctx.methodHeader().methodDeclarator().formalParameterList());
         String methodName = Utils.getTokenString(ctx.methodHeader().methodDeclarator().identifier());
-        String methodSymbol = "^" + methodName + "$_" + typeNameList.stream().collect(Collectors.joining("_"));
         //System.err.println("[MethodDecl] methodName = " + methodSymbol);
+        String methodSymbol = "^" + methodName + "$_" + String.join("_", typeNameList);
         //System.err.println("[MethodDecl] currentSymbolTable = " + currentSymbolTable);
 
         String fqnSymbolName = Optional.ofNullable(currentSymbolTable.resolveInCurrent(methodSymbol))
@@ -198,7 +181,6 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 .getSymbol();
         //System.err.println("[MethodDecl] fqnSymbolName = " + fqnSymbolName);
 
-        //currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(fqnSymbolName);
         enterSymbolTable(fqnSymbolName);
         try {
             return super.visitMethodDeclaration(ctx);
@@ -375,7 +357,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             int argIndex
     ) {
         String suffix = getOrdinalSuffix(argIndex);
-        String msg = null;
+        String msg;
         if (info.instanceName.equals(info.methodName)) {
             msg = "The " + argIndex + suffix +
                 " argument of the " + info.instanceName +
@@ -410,13 +392,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             log("[InstanceCreationExpression] InvocationInfo = " + info);
 
             Optional<SymbolInfo> classSymbolInfo = resolveClassSymbol(info);
-            System.err.println("[InstanceCreationExpression] symbolInfo = " + classSymbolInfo.get());
             if (classSymbolInfo.isEmpty()) {
                 throw new IllegalStateException("cannot find a symbolinfo related to the symbol(" + info.instanceName + ")");
             }
+            //System.err.println("[InstanceCreationExpression] symbolInfo = " + classSymbolInfo.get());
 
             SymbolTable classSymbolTable = resolveClassSymbolTable(classSymbolInfo.get());
-
             Optional<SymbolInfo> constructorSymbol = resolveMethod(classSymbolTable, info);
             if (constructorSymbol.isEmpty()) {
                 throw new IllegalStateException("cannot find a mapping constructor.");
@@ -434,12 +415,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             return "th";
         }
 
-        switch (number % 10) {
-            case 1:  return "st";
-            case 2:  return "nd";
-            case 3:  return "rd";
-            default: return "th";
-        }
+        return switch (number % 10) {
+            case 1 -> "st";
+            case 2 -> "nd";
+            case 3 -> "rd";
+            default -> "th";
+        };
     }
 
     @Override
@@ -473,7 +454,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitAssignment(JPlus20Parser.AssignmentContext ctx) {
-        String fullVariableName = null;
+        String fullVariableName = Utils.getTokenString(ctx.leftHandSide());
         if (ctx.leftHandSide().expressionName() != null) {
             fullVariableName = Utils.getTokenString(ctx.leftHandSide().expressionName());
         } else if (ctx.leftHandSide().fieldAccess() != null) {
@@ -487,7 +468,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
         String expression = Utils.getTokenString(ctx.expression());
 
-        SymbolInfo symbolInfo = null;
+        SymbolInfo symbolInfo;
         String variableName;
         int thisIndex = fullVariableName.indexOf("this");
         if (thisIndex != -1) {

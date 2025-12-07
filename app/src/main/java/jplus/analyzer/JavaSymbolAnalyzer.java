@@ -88,6 +88,18 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitPackage(node, unused);
     }
 
+    private void enterSymbolTable(String symbol) {
+        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbol);
+    }
+
+    private void enterSymbolTable(String symbol, SymbolTable table) {
+        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(symbol, table);
+    }
+
+    private void exitSymbolTable() {
+        currentSymbolTable = currentSymbolTable.getParent();
+    }
+
     @Override
     public Void visitClass(ClassTree node, Void unused) {
         SymbolInfo classSymbolInfo = createClassSymbolInfo(node);
@@ -97,7 +109,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
         declareClassSymbol(classSymbolInfo);
 
-        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(node.getSimpleName().toString(), new SymbolTable(currentSymbolTable));
+        enterSymbolTable(node.getSimpleName().toString());
         for (Tree member : node.getMembers()) {
             if (member instanceof VariableTree var) visitField(var, getCurrentPath());
         }
@@ -105,7 +117,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         try {
             return super.visitClass(node, unused);
         } finally {
-            currentSymbolTable = currentSymbolTable.getParent();
+            exitSymbolTable();
         }
     }
 
@@ -354,13 +366,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         currentSymbolTable.declare(symbolNameWithSimpleTypeName, symbolInfo);
         //System.err.println("[method] currentSymbolTable = "  + currentSymbolTable);
 
-        currentSymbolTable = currentSymbolTable.addEnclosingSymbolTable(symbolName, methodSymbolTable);
-        //System.err.println("[method] methodSymbolTable = "  + methodSymbolTable);
-
+        enterSymbolTable(symbolName, methodSymbolTable);
         try {
             return super.visitMethod(node, unused);
         } finally {
-            currentSymbolTable = currentSymbolTable.getParent();
+            exitSymbolTable();
         }
     }
 
@@ -375,9 +385,6 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         return super.visitVariable(node, p);
     }
-
-
-
 
     private Void handleLocalVariable(VariableTree node, Void unused) {
         //TypeMirror typeMirror = trees.getTypeMirror(getCurrentPath());
@@ -422,11 +429,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     @Override
     public Void visitBlock(BlockTree node, Void unused) {
         //System.err.println("[visitBlock] invoked");
-        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
+        enterSymbolTable("^block$");
         try {
             return super.visitBlock(node, unused);
         } finally {
-            currentSymbolTable = currentSymbolTable.getParent();
+            exitSymbolTable();
         }
     }
 

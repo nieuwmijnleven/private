@@ -28,8 +28,8 @@ public class JPlusAnnotator implements Annotator {
                 System.err.println("nullability warning");
                 for (NullabilityChecker.NullabilityIssue issue : issues) {
                     System.out.println(issue);
-                    holder.newAnnotation(HighlightSeverity.ERROR, issue.getMessage())
-                            .range(new TextRange(issue.getOffset(), issue.getOffset()))
+                    holder.newAnnotation(HighlightSeverity.ERROR, issue.message())
+                            .range(new TextRange(issue.offset(), issue.offset()))
                             .create();
                 }
             }
