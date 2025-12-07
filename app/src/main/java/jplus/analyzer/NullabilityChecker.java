@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 Cheol Jeon <nieuwmijnleven@outlook.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package jplus.analyzer;
 
 import jplus.base.JPlus20Parser;
@@ -68,6 +84,19 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return issues;
     }
 
+    private void enterSymbolTable(String symbol) {
+        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbol);
+    }
+
+    private void exitSymbolTable() {
+        currentSymbolTable = currentSymbolTable.getParent();
+    }
+
+    private void reportIssue(Token token, String msg) {
+        issues.add(new NullabilityIssue(token.getLine(), token.getCharPositionInLine(), token.getStartIndex(), msg));
+        hasPassed = false;
+    }
+
     @Override
     public Void visitStart_(JPlus20Parser.Start_Context ctx) {
         this.originalText = ctx.start.getInputStream().toString();
@@ -77,113 +106,105 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitPackageDeclaration(JPlus20Parser.PackageDeclarationContext ctx) {
         this.packageName = ctx.identifier().stream().map(Utils::getTokenString).collect(Collectors.joining("."));
-        System.err.println("packageName = " + packageName);
+        //System.err.println("[NullabilityChecker] packageName = " + packageName);
         return super.visitPackageDeclaration(ctx);
     }
 
     @Override
     public Void visitTopLevelClassOrInterfaceDeclaration(JPlus20Parser.TopLevelClassOrInterfaceDeclarationContext ctx) {
-        String className = Utils.getTokenString(ctx.classDeclaration().normalClassDeclaration().typeIdentifier());
-        if (this.packageName != null) {
-            className = this.packageName + "." + className;
-        }
+        String className = getClassName(ctx.classDeclaration().normalClassDeclaration());
         System.err.println("className = " + className);
 
+        SymbolInfo classSymbolInfo = getClassSymbolInfo(className);
+        currentSymbolTable = classSymbolInfo.getSymbolTable();
+        return super.visitTopLevelClassOrInterfaceDeclaration(ctx);
+    }
+
+    private SymbolInfo getClassSymbolInfo(String className) {
         SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(className);
         if (classSymbolInfo == null) {
             throw new IllegalStateException("Symbol not found: " + className);
         }
-        currentSymbolTable = classSymbolInfo.getSymbolTable();
+        return classSymbolInfo;
+    }
 
-        return super.visitTopLevelClassOrInterfaceDeclaration(ctx);
+    private String getClassName(JPlus20Parser.NormalClassDeclarationContext ctx) {
+        String className = Utils.getTokenString(ctx.typeIdentifier());
+        if (this.packageName != null) {
+            className = this.packageName + "." + className;
+        }
+        return className;
     }
 
     @Override
     public Void visitClassDeclaration(JPlus20Parser.ClassDeclarationContext ctx) {
         if (ctx.normalClassDeclaration() != null) {
             String className = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
-//            if (this.packageName != null) {
-//                className = this.packageName + "." + className;
-//            }
-            System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
-            System.err.println("[NullabilityChecker][ClassDecl] currentSymbolTable = " + currentSymbolTable);
-            currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(className);
+            //System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
+            enterSymbolTable(className);
         } else if (ctx.enumDeclaration() != null) {
 
         } else if (ctx.recordDeclaration() != null) {
 
         }
 
-        super.visitClassDeclaration(ctx);
-        currentSymbolTable = currentSymbolTable.getParent();
-        return null;
+        try {
+            return super.visitClassDeclaration(ctx);
+        } finally {
+            exitSymbolTable();
+        }
     }
 
     @Override
     public Void visitConstructorDeclaration(JPlus20Parser.ConstructorDeclarationContext ctx) {
-        List<String> typeNameList = new ArrayList<>();
-        var formalParameterList = ctx.constructorDeclarator().formalParameterList().formalParameter();
-        for (var formalParameterContext : formalParameterList) {
-            boolean hasNullableAnnotation = false;
-            if (formalParameterContext.variableModifier() != null) {
-                for (var variableModifierContext : formalParameterContext.variableModifier()) {
-                    if (variableModifierContext.annotation() != null) {
-                        String annotation = Utils.getTokenString(variableModifierContext.annotation());
-                        System.err.println("[ConstructorDeclaration] annotation = " + annotation);
-                        if ("@Nullable".equals(annotation)) {
-                            hasNullableAnnotation = true;
-                        }
-                    }
-                }
-            }
-
-            String typeName = Utils.getTokenString(formalParameterContext.unannType());
-            typeNameList.add(typeName + (hasNullableAnnotation ? "?" : ""));
+        List<String> typeNameList = getTypeNamesFromParameterList(ctx.constructorDeclarator().formalParameterList());
+        String constructorSymbol = "^constructor$_" + typeNameList.stream().collect(Collectors.joining("_"));
+        //System.err.println("SymbolName = " + symbolName);
+        SymbolInfo constructorSymbolInfo = currentSymbolTable.resolveInCurrent(constructorSymbol);
+        if (constructorSymbolInfo == null) throw new IllegalStateException("cannot find the symbol(" + constructorSymbol + ")");
+        //System.err.println("constructorSymbolInfo = " + constructorSymbolInfo);
+        enterSymbolTable(constructorSymbolInfo.getSymbol());
+        //System.err.println("enclosingSymbolTable = " + currentSymbolTable);
+        try {
+            return super.visitConstructorDeclaration(ctx);
+        } finally {
+            exitSymbolTable();
         }
+    }
 
-        String symbolName = "^constructor$_" + typeNameList.stream().collect(Collectors.joining("_"));
-        System.err.println("SymbolName = " + symbolName);
-        SymbolInfo constructorSymbolInfo = currentSymbolTable.resolveInCurrent(symbolName);
-        System.err.println("constructorSymbolInfo = " + constructorSymbolInfo);
-        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(constructorSymbolInfo.getSymbol());
-        System.err.println("enclosingSymbolTable = " + currentSymbolTable);
-        super.visitConstructorDeclaration(ctx);
-        currentSymbolTable = currentSymbolTable.getParent();
-        return null;
+    private List<String> extractParameterTypes(List<JPlus20Parser.FormalParameterContext> params) {
+        return params.stream().map(param -> {
+            boolean nullable = param.variableModifier() != null && param.variableModifier().stream()
+                    .anyMatch(vm -> "@Nullable".equals(Utils.getTokenString(vm.annotation())));
+            return Utils.getTokenString(param.unannType()) + (nullable ? "?" : "");
+        }).toList();
+    }
+
+    private List<String> getTypeNamesFromParameterList(JPlus20Parser.FormalParameterListContext ctx) {
+        if (ctx == null) return List.of();
+        return extractParameterTypes(ctx.formalParameter());
     }
 
     @Override
     public Void visitMethodDeclaration(JPlus20Parser.MethodDeclarationContext ctx) {
-        List<String> typeNameList = new ArrayList<>();
-        var methodDeclarator = ctx.methodHeader().methodDeclarator();
-        var formalParameterList = methodDeclarator.formalParameterList() != null ? methodDeclarator.formalParameterList().formalParameter() : new ArrayList<JPlus20Parser.FormalParameterContext>();
-        for (var formalParameterContext : formalParameterList) {
-            boolean hasNullableAnnotation = false;
-            for (var variableModifierContext : formalParameterContext.variableModifier()) {
-                String annotation = Utils.getTokenString(variableModifierContext.annotation());
-                //System.err.println("annotation = " + annotation);
-                if ("@Nullable".equals(annotation)) {
-                    hasNullableAnnotation = true;
-                }
-            }
-
-            String typeName = Utils.getTokenString(formalParameterContext.unannType());
-            typeNameList.add(typeName + (hasNullableAnnotation ? "?" : ""));
-        }
-
+        List<String> typeNameList = getTypeNamesFromParameterList(ctx.methodHeader().methodDeclarator().formalParameterList());
         String methodName = Utils.getTokenString(ctx.methodHeader().methodDeclarator().identifier());
-        String symbolName = "^" + methodName + "$_" + typeNameList.stream().collect(Collectors.joining("_"));
-        System.err.println("[MethodDecl] methodName = " + symbolName);
-        System.err.println("[MethodDecl] currentSymbolTable = " + currentSymbolTable);
+        String methodSymbol = "^" + methodName + "$_" + typeNameList.stream().collect(Collectors.joining("_"));
+        //System.err.println("[MethodDecl] methodName = " + methodSymbol);
+        //System.err.println("[MethodDecl] currentSymbolTable = " + currentSymbolTable);
 
-        Optional<SymbolInfo> methodSymbolInfo = Optional.ofNullable(currentSymbolTable.resolveInCurrent(symbolName));
-        String fqnSymbolName = methodSymbolInfo.orElseThrow(() -> new IllegalStateException()).getSymbol();
-        System.err.println("[MethodDecl] fqnSymbolName = " + fqnSymbolName);
+        String fqnSymbolName = Optional.ofNullable(currentSymbolTable.resolveInCurrent(methodSymbol))
+                .orElseThrow(() -> new IllegalStateException("There is no method symbol(" + methodSymbol + ") in the current symbol table"))
+                .getSymbol();
+        //System.err.println("[MethodDecl] fqnSymbolName = " + fqnSymbolName);
 
-        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(fqnSymbolName);
-        super.visitMethodDeclaration(ctx);
-        currentSymbolTable = currentSymbolTable.getParent();
-        return null;
+        //currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(fqnSymbolName);
+        enterSymbolTable(fqnSymbolName);
+        try {
+            return super.visitMethodDeclaration(ctx);
+        } finally {
+            exitSymbolTable();
+        }
     }
 
     @Override
@@ -191,14 +212,16 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         for (var variableDeclaratorContext : ctx.variableDeclaratorList().variableDeclarator()) {
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
-            System.err.println("[NullabilityChecker][FieldDecl] currentSymbolTable = " + currentSymbolTable);
+            System.err.println("[NullabilityChecker][FieldDecl] Your comment itself is quite nitpicky. I was already taken aback when you claimed that the Elvis operator solves null-safety issues. From your responses, it doesn’t give the impression that you’re a mature or skilled Java developer. You sound more like a kid insisting on using only JavaScript and refusing to use TypeScript.\n" +
+                    "\n" +
+                    "This isn’t made for Java developers like you who think NPE isn’t a serious problem, so please don’t bother. And stop replying. It honestly feels like a waste of time trying to explain things kindly to you. = " + currentSymbolTable);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
             if (variableDeclaratorContext.variableInitializer() != null) {
                 String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
 
                 if (!typeInfo.isNullable() && "null".equals(expression)) {
-                    reportNullableAccessIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
+                    reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
             }
         }
@@ -207,20 +230,22 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitBlock(JPlus20Parser.BlockContext ctx) {
-        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
-        super.visitBlock(ctx);
-        currentSymbolTable = currentSymbolTable.getParent();
-        return null;
+        enterSymbolTable("^block$");
+        try {
+            return super.visitBlock(ctx);
+        } finally {
+            exitSymbolTable();
+        }
     }
 
     @Override
     public Void visitConstructorBody(JPlus20Parser.ConstructorBodyContext ctx) {
-        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
-        System.err.println("[ConstructorBody] currentSymbolTable = " + currentSymbolTable);
-        System.err.println("[ConstructorBody] currentSymbolTable.getParent() = " + currentSymbolTable.getParent());
-        super.visitConstructorBody(ctx);
-        currentSymbolTable = currentSymbolTable.getParent();
-        return null;
+        enterSymbolTable("^block$");
+        try {
+            return super.visitConstructorBody(ctx);
+        } finally {
+            exitSymbolTable();
+        }
     }
 
     @Override
@@ -251,107 +276,22 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
             symbolTable = symbolTable.getEnclosingSymbolTable(symInfo.getSymbol());
 
-//            SymbolResolver resolver = new SymbolResolver(globalSymbolTable);
-//            try {
-//                symbolTable = resolver.resolveSymbolFromSource(srcDirPathList.get(0), typeInfo.getName(), typeInfo.getType());
-//                SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
-//                String className = symInfo.getSymbol();
-//                symbolTable = symbolTable.getEnclosingSymbolTable(className);
-//            } catch (Exception e) {
-//                e.printStackTrace(System.err);
-//            }
-
             if (symbolInfo.getTypeInfo().isNullable && ambiguousNameCtx.DOT() != null) {
-                int line = ambiguousNameCtx.start.getLine();
-                int column = ambiguousNameCtx.start.getCharPositionInLine();
-                int offset = ambiguousNameCtx.start.getStartIndex();
                 String identifier = Utils.getTokenString(ambiguousNameCtx.ambiguousName().identifier());
                 String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
-                issues.add(new NullabilityIssue(line, column, offset, msg));
-                hasPassed = false;
+                reportIssue(ambiguousNameCtx.start, msg);
             }
 
             ambiguousNameCtx = ambiguousNameCtx.ambiguousName();
         }
 
-//        String identifier = Utils.getTokenString(ctx.identifier());
-//        SymbolInfo identifierSymbolInfo = symbolTable.resolveInCurrent(identifier);
-//        System.err.println("[ExpressionName] identifier = " + identifier);
         if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable && ctx.DOT() != null) {
-            int line = ctx.start.getLine();
-            int column = ctx.start.getCharPositionInLine();
-            int offset = ctx.start.getStartIndex();
             String identifier = Utils.getTokenString(ctx.identifier());
             String msg = symbolInfo.getSymbol() + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
-            issues.add(new NullabilityIssue(line, column, offset, msg));
-            hasPassed = false;
+            reportIssue(ctx.start, msg);
         }
         return super.visitExpressionName(ctx);
     }
-
-    /*@Override
-    public Void visitUnqualifiedClassInstanceCreationExpression(JPlus20Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
-        String instanceCreationCode = Utils.getTokenString(ctx);
-        System.err.println("[InstanceCreationExpression] intanceCreationCode: " + instanceCreationCode);
-        TextChangeRange instanceCreationCodeRange = Utils.computeTextChangeRange(this.originalText, ctx.start.getStartIndex(), ctx.stop.getStopIndex());
-//        TextChangeRange invocationCodeRange = Utils.getTextChangeRange(this.originalText, ctx);
-        System.err.println("[InstanceCreationExpression] invocationCodeRange: " + instanceCreationCodeRange);
-
-        Optional<TextChangeRange> javaInvocationCodeRange = sourceMappingEntrySet.stream()
-                .peek(sourceMappingEntry -> System.err.println("[InstanceCreationExpression] originalRange = " + sourceMappingEntry.getOriginalRange()))
-                .filter(sourceMappingEntry -> instanceCreationCodeRange.equals(sourceMappingEntry.getOriginalRange()))
-                .map(SourceMappingEntry::getTransformedRange)
-                .findFirst();
-
-        javaInvocationCodeRange.ifPresent(range -> {
-            System.err.println("[InstanceCreationExpression] javaInvocationCodeRange: " + range);
-            Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, range);
-
-            invocationInfo.ifPresent(info -> {
-                System.err.println("[InstanceCreationExpression] = " + info);
-
-                Optional<SymbolInfo> classSymbolInfo = Optional.ofNullable(info.instanceName).map(className -> currentSymbolTable.resolve(className));
-
-                classSymbolInfo.ifPresent(symbolInfo -> {
-                    System.err.println("[InstanceCreationExpression] symbolInfo = " + symbolInfo);
-                    System.err.println("[InstanceCreationExpression] symbolTable = " + symbolInfo.getSymbolTable());
-                    SymbolTable symbolTable = symbolInfo.getSymbolTable();
-                    SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
-                    System.err.println("[InstanceCreationExpression] enclosingSymbolTable = " + classSymbolTable);
-
-                    //select candidates
-                    List<String> candidates = ConstructorUtils.getCandidates(info.paramTypes);
-                    candidates.forEach(candidate -> System.err.println("[InstanceCreationExpression] candidate = " + candidate));
-
-                    SymbolInfo constructorSymbolInfo = null;
-                    for (String candidate : candidates) {
-                        constructorSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
-                        if (constructorSymbolInfo != null) {
-                            System.err.println("found consturctor: " + constructorSymbolInfo);
-                            break;
-                        }
-                    }
-
-                    if (constructorSymbolInfo != null) {
-                        String[] paramTypes = constructorSymbolInfo.getSymbol().substring("^constructor$_".length()).split("_");
-                        for (int i = 0; i < paramTypes.length; i++) {
-                            String paramType = paramTypes[i];
-                            String argType = info.argTypes.get(i);
-                            System.err.println("paramType = " + paramType + ", argType = " + argType);
-                            if (!paramType.endsWith("?") && "<nulltype>".equals(argType)) {
-                                int argIndex = i + 1;
-                                String suffix = getOrdinalSuffix(argIndex);
-                                String msg = "The " + argIndex + suffix + " argument of the " + info.instanceName + " constructor is a non-nullable variable, but a null value is assigned to it.";
-                                reportNullableAccessIssue(ctx.start, msg);
-                            }
-                        }
-                    }
-                });
-            });
-        });
-
-        return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
-    }*/
 
     private TextChangeRange getCodeRange(ParserRuleContext ctx) {
         String code = Utils.getTokenString(ctx);
@@ -374,15 +314,6 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     private Optional<SymbolInfo> resolveClassSymbol(MethodInvocationInfo info) {
         return Optional.ofNullable(info.instanceName)
                 .map(className -> currentSymbolTable.resolve(className));
-//                .map(symbolInfo -> {
-//                    TypeInfo typeInfo = symbolInfo.getTypeInfo();
-//                    System.err.println("[resolveClassSymbol] typeInfo.getType() = " + typeInfo.getType());
-//                    if (typeInfo.getType() != TypeInfo.Type.Class) {
-//                        SymbolInfo globalSymbolInfo = globalSymbolTable.resolveInCurrent(typeInfo.getName());
-//                        if (globalSymbolInfo != null) return globalSymbolInfo;
-//                    }
-//                    return symbolInfo;
-//                });
     }
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
@@ -454,7 +385,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 " argument of the " + info.instanceName + "." + info.methodName + "()" +
                 " is a non-nullable variable, but a null value is assigned to it.";
         }
-        reportNullableAccessIssue(ctx.start, msg);
+        reportIssue(ctx.start, msg);
     }
 
     private void log(String msg) {
@@ -525,21 +456,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 if (variableDeclaratorContext.variableInitializer() != null) {
                     String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
                     if (!typeInfo.isNullable() && typeInfo.getType().equals(TypeInfo.Type.Reference) && "null".equals(expression)) {
-                        int line = ctx.getStart().getLine();
-                        int column = ctx.getStart().getCharPositionInLine();
-                        int offset = ctx.getStart().getStartIndex();
                         String msg = symbol + " is a non-nullable variable. But null value is assigned to it.";
-                        issues.add(new NullabilityIssue(line, column, offset, msg));
-                        hasPassed = false;
+                        reportIssue(ctx.start, msg);
                     }
                 } else {
                     if (!typeInfo.isNullable() && typeInfo.getType().equals(TypeInfo.Type.Reference)) {
-                        int line = ctx.getStart().getLine();
-                        int column = ctx.getStart().getCharPositionInLine();
-                        int offset = ctx.getStart().getStartIndex();
                         String msg = symbol + " is a non-nullable variable. But null value is assigned to it.";
-                        issues.add(new NullabilityIssue(line, column, offset, msg));
-                        hasPassed = false;
+                        reportIssue(ctx.start, msg);
                     }
                 }
             }
@@ -579,24 +502,16 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
             if (!typeInfo.isNullable() && typeInfo.getType().equals(TypeInfo.Type.Reference)) {
                 if ("null".equals(expression)) {
-                    int line = ctx.getStart().getLine();
-                    int column = ctx.getStart().getCharPositionInLine();
-                    int offset = ctx.getStart().getStartIndex();
                     String msg = fullVariableName + " is a non-nullable variable. But null value is assigned to it.";
-                    issues.add(new NullabilityIssue(line, column, offset, msg));
-                    hasPassed = false;
+                    reportIssue(ctx.start, msg);
                 } else {
                     SymbolInfo rhsSymbolInfo = currentSymbolTable.resolve(expression);
 //                    System.err.println("rhsSymbolInfo = " + rhsSymbolInfo);
                     if (rhsSymbolInfo != null) {
                         TypeInfo rhsTypeInfo = rhsSymbolInfo.getTypeInfo();
                         if (typeInfo.getType().equals(TypeInfo.Type.Reference) && rhsTypeInfo.getType().equals(TypeInfo.Type.Reference) && !typeInfo.isNullable && rhsTypeInfo.isNullable) {
-                            int line = ctx.getStart().getLine();
-                            int column = ctx.getStart().getCharPositionInLine();
-                            int offset = ctx.getStart().getStartIndex();
                             String msg = "cannot assign " + expression + "(nullable) to " + fullVariableName + "(non-nullable).";
-                            issues.add(new NullabilityIssue(line, column, offset, msg));
-                            hasPassed = false;
+                            reportIssue(ctx.start, msg);
                         }
                     }
                 }
@@ -665,7 +580,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 String msg = ("%s is a nullable variable. But it directly accesses %s(). "
                         + "Consider using null-safe operator(?.).")
                         .formatted(info.instanceName, info.methodName);
-                reportNullableAccessIssue(ctx.start, msg);
+                reportIssue(ctx.start, msg);
             }
 
             //check method parameter nullability
@@ -680,144 +595,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             }
         });
 
-
-
-
-
-
-
-
-
-        /*if (ctx.typeName() != null) {
-            String instanceName = Utils.getTokenString(ctx.typeName());
-            String methodName = Utils.getTokenString(ctx.identifier());
-            boolean nullsafe = ctx.NULLSAFE() != null;
-
-            SymbolInfo symbolInfo = currentSymbolTable.resolve(instanceName);
-            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && !nullsafe) {
-                int line = ctx.start.getLine();
-                int column = ctx.start.getCharPositionInLine();
-                int offset = ctx.start.getStartIndex();
-                String msg = instanceName + " is a nullable variable. But it directly accesses " + methodName + "(). Consider using null-safe operator(?.).";
-                issues.add(new NullabilityIssue(line, column, offset, msg));
-                hasPassed = false;
-            }
-
-            //System.err.println("instanceName = " + instanceName);
-            SymbolInfo symInfo = currentSymbolTable.resolve(instanceName);
-            //System.err.println("symInfo = " + symInfo);
-
-//            if (symInfo == null) return super.visitMethodInvocation(ctx);
-
-            String typeName = null;
-            SymbolTable classSymbolTable = null;
-            if (symInfo == null) {
-                //System.err.println("instanceName = " + instanceName);
-                String[] tokens = instanceName.split("\\.");
-//                typeName = tokens[0];
-                for (int i = 0; i < tokens.length; i++) {
-                    String token = tokens[i];
-                    //System.err.println("token = " + token);
-                    BytecodeSymbolAnalyzer symbolAnalyzer = new BytecodeSymbolAnalyzer(globalSymbolTable);
-                    try {
-                        if (i == 0) token = "java.lang." + token;
-                        if (typeName == null) typeName = token;
-                        else {
-                            symInfo = classSymbolTable.resolveInCurrent(token);
-                            typeName = symInfo.getTypeInfo().getName();
-                            //System.err.println("typeName = " + typeName);
-                        }
-                        classSymbolTable = symbolAnalyzer.analyzeSymbol(Path.of("/home/user/miniconda3/envs/java_dev/jmods/java.base.jmod"), typeName);
-                        String className = classSymbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
-                        classSymbolTable = classSymbolTable.getEnclosingSymbolTable(className);
-                        //System.err.println("className = " + className);
-                        //System.err.println("classSymbolTable = " + classSymbolTable);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-
-            } else {
-                typeName = symInfo.getTypeInfo().getName();
-                //System.err.println("typeName = " + typeName);
-                classSymbolTable = globalSymbolTable.resolveInCurrent(typeName).getSymbolTable();
-                //System.err.println("classSymbolTable = " + classSymbolTable);
-            }
-
-
-            List<String> argumentList = new ArrayList<>();
-            for (JPlus20Parser.ExpressionContext expressionContext : ctx.argumentList().expression()) {
-                String argument = Utils.getTokenString(expressionContext);
-                if ("null".equals(argument)) {
-                    argument = "<nulltype>";
-                }
-                argumentList.add(argument);
-            }
-
-            int arity = argumentList.size();
-            List<String> methodList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Method));
-            List<String> methodListWithSameArity = methodList.stream().filter(s -> s.split("_").length == arity + 1).toList();
-
-            //System.err.println("MethodList = " + methodList);
-            //System.err.println("methodListWithSameArity = " + methodListWithSameArity);
-
-            String matchedMethod = null;
-            for (String method : methodListWithSameArity) {
-                if (!method.contains(methodName)) continue;
-                //System.err.println("method = " + method);
-                int index = method.indexOf("$_");
-                String[] paramTypes = method.substring(index + 2).split("_");
-
-                boolean matched = true;
-                for (int i = 0; i < paramTypes.length; i++) {
-                    //System.err.println("argumentList.get(i) = " + argumentList.get(i));
-                    //System.err.println("argTypes.get(i) = " + methodInvocationInfo.argTypes.get(i));
-                    if(!paramTypes[i].equals(methodInvocationInfo.argTypes.get(i)) && !(!Utils.isJavaPrimtive(paramTypes[i]) && "<nulltype>".equals(methodInvocationInfo.argTypes.get(i)))) {
-                        matched = false;
-                        break;
-                    }
-                }
-
-                if (matched) {
-                    matchedMethod = method;
-                    break;
-                }
-            }
-
-            //System.err.println("matchedMethod = " + matchedMethod);
-            if (matchedMethod != null) {
-                int index = matchedMethod.indexOf("$_");
-                String[] paramTypes = matchedMethod.substring(index + 2).split("_");
-                for (int i = 0; i < paramTypes.length; i++) {
-                    String paramType = paramTypes[i];
-                    String argument = argumentList.get(i);
-                    //System.err.println("paramType = " + paramType);
-                    //System.err.println("argument = " + argument);
-                    if (!paramType.endsWith("?") && "<nulltype>".equals(argumentList.get(i))) {
-                        int line = ctx.getStart().getLine();
-                        int column = ctx.getStart().getCharPositionInLine();
-                        int offset = ctx.getStart().getStartIndex();
-
-                        int argIndex = i + 1;
-                        String suffix = getOrdinalSuffix(argIndex);
-                        String msg = "The " + argIndex + suffix + " argument of the " + typeName + "." + methodName + "() is a non-nullable variable, but a null value is assigned to it.";
-                        issues.add(new NullabilityIssue(line, column, offset, msg));
-                        hasPassed = false;
-                    }
-                }
-            }
-        }*/
-
         return super.visitMethodInvocation(ctx);
-    }
-
-    private void reportNullableAccessIssue(Token ctx, String msg) {
-        int line = ctx.getLine();
-        int column = ctx.getCharPositionInLine();
-        int offset = ctx.getStartIndex();
-        issues.add(new NullabilityIssue(line, column, offset, msg));
-        hasPassed = false;
     }
 
     @Override
@@ -830,12 +608,8 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
                 SymbolInfo symbolInfo = currentSymbolTable.resolve(instanceName);
                 if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && !nullsafe) {
-                    int line = ctx.getStart().getLine();
-                    int column = ctx.getStart().getCharPositionInLine();
-                    int offset = ctx.getStart().getStartIndex();
                     String msg = instanceName + " is a nullable variable. But it directly accesses " + methodName + "(). Consider using null-safe operator(?.).";
-                    issues.add(new NullabilityIssue(line, column, offset, msg));
-                    hasPassed = false;
+                    reportIssue(ctx.start, msg);
                 }
             }
         }
