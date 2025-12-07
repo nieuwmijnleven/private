@@ -39,6 +39,7 @@ import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.TextChangeRange;
 import jplus.util.MethodUtils;
+import jplus.util.TypeUtils;
 import jplus.util.Utils;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -104,11 +105,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     public Void visitClass(ClassTree node, Void unused) {
         SymbolInfo classSymbolInfo = createClassSymbolInfo(node);
         if (topLevelSymbolTable.isEmpty()) {
-            currentSymbolTable.declare("^PackageName$", classSymbolInfo.copyBuilder().symbol(this.packageName).build());
+            currentSymbolTable.declare("^PackageName$", classSymbolInfo.toBuilder().symbol(this.packageName).build());
             currentSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
         }
         declareClassSymbol(classSymbolInfo);
+        System.err.println("[JavaSymbolAnalyzer] classSymbolInfo = " + classSymbolInfo);
 
+        System.err.println("[JavaSymbolAnalyzer] node.getSimpleName().toString() = " + node.getSimpleName().toString());
         enterSymbolTable(node.getSimpleName().toString());
         for (Tree member : node.getMembers()) {
             if (member instanceof VariableTree var) visitField(var, getCurrentPath());
@@ -125,17 +128,15 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TreePath path = getCurrentPath();
         TypeMirror typeMirror = trees.getTypeMirror(path);
 
-        TypeInfo typeInfo = new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Class);
-        int start = (int) trees.getSourcePositions().getStartPosition(ast, node);
-        int end = (int) trees.getSourcePositions().getEndPosition(ast, node);
-        TextChangeRange range = Utils.computeTextChangeRange(source, start, end - 1);
+        //TypeInfo typeInfo = new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Class);
+        TypeInfo typeInfo = TypeUtils.fromTypeMirror(typeMirror);
 
         return SymbolInfo.builder()
                 .symbol(node.getSimpleName().toString())
                 .typeInfo(typeInfo)
                 .symbolTable(currentSymbolTable)
-                .originalText(source.substring(start, end))
-                .range(range)
+                .range(computeRange(node))
+                .originalText(computeRangeText(node))
                 .build();
     }
 
@@ -321,9 +322,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             TypeInfo typeInfo = buildTypeInfo(typeMirror);
 
             // 이름 리스트 생성 (FQN / simple)
-            String typeNameWithNullability = typeInfo.getName() + (typeInfo.isNullable ? "?" : "");
+            String typeNameWithNullability = typeInfo.getName() + (typeInfo.isNullable() ? "?" : "");
             //System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
-            String simpleTypeNameWithNullability = param.getType().toString() + (typeInfo.isNullable ? "?" : "");
+            String simpleTypeNameWithNullability = param.getType().toString() + (typeInfo.isNullable() ? "?" : "");
             //System.err.println("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
             simpleTypeNameList.add(simpleTypeNameWithNullability);

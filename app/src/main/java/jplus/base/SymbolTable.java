@@ -83,7 +83,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     public List<String> findSymbolsByType(List<TypeInfo.Type> typeList) {
 //        return symbolMap.entrySet().stream().map(Map.Entry::getValue).filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().type)).sorted(
 //            Comparator.<SymbolInfo>comparingInt(value -> value.getRange().startLine()).thenComparingInt(value -> value.getRange().startIndex())).map(symbolInfo -> symbolInfo.getSymbol()).toList();
-        return symbolMap.entrySet().stream().map(Map.Entry::getValue).filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().type)).map(symbolInfo -> symbolInfo.getSymbol()).toList();
+        return symbolMap.entrySet().stream().map(Map.Entry::getValue).filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().getType())).map(symbolInfo -> symbolInfo.getSymbol()).toList();
     }
 
     public SymbolTable getParent() {

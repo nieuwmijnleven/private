@@ -258,7 +258,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
             symbolTable = symbolTable.getEnclosingSymbolTable(symInfo.getSymbol());
 
-            if (symbolInfo.getTypeInfo().isNullable && ambiguousNameCtx.DOT() != null) {
+            if (symbolInfo.getTypeInfo().isNullable() && ambiguousNameCtx.DOT() != null) {
                 String identifier = Utils.getTokenString(ambiguousNameCtx.ambiguousName().identifier());
                 String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
                 reportIssue(ambiguousNameCtx.start, msg);
@@ -267,7 +267,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             ambiguousNameCtx = ambiguousNameCtx.ambiguousName();
         }
 
-        if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable && ctx.DOT() != null) {
+        if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && ctx.DOT() != null) {
             String identifier = Utils.getTokenString(ctx.identifier());
             String msg = symbolInfo.getSymbol() + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
             reportIssue(ctx.start, msg);
@@ -490,7 +490,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 //                    System.err.println("rhsSymbolInfo = " + rhsSymbolInfo);
                     if (rhsSymbolInfo != null) {
                         TypeInfo rhsTypeInfo = rhsSymbolInfo.getTypeInfo();
-                        if (typeInfo.getType().equals(TypeInfo.Type.Reference) && rhsTypeInfo.getType().equals(TypeInfo.Type.Reference) && !typeInfo.isNullable && rhsTypeInfo.isNullable) {
+                        if (typeInfo.getType().equals(TypeInfo.Type.Reference) && rhsTypeInfo.getType().equals(TypeInfo.Type.Reference) && !typeInfo.isNullable() && rhsTypeInfo.isNullable()) {
                             String msg = "cannot assign " + expression + "(nullable) to " + fullVariableName + "(non-nullable).";
                             reportIssue(ctx.start, msg);
                         }
@@ -511,11 +511,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 SymbolInfo symbolInfo = currentSymbolTable.resolve(variableName);
                 if (symbolInfo != null) {
                     TypeInfo typeInfo = symbolInfo.getTypeInfo();
-                    if (typeInfo.isNullable) {
-                        TypeInfo newTypeInfo = TypeInfo.copyOf(typeInfo);
-                        newTypeInfo.setNullable(false);
+                    if (typeInfo.isNullable()) {
+                        TypeInfo newTypeInfo = typeInfo.toBuilder()
+                                                    .isNullable(false)
+                                                    .build();
 
-                        SymbolInfo newSymbolInfo = symbolInfo.copyBuilder()
+                        SymbolInfo newSymbolInfo = symbolInfo.toBuilder()
                                                             .typeInfo(newTypeInfo)
                                                             .build();
 
@@ -557,7 +558,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             TypeInfo instanceTypeInfo = instanceSymbolInfo.get().getTypeInfo();
             boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
 
-            if (instanceTypeInfo.isNullable && !hasNullsafeOperator) {
+            if (instanceTypeInfo.isNullable() && !hasNullsafeOperator) {
                 String msg = ("%s is a nullable variable. But it directly accesses %s(). "
                         + "Consider using null-safe operator(?.).")
                         .formatted(info.instanceName, info.methodName);

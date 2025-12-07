@@ -64,6 +64,16 @@ public class SymbolInfo {
         return new SymbolInfo(other);
     }
 
+    public Builder toBuilder() {
+        return new Builder()
+                .symbol(this.symbol)
+                .typeInfo(this.typeInfo)
+                .originalText(this.originalText)
+                .range(this.range)
+                .modifierList(this.modifierList)
+                .symbolTable(this.symbolTable);
+    }
+
     public String getSymbol() {
         return symbol;
     }
@@ -109,13 +119,13 @@ public class SymbolInfo {
                 ", originalText='" + originalText + '\'' +
                 '}';
     }
-
     public static class Builder {
         private String symbol;
         private TypeInfo typeInfo;
         private TextChangeRange range;
         private String originalText;
         private List modifierList;
+
         private SymbolTable symbolTable;
 
         public Builder symbol(String symbol) {
@@ -147,20 +157,10 @@ public class SymbolInfo {
             this.symbolTable = symbolTable;
             return this;
         }
-
         public SymbolInfo build() {
             return new SymbolInfo(symbol, typeInfo, range, originalText, modifierList, symbolTable);
         }
-    }
 
-    public Builder copyBuilder() {
-        return new Builder()
-                .symbol(this.symbol)
-                .typeInfo(this.typeInfo)
-                .originalText(this.originalText)
-                .range(this.range)
-                .modifierList(this.modifierList)
-                .symbolTable(this.symbolTable);
     }
 
     public static Builder builder() {
