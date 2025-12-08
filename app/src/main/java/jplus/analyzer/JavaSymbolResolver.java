@@ -3,6 +3,7 @@ package jplus.analyzer;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
+import jplus.util.CodeUtils;
 import jplus.util.TypeUtils;
 
 import javax.lang.model.element.Element;
@@ -82,7 +83,6 @@ public class JavaSymbolResolver {
                 .typeInfo(classTypeInfo)
                 .symbolTable(classSymbolTable)
                 .build();
-
         globalSymbolTable.declare(qualifiedName, classSymbolInfo);
 
         classSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
@@ -117,7 +117,8 @@ public class JavaSymbolResolver {
                     methodSymbolTable.declare(symbolInfo.getSymbol(), symbolInfo);
                 }
                 // ---------- method/constructor symbol name 구성 ----------
-                String methodName = methodElement.toString();
+                //String methodName = methodElement.toString();
+                String methodName = methodElement.getSimpleName().toString();
                 TypeInfo.Type type = TypeInfo.Type.Method;
                 if (methodName.equals("<init>")) {
                     methodName = "constructor";
@@ -135,6 +136,7 @@ public class JavaSymbolResolver {
                         .build();
 
                 classSymbolTable.declare(symbolName, symbolInfo);
+                classSymbolTable.addEnclosingSymbolTable(symbolName, methodSymbolTable);
             }
         }
 

@@ -275,6 +275,22 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return super.visitExpressionName(ctx);
     }
 
+    private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
+        SymbolTable symbolTable = symbolInfo.getSymbolTable();
+        System.err.println("[resolveClassSymbolTable] symbolTable = " + symbolTable);
+        if (symbolInfo.getTypeInfo().getType() != TypeInfo.Type.Class) {
+            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(symbolInfo.getTypeInfo().getName());
+            if (classSymbolInfo != null) {
+                symbolTable = classSymbolInfo.getSymbolTable();
+                symbolInfo = classSymbolInfo;
+            }
+        }
+//        return symbolTable;
+        SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
+        log("[resolveClassSymbolTable] enclosingSymbolTable = " + classSymbolTable);
+        return classSymbolTable;
+    }
+
     private TextChangeRange getCodeRange(ParserRuleContext ctx) {
         String code = Utils.getTokenString(ctx);
         log("[getCodeRange] code: " + code);
@@ -298,24 +314,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 .map(className -> currentSymbolTable.resolve(className));
     }
 
-    private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
-        SymbolTable symbolTable = symbolInfo.getSymbolTable();
-        if (symbolInfo.getTypeInfo().getType() != TypeInfo.Type.Class) {
-            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(symbolInfo.getTypeInfo().getName());
-            if (classSymbolInfo != null) {
-                symbolTable = classSymbolInfo.getSymbolTable();
-                symbolInfo = classSymbolInfo;
-            }
-        }
-        SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
-        log("[resolveClassSymbolTable] enclosingSymbolTable = " + classSymbolTable);
-        return classSymbolTable;
-    }
-
     private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
         String methodName = info.instanceName.equals(info.methodName) ? "constructor" : info.methodName;
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
         candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
+
+        System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
 
         for (String candidate : candidates) {
             SymbolInfo methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
@@ -334,7 +338,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     ) {
         String methodName = info.instanceName.equals(info.methodName) ? "constructor" : info.methodName;
         String raw = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
-        String[] paramTypes = raw.split("_");
+        String[] paramTypes = raw.isEmpty() ? new String[0] : raw.split("_");
 
         for (int i = 0; i < paramTypes.length; i++) {
             String paramType = paramTypes[i];
@@ -396,8 +400,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 throw new IllegalStateException("cannot find a symbolinfo related to the symbol(" + info.instanceName + ")");
             }
             //System.err.println("[InstanceCreationExpression] symbolInfo = " + classSymbolInfo.get());
+            System.err.println("[UnqualifiedClass] classSymbolInfo = " + classSymbolInfo.get());
 
             SymbolTable classSymbolTable = resolveClassSymbolTable(classSymbolInfo.get());
+            System.err.println("[UnqualifiedClass] classSymbolTable = " + classSymbolTable);
             Optional<SymbolInfo> constructorSymbol = resolveMethod(classSymbolTable, info);
             if (constructorSymbol.isEmpty()) {
                 throw new IllegalStateException("cannot find a mapping constructor.");

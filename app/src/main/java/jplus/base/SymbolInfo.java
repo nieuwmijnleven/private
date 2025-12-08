@@ -115,8 +115,8 @@ public class SymbolInfo {
         return "SymbolInfo{" +
                 "symbol=" + symbol +
                 ", typeInfo=" + typeInfo +
-                ", range=" + range +
-                ", originalText='" + originalText + '\'' +
+//                ", range=" + range +
+//                ", originalText='" + originalText + '\'' +
                 '}';
     }
     public static class Builder {

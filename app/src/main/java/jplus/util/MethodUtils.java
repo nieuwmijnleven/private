@@ -58,9 +58,11 @@ public class MethodUtils {
 
     public static List<String> getCandidates(String methodName, List<String> paramTypes) {
         List<String> candidates = new ArrayList<>();
-        if (!paramTypes.isEmpty()) {
-            generateCandidates(paramTypes, 0, "^"+ methodName + "$", candidates);
+        if (paramTypes.isEmpty()) {
+            return List.of("^" + methodName + "$_");
         }
+
+        generateCandidates(paramTypes, 0, "^"+ methodName + "$", candidates);
         return candidates;
     }
 
