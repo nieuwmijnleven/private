@@ -42,7 +42,6 @@ import jplus.util.MethodUtils;
 import jplus.util.TypeUtils;
 import jplus.util.Utils;
 
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -51,6 +50,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,13 +63,19 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private final SymbolTable globalSymbolTable;
     private final SymbolTable topLevelSymbolTable;
     private SymbolTable currentSymbolTable;
+
+    private final Elements elements;
+    private final Types types;
+
     private final JavaMethodInvocationManager javaMethodInvocationManager;
     private String packageName;
 
-    public JavaSymbolAnalyzer(String source, CompilationUnitTree ast, Trees trees, SymbolTable globalSymbolTable) {
+    public JavaSymbolAnalyzer(String source, CompilationUnitTree ast, Trees trees, SymbolTable globalSymbolTable, Elements elements, Types types) {
         this.source = source;
         this.ast = ast;
         this.trees = trees;
+        this.elements = elements;
+        this.types = types;
         this.globalSymbolTable = globalSymbolTable;
         this.topLevelSymbolTable = new SymbolTable(globalSymbolTable);
         this.currentSymbolTable = topLevelSymbolTable;
@@ -162,49 +169,6 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private TypeInfo buildTypeInfo(TypeMirror typeMirror, Element originalElement) {
         return TypeUtils.fromTypeMirror(typeMirror, originalElement);
     }
-
-    /*private TypeInfo buildTypeInfo(TypeMirror typeMirror) {
-        TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
-        typeInfoBuilder.isNullable(false);
-
-        switch (typeMirror.getKind()) {
-            case BOOLEAN, BYTE, SHORT, INT, LONG, CHAR, FLOAT, DOUBLE -> {
-                typeInfoBuilder.type(TypeInfo.Type.Primitive);
-                typeInfoBuilder.name(typeMirror.toString());
-            }
-            case DECLARED -> {
-                typeInfoBuilder.type(TypeInfo.Type.Reference);
-                typeInfoBuilder.name((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString());
-
-                for (AnnotationMirror ann : typeMirror.getAnnotationMirrors()) {
-                    String annName = ann.getAnnotationType().toString();
-                    if (annName.endsWith(".Nullable") || annName.equals("org.jspecify.annotations.Nullable")) {
-                        typeInfoBuilder.isNullable(true);
-                        break;
-                    }
-                }
-
-                DeclaredType declaredType = (DeclaredType) typeMirror;
-                boolean isGeneric = !((TypeElement) declaredType.asElement()).getTypeParameters().isEmpty();
-                typeInfoBuilder.isGeneric(isGeneric);
-
-
-            }
-            case TYPEVAR ->  {
-                return TypeUtils.fromTypeMirror(typeMirror);
-            }
-            case ARRAY -> {
-                typeInfoBuilder.type(TypeInfo.Type.Array);
-                typeInfoBuilder.name(typeMirror.toString());
-            }
-            default -> {
-                typeInfoBuilder.type(TypeInfo.Type.Unknown);
-                typeInfoBuilder.name((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString());
-            }
-        }
-
-        return typeInfoBuilder.build();
-    }*/
 
     private List<jplus.base.Modifier> convertModifiers(Iterable<Modifier> modifiers) {
         List<jplus.base.Modifier> result = new ArrayList<>();

@@ -24,6 +24,8 @@ import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolTable;
 
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
@@ -44,6 +46,9 @@ public class JavaProcessor {
     private JavacTask task;
     private Iterable<? extends CompilationUnitTree> asts;
     private Trees trees;
+    private Elements elements;
+    private Types types;
+
     private Map<String, MethodInvocationInfo> methodInvocationInfoMap;
 
     public JavaProcessor(String source) {
@@ -83,6 +88,8 @@ public class JavaProcessor {
         asts = task.parse();
         task.analyze();
         trees = Trees.instance(task);
+        elements = task.getElements();
+        types = task.getTypes();
     }
 
     public void analyzeSymbols() {
@@ -93,7 +100,7 @@ public class JavaProcessor {
         int k = 0;
         for (CompilationUnitTree ast : asts) {
             String source = javaFiles.get(k).getContent();
-            JavaSymbolAnalyzer javaSymbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable);
+            JavaSymbolAnalyzer javaSymbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable, elements, types);
             javaSymbolAnalyzer.scan(ast, null);
             symbolAnalyzerList.add(javaSymbolAnalyzer);
             ++k;
