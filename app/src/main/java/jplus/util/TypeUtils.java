@@ -9,19 +9,47 @@ import java.util.stream.Collectors;
 
 public class TypeUtils {
 
-    public static TypeInfo fromTypeMirror(TypeMirror typeMirror) {
+    public static TypeInfo fromTypeMirror(TypeMirror typeMirror, Element originalElement) {
         switch (typeMirror.getKind()) {
             case DECLARED:
                 DeclaredType declaredType = (DeclaredType) typeMirror;
-                String className = ((TypeElement) declaredType.asElement())
-                        .getQualifiedName().toString();
+                Element declaration = declaredType.asElement();
+                // originElement가 클래스/인터페이스 자체인지 확인
+                boolean isClassDecl = originalElement.getKind().isClass() || originalElement.getKind().isInterface();
 
-                List<TypeInfo> typeArgs = declaredType.getTypeArguments()
-                        .stream()
-                        .map(TypeUtils::fromTypeMirror)
-                        .collect(Collectors.toList());
+                if (isClassDecl) {
+                    // 클래스/인터페이스 선언 그 자체를 나타냄
+                    String className = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
 
-                return new TypeInfo(className, false, TypeInfo.Type.Class, typeArgs, List.of());
+
+
+                    // ✔ 선언부의 타입 파라미터 추출 (T, K, V 등)
+                    List<String> typeParams = ((TypeElement) declaration)
+                            .getTypeParameters()
+                            .stream()
+                            .map(TypeParameterElement::getSimpleName)
+                            .map(Object::toString)
+                            .toList();
+
+                    boolean isGeneric = !((TypeElement)declaration).getTypeParameters().isEmpty();
+
+                    return new TypeInfo(className, false, isGeneric, TypeInfo.Type.Class, typeParams, List.of());
+                } else {
+                    String referenceTypeName = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
+
+                    boolean isNullable = typeMirror.getAnnotationMirrors().stream()
+                            .map(annotationMirror -> annotationMirror.getAnnotationType().toString())
+                            .anyMatch(annName -> annName.endsWith(".Nullable") || annName.equals("org.jspecify.annotations.Nullable"));
+
+                    List<TypeInfo> typeArgs = declaredType.getTypeArguments()
+                            .stream()
+                            .map(tm -> TypeUtils.fromTypeMirror(tm, originalElement))
+                            .collect(Collectors.toList());
+
+                    boolean isGeneric = !((TypeElement)declaration).getTypeParameters().isEmpty();
+
+                    return new TypeInfo(referenceTypeName, isNullable, isGeneric, TypeInfo.Type.Reference, List.of(), typeArgs);
+                }
 
             case TYPEVAR:
                 TypeVariable typeVar = (TypeVariable) typeMirror;
@@ -30,14 +58,14 @@ public class TypeUtils {
 
             case ARRAY:
                 ArrayType arrayType = (ArrayType) typeMirror;
-                TypeInfo component = fromTypeMirror(arrayType.getComponentType());
+                TypeInfo component = fromTypeMirror(arrayType.getComponentType(), originalElement);
                 return new TypeInfo(component.getName() + "[]", false, TypeInfo.Type.Array);
 
             case BOOLEAN: case INT: case LONG: case FLOAT: case DOUBLE: case CHAR: case BYTE: case SHORT:
                 return new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Primitive);
 
             default:
-                return new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Reference);
+                return new TypeInfo((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString(), false, TypeInfo.Type.Unknown);
         }
     }
 

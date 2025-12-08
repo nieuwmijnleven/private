@@ -126,10 +126,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     private SymbolInfo createClassSymbolInfo(ClassTree node) {
         TreePath path = getCurrentPath();
+        Element element = trees.getElement(path);
         TypeMirror typeMirror = trees.getTypeMirror(path);
 
         //TypeInfo typeInfo = new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Class);
-        TypeInfo typeInfo = TypeUtils.fromTypeMirror(typeMirror);
+        TypeInfo typeInfo = TypeUtils.fromTypeMirror(typeMirror, element);
 
         return SymbolInfo.builder()
                 .symbol(node.getSimpleName().toString())
@@ -148,15 +149,21 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     private void visitField(VariableTree node, TreePath classPath) {
-        TypeMirror typeMirror = trees.getTypeMirror(new TreePath(classPath, node));
-        TypeInfo typeInfo = buildTypeInfo(typeMirror);
+        TreePath path = new TreePath(classPath, node);
+        Element element = trees.getElement(path);
+        TypeMirror typeMirror = trees.getTypeMirror(path);
+        TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
 
         SymbolInfo fieldSymbolInfo = createSymbolInfo(node.getName().toString(), node.getModifiers().getFlags(), typeInfo, node, currentSymbolTable);
         //System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
         currentSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
     }
 
-    private TypeInfo buildTypeInfo(TypeMirror typeMirror) {
+    private TypeInfo buildTypeInfo(TypeMirror typeMirror, Element originalElement) {
+        return TypeUtils.fromTypeMirror(typeMirror, originalElement);
+    }
+
+    /*private TypeInfo buildTypeInfo(TypeMirror typeMirror) {
         TypeInfo.Builder typeInfoBuilder = TypeInfo.builder();
         typeInfoBuilder.isNullable(false);
 
@@ -165,7 +172,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 typeInfoBuilder.type(TypeInfo.Type.Primitive);
                 typeInfoBuilder.name(typeMirror.toString());
             }
-            case DECLARED, TYPEVAR -> {
+            case DECLARED -> {
                 typeInfoBuilder.type(TypeInfo.Type.Reference);
                 typeInfoBuilder.name((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString());
 
@@ -176,6 +183,15 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         break;
                     }
                 }
+
+                DeclaredType declaredType = (DeclaredType) typeMirror;
+                boolean isGeneric = !((TypeElement) declaredType.asElement()).getTypeParameters().isEmpty();
+                typeInfoBuilder.isGeneric(isGeneric);
+
+
+            }
+            case TYPEVAR ->  {
+                return TypeUtils.fromTypeMirror(typeMirror);
             }
             case ARRAY -> {
                 typeInfoBuilder.type(TypeInfo.Type.Array);
@@ -188,7 +204,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
 
         return typeInfoBuilder.build();
-    }
+    }*/
 
     private List<jplus.base.Modifier> convertModifiers(Iterable<Modifier> modifiers) {
         List<jplus.base.Modifier> result = new ArrayList<>();
@@ -269,8 +285,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 })
                 .toList();
 
+        TreePath path = trees.getPath(ast, node);
+        Element element = trees.getElement(path);
+        TypeMirror typeMirror = trees.getTypeMirror(path);
+
         MethodInvocationInfo.Builder builder = MethodInvocationInfo.builder()
                 .instanceName(instanceName)
+                .typeInfo(buildTypeInfo(typeMirror, element))
                 .methodName(methodName)
                 .args(argStrings)
                 .argTypes(argTypes)
@@ -278,7 +299,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .startPos(getSourceStartPosition(node))
                 .endPos(getSourceEndPosition(node));
 
-        TreePath path = trees.getPath(ast, node);
+//        TreePath path = trees.getPath(ast, node);
         if (path != null) {
             Element e = trees.getElement(path);
             if (e instanceof ExecutableElement ee) {
@@ -319,7 +340,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         for (VariableTree param : node.getParameters()) {
             // TypeMirror 기반 TypeInfo 생성
             TypeMirror typeMirror = trees.getTypeMirror(TreePath.getPath(ast, param.getType()));
-            TypeInfo typeInfo = buildTypeInfo(typeMirror);
+            Element element = trees.getElement(TreePath.getPath(ast, param));
+            TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
 
             // 이름 리스트 생성 (FQN / simple)
             String typeNameWithNullability = typeInfo.getName() + (typeInfo.isNullable() ? "?" : "");
@@ -390,11 +412,12 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private Void handleLocalVariable(VariableTree node, Void unused) {
         //TypeMirror typeMirror = trees.getTypeMirror(getCurrentPath());
         TreePath typePath = TreePath.getPath(ast, node.getType());
+        Element element = trees.getElement(TreePath.getPath(ast, node));
         TypeMirror typeMirror = trees.getTypeMirror(typePath);
 
         SymbolInfo symbolInfo = SymbolInfo.builder()
                 .symbol(node.getName().toString())
-                .typeInfo(buildTypeInfo(typeMirror))
+                .typeInfo(buildTypeInfo(typeMirror, element))
                 .modifierList(convertModifiers(node.getModifiers().getFlags()))
                 .symbolTable(currentSymbolTable)
                 .originalText(computeRangeText(node))

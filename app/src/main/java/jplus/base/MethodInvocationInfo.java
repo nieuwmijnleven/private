@@ -21,6 +21,7 @@ import java.util.List;
 
 public class MethodInvocationInfo {
     public final String instanceName;
+    public final TypeInfo typeInfo;
     public final String methodName;
     public final List<String> args;
     public final List<String> argTypes;
@@ -30,8 +31,9 @@ public class MethodInvocationInfo {
     public final int startPos;
     public final int endPos;
 
-    public MethodInvocationInfo(String instanceName, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType, String source, int startPos, int endPos) {
+    public MethodInvocationInfo(String instanceName, TypeInfo typeInfo, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType, String source, int startPos, int endPos) {
         this.instanceName = instanceName;
+        this.typeInfo = typeInfo;
         this.methodName = methodName;
         this.args = args;
         this.argTypes = argTypes;
@@ -44,6 +46,7 @@ public class MethodInvocationInfo {
     
     public static class Builder {
         private String instanceName;
+        private TypeInfo typeInfo;
         private String methodName;
         private List<String> args;
         private List<String> argTypes;
@@ -57,7 +60,12 @@ public class MethodInvocationInfo {
             this.instanceName = instanceName;
             return this;
         }
-    
+
+        public Builder typeInfo(TypeInfo typeInfo) {
+            this.typeInfo = typeInfo;
+            return this;
+        }
+
         public Builder methodName(String methodName) {
             this.methodName = methodName;
             return this;
@@ -99,7 +107,7 @@ public class MethodInvocationInfo {
         }
     
         public MethodInvocationInfo build() {
-            return new MethodInvocationInfo(instanceName, methodName, args, argTypes, paramTypes, returnType, source, startPos, endPos);
+            return new MethodInvocationInfo(instanceName, typeInfo, methodName, args, argTypes, paramTypes, returnType, source, startPos, endPos);
         }
     }
     
@@ -111,6 +119,7 @@ public class MethodInvocationInfo {
     public String toString() {
         return "MethodInvocationInfo{" +
                 "instanceName='" + instanceName + '\'' +
+                ", typeInfo='" + typeInfo + '\'' +
                 ", methodName='" + methodName + '\'' +
                 ", args=" + args +
                 ", argTypes=" + argTypes +

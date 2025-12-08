@@ -22,8 +22,9 @@ import java.util.List;
 public class TypeInfo {
     private final String name;
     private final boolean isNullable;
+    private final boolean isGeneric;
     private final Type type;
-    private final List<TypeInfo> typeParameters;
+    private final List<String> typeParameters;
     private final List<TypeInfo> typeArguments;
 
     public enum Type {
@@ -38,21 +39,23 @@ public class TypeInfo {
         TypeArgument
     }
 
-    public TypeInfo(String name, boolean isNullable, Type type, List<TypeInfo> typeParameters, List<TypeInfo> typeArguments) {
+    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, List<String> typeParameters, List<TypeInfo> typeArguments) {
         this.name = name;
         this.isNullable = isNullable;
+        this.isGeneric = isGeneric;
         this.type = type;
         this.typeParameters = typeParameters;
         this.typeArguments = typeArguments;
     }
 
     public TypeInfo(String name, boolean isNullable, Type type) {
-        this(name, isNullable, type, List.of(), List.of());
+        this(name, isNullable, false, type, List.of(), List.of());
     }
 
     public TypeInfo(TypeInfo other) {
         this.name = other.name;
         this.isNullable = other.isNullable;
+        this.isGeneric = other.isGeneric;
         this.type = other.type;
         this.typeParameters = other.typeParameters;
         this.typeArguments = other.typeArguments;
@@ -66,6 +69,7 @@ public class TypeInfo {
         return TypeInfo.builder()
                 .name(this.name)
                 .isNullable(this.isNullable)
+                .isGeneric(this.isGeneric)
                 .type(this.type)
                 .typeParameters(this.typeParameters)
                 .typeArguments(this.typeArguments);
@@ -88,6 +92,7 @@ public class TypeInfo {
         return "TypeInfo{" +
                 "name='" + name + '\'' +
                 ", isNullable=" + isNullable +
+                ", isGeneric=" + isGeneric +
                 ", type=" + type +
                 ", typeParameters=" + typeParameters +
                 ", typeArguments=" + typeArguments +
@@ -97,8 +102,9 @@ public class TypeInfo {
     public static class Builder {
         private String name;
         private boolean isNullable;
+        private boolean isGeneric;
         private Type type;
-        private List<TypeInfo> typeParameters = List.of();
+        private List<String> typeParameters = List.of();
         private List<TypeInfo> typeArguments = List.of();
 
         public Builder name(String name) {
@@ -111,12 +117,17 @@ public class TypeInfo {
             return this;
         }
 
+        public Builder isGeneric(boolean isGeneric) {
+            this.isGeneric = isGeneric;
+            return this;
+        }
+
         public Builder type(Type type) {
             this.type = type;
             return this;
         }
 
-        public Builder typeParameters(List<TypeInfo> typeParameters) {
+        public Builder typeParameters(List<String> typeParameters) {
             this.typeParameters = typeParameters;
             return this;
         }
@@ -127,7 +138,7 @@ public class TypeInfo {
         }
 
         public TypeInfo build() {
-            return new TypeInfo(name, isNullable, type, typeParameters, typeArguments);
+            return new TypeInfo(name, isNullable, isGeneric, type, typeParameters, typeArguments);
         }
     }
 
