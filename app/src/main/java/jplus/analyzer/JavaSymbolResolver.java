@@ -3,7 +3,6 @@ package jplus.analyzer;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
-import jplus.util.CodeUtils;
 import jplus.util.TypeUtils;
 
 import javax.lang.model.element.Element;
