@@ -92,12 +92,12 @@ public class JavaSymbolResolver {
 
         // Method Declaration
         SymbolTable methodSymbolTable = new SymbolTable(classSymbolTable);
-        List<String> typeNameList = new ArrayList<>();
 
         for (Element element : clazz.getEnclosedElements()) {
             if (element.getKind() == ElementKind.CONSTRUCTOR || element.getKind() == ElementKind.METHOD) {
 
                 ExecutableElement methodElement = (ExecutableElement) element;
+                List<String> typeNameList = new ArrayList<>();
 
                 for (VariableElement parameter : methodElement.getParameters()) {
                     TypeMirror typeMirror = parameter.asType();

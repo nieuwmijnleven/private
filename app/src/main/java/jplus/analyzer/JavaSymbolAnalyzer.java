@@ -225,6 +225,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     @Override
     public Void visitNewClass(NewClassTree node, Void unused) {
         String qualifiedName = getQualifiedName(node);
+
+        JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
+        SymbolInfo symbolInfo = resolver.resolveClass(qualifiedName);
+        System.err.println("[JavaSymbolResolver] symbolInfo = " + symbolInfo);
+
         MethodInvocationInfo info = buildMethodInvocationInfo(node, qualifiedName, qualifiedName);
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
         //System.err.println("[NewClass] methodInvocationInfo = " + info);
