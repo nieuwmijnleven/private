@@ -35,13 +35,12 @@ Notably, **there is currently no ‘superset’ language that keeps Java syntax 
 
 ## 🛠️ Key Features
 
-| Feature                           | Description                                          |
-|-----------------------------------|------------------------------------------------------|
-| **Strict Null Checking**          | Prevents null reference errors at compile time       |
-| **Boilerplate Code Genererating** | Minimizes boilerplate code                           |
-| **Named Parameter (Planned)**     | Allows passing arguments by name                     |
-| **Asynchronous Syntax (Planned)** | Simple async/await-style asynchronous handling       |
-| **Concise Syntax (Planned)**      | smart casts and more for clearer and shorter code    |
+| Feature                           | Description                                                                                |
+|-----------------------------------|--------------------------------------------------------------------------------------------|
+| **Strict Null Checking**          | Prevents null reference errors at compile time                                             |
+| **Default Immutable Fields**      | Class fields are immutable by default; use **mutable keyword** when mutability is required |
+| **Boilerplate Code Genererating** | Minimizes boilerplate code                                                                 |
+| **Named Parameter (Planned)**     | Allows passing arguments by name                                                           |
 
 ---
 
