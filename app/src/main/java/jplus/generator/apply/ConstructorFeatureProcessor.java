@@ -21,6 +21,7 @@ import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.TextChangeRange;
+import jplus.util.CodeGenUtils;
 import jplus.util.CodeUtils;
 
 import java.util.ArrayList;
@@ -108,8 +109,7 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
 
         List<String> parameters = new ArrayList<>();
         for (SymbolInfo symbolInfo : nonStaticFieldList) {
-            String typeName = symbolInfo.getTypeInfo().getName();
-            String simpleTypeName = CodeUtils.getSimpleName(typeName);
+            String simpleTypeName = CodeGenUtils.getSimpleTypeName(symbolInfo.getTypeInfo());
             String fieldName = symbolInfo.getSymbol();
             parameters.add(simpleTypeName + " " + fieldName);
         }
@@ -167,8 +167,7 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
 
         List<String> parameters = new ArrayList<>();
         for (SymbolInfo symInfo : requiredFieldList) {
-            String typeName = symInfo.getTypeInfo().getName();
-            String simpleTypeName = CodeUtils.getSimpleName(typeName);
+            String simpleTypeName = CodeGenUtils.getSimpleTypeName(symInfo.getTypeInfo());
             String fieldName = symInfo.getSymbol();
             parameters.add(simpleTypeName + " " + fieldName);
         }

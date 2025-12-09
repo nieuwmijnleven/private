@@ -17,6 +17,8 @@
 package jplus.generator.apply;
 
 import jplus.base.TypeInfo;
+import jplus.util.CodeGenUtils;
+import jplus.util.CodeUtils;
 import jplus.util.Utils;
 
 import java.util.ArrayList;
@@ -37,8 +39,8 @@ public class EqualsFeatureProcessor implements ApplyFeatureProcessor {
         if (primitiveTypeFieldList.isEmpty() && referenceTypeFieldList.isEmpty()) {
             context.appendMethodPartText("true;\n");
         } else {
-            String className = context.getTargetClass();
-            String instanceName = Utils.convertToCamelCase(className);
+            String className = CodeGenUtils.getSimpleTypeNameWithGenericWildcard(context.getTargetClassTypeInfo());
+            String instanceName = Utils.convertToCamelCase(context.getTargetClass());
 
             List<String> equalityChecks = new ArrayList<>();
             for (String primitiveTypeField : primitiveTypeFieldList) {

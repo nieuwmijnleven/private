@@ -19,10 +19,12 @@ package jplus.generator.apply;
 import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
+import jplus.util.CodeGenUtils;
 import jplus.util.CodeUtils;
 import jplus.util.Utils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GetterFeatureProcessor implements ApplyFeatureProcessor {
     @Override
@@ -30,6 +32,7 @@ public class GetterFeatureProcessor implements ApplyFeatureProcessor {
         if (context.hasProcessed("getter")) return;
 
         for (String fieldName : context.getFieldList()) {
+            System.err.println("[GetterFeatureProcessor] fieldName = " + fieldName);
             String methodName = "get" + Utils.convertToPascalCase(fieldName);
             String methodSymbol = "^" + methodName + "$_";
             if (context.getClassSymbolTable().contains(methodSymbol, TypeInfo.Type.Method)) {
@@ -37,9 +40,8 @@ public class GetterFeatureProcessor implements ApplyFeatureProcessor {
             }
 
             SymbolInfo symbolInfo = context.getClassSymbolTable().resolve(fieldName);
-            TypeInfo typeInfo = symbolInfo.getTypeInfo();
-            String typeName = typeInfo.getName();
-            String simpleTypeName = CodeUtils.getSimpleName(typeName);
+            System.err.println("[GetterFeatureProcessor] typeInfo = " + symbolInfo.getTypeInfo());
+            String simpleTypeName = CodeGenUtils.getSimpleTypeName(symbolInfo.getTypeInfo());
 
             List<Modifier> excludedModifiers = List.of(Modifier.STATIC);
             if (symbolInfo.getModifierList().stream().anyMatch(modifier -> excludedModifiers.contains(modifier))) {

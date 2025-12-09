@@ -76,18 +76,21 @@ public class JavaSymbolResolver {
         // typeInfo 사용 가능
         System.err.println(classTypeInfo);
 
-        SymbolTable classSymbolTable = new SymbolTable(globalSymbolTable);
+        SymbolTable topLevelSymbolTable = new SymbolTable(globalSymbolTable);
         SymbolInfo classSymbolInfo = SymbolInfo.builder()
                 .symbol(qualifiedName)
                 .typeInfo(classTypeInfo)
-                .symbolTable(classSymbolTable)
+                .symbolTable(topLevelSymbolTable)
                 .build();
         globalSymbolTable.declare(qualifiedName, classSymbolInfo);
 
-        classSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
-        classSymbolTable.declare("^PackageName$", classSymbolInfo.toBuilder().symbol(getPackageName(clazz)).build());
+        topLevelSymbolTable.declare("^PackageName$", classSymbolInfo.toBuilder().symbol(getPackageName(clazz)).build());
+        topLevelSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
+        topLevelSymbolTable.declare(qualifiedName, classSymbolInfo);
 
         cache.put(qualifiedName, classSymbolInfo);
+
+        SymbolTable classSymbolTable = topLevelSymbolTable.getEnclosingSymbolTable(qualifiedName);
 
         // Method Declaration
         SymbolTable methodSymbolTable = new SymbolTable(classSymbolTable);

@@ -20,6 +20,7 @@ import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
+import jplus.util.CodeGenUtils;
 import jplus.util.CodeUtils;
 import jplus.util.Utils;
 
@@ -35,8 +36,8 @@ public class SetterFeatureProcessor implements ApplyFeatureProcessor {
         for (String fieldName : context.getFieldList()) {
             SymbolInfo symbolInfo = classSymbolTable.resolve(fieldName);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
-            String typeName = typeInfo.getName();
-            String simpleTypeName = CodeUtils.getSimpleName(typeName);
+            System.err.println("[GetterFeatureProcessor] typeInfo = " + typeInfo);
+            String simpleTypeName = CodeGenUtils.getSimpleTypeName(typeInfo);
 
             List<Modifier> excludedModifiers = List.of(Modifier.FINAL, Modifier.STATIC);
             if (symbolInfo.getModifierList().stream().anyMatch(modifier -> excludedModifiers.contains(modifier))) {
@@ -44,7 +45,7 @@ public class SetterFeatureProcessor implements ApplyFeatureProcessor {
             }
 
             String methodName = "set" + Utils.convertToPascalCase(fieldName);
-            String methodSymbol = "^" + methodName + "$_" + typeName;
+            String methodSymbol = "^" + methodName + "$_" + typeInfo.getName();
             if (classSymbolTable.contains(methodSymbol, TypeInfo.Type.Method)) {
                 continue;
             }

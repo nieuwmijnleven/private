@@ -16,7 +16,9 @@
 
 package jplus.generator.apply;
 
+import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
+import jplus.base.TypeInfo;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,6 +28,7 @@ import java.util.TreeSet;
 
 public class ApplyFeatureProcessingContext {
     private ApplyFeature feature;
+    private final TypeInfo targetClassTypeInfo;
     private final SymbolTable classSymbolTable;
     private final StringBuilder constructorPartText;
     private final StringBuilder methodPartText;
@@ -38,6 +41,7 @@ public class ApplyFeatureProcessingContext {
     private final String indentation;
 
     public ApplyFeatureProcessingContext(ApplyFeature feature,
+                                         TypeInfo targetClassTypeInfo,
                                          SymbolTable classSymbolTable,
                                          StringBuilder constructorPartText,
                                          StringBuilder methodPartText, Set<String> processedActionList,
@@ -47,6 +51,7 @@ public class ApplyFeatureProcessingContext {
                                          String targetClass, String qualifiedName,
                                          String indentation) {
         this.feature = feature;
+        this.targetClassTypeInfo = targetClassTypeInfo;
         this.classSymbolTable = classSymbolTable;
         this.constructorPartText = constructorPartText;
         this.methodPartText = methodPartText;
@@ -80,13 +85,20 @@ public class ApplyFeatureProcessingContext {
     }
 
     public ApplyFeature getFeature() { return feature; }
+
+    public TypeInfo getTargetClassTypeInfo() { return targetClassTypeInfo; }
+
     public SymbolTable getClassSymbolTable() { return classSymbolTable; }
+
     public void appendConstructorPartText(String text) { constructorPartText.append(text);
     }
+
     public void appendMethodPartText(String text) { methodPartText.append(text); }
+
     public String getConstructorPartText() {
         return constructorPartText.toString();
     }
+
     public String getMethodPartText() {
         return methodPartText.toString();
     }
@@ -96,8 +108,11 @@ public class ApplyFeatureProcessingContext {
     }
 
     public List<String> getFieldList() { return fieldList; }
+
     public List<String> getPrimitiveFields() { return primitiveFields; }
+
     public List<String> getReferenceFields() { return referenceFields; }
+
     public String getTargetClass() { return targetClass; }
 
     public String getQualifiedName() {
@@ -108,6 +123,7 @@ public class ApplyFeatureProcessingContext {
 
     public static class Builder {
         private ApplyFeature feature;
+        private TypeInfo targetClassTypeInfo;
         private SymbolTable classSymbolTable;
         private StringBuilder constructorPartText;
         private StringBuilder methodPartText;
@@ -121,6 +137,11 @@ public class ApplyFeatureProcessingContext {
 
         public Builder feature(ApplyFeature feature) {
             this.feature = feature;
+            return this;
+        }
+
+        public Builder targetClassTypeInfo(TypeInfo targetClassTypeInfo) {
+            this.targetClassTypeInfo = targetClassTypeInfo;
             return this;
         }
 
@@ -177,6 +198,7 @@ public class ApplyFeatureProcessingContext {
         public ApplyFeatureProcessingContext build() {
             return new ApplyFeatureProcessingContext(
                 feature,
+                targetClassTypeInfo,
                 classSymbolTable,
                 constructorPartText,
                 methodPartText,

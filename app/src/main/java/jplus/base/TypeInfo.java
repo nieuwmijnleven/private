@@ -17,6 +17,7 @@
 package jplus.base;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TypeInfo {
@@ -81,6 +82,18 @@ public class TypeInfo {
 
     public boolean isNullable() {
         return isNullable;
+    }
+
+    public boolean isGeneric() {
+        return isGeneric;
+    }
+
+    public List<String> getTypeParameters() {
+        return Collections.unmodifiableList(typeParameters);
+    }
+
+    public List<TypeInfo> getTypeArguments() {
+        return Collections.unmodifiableList(typeArguments);
     }
 
     public Type getType() {

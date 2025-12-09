@@ -162,7 +162,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
 
         SymbolInfo fieldSymbolInfo = createSymbolInfo(node.getName().toString(), node.getModifiers().getFlags(), typeInfo, node, currentSymbolTable);
-        //System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
+        System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
         currentSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
     }
 

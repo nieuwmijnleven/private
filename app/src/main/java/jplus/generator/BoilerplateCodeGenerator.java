@@ -145,10 +145,10 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
 
             System.err.println("targetClass = " + targetClass);
             System.err.println("enclosingSymbolTable = " + enclosingSymbolTable);
-            SymbolInfo symbolInfo = enclosingSymbolTable.resolve(targetClass);
-            System.err.println("SymbolInfo = " + symbolInfo);
-            TextChangeRange range = symbolInfo.getRange();
-            String classText = symbolInfo.getOriginalText();
+            SymbolInfo targetClassSymbolInfo = enclosingSymbolTable.resolve(targetClass);
+            System.err.println("targetClassSymbolInfo = " + targetClassSymbolInfo);
+            TextChangeRange range = targetClassSymbolInfo.getRange();
+            String classText = targetClassSymbolInfo.getOriginalText();
             TextChangeRange methodRange = new TextChangeRange(
                     range.endLine(), range.inclusiveEndIndex(),
                     range.endLine(), range.inclusiveEndIndex()
@@ -156,9 +156,9 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
 
             SymbolTable classSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(targetClass);
 
-            List<String> fieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive, TypeInfo.Type.Reference));
+            List<String> fieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive, TypeInfo.Type.Reference, TypeInfo.Type.TypeParameter));
             List<String> primitiveTypeFieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive));
-            List<String> referenceTypeFieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Reference));
+            List<String> referenceTypeFieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Reference, TypeInfo.Type.TypeParameter));
 
             if (fieldList.isEmpty()) continue;
 
@@ -169,7 +169,7 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
             String indentation = Utils.indent(" ", baseIndent);
             String doubleIndentation = Utils.indent(" ", baseIndent * 2);
 
-            symbolInfo = classSymbolTable.resolve(fieldList.get(fieldList.size()-1));
+            SymbolInfo symbolInfo = classSymbolTable.resolve(fieldList.get(fieldList.size()-1));
 //            boolean isNullable = symbolInfo.getTypeInfo().isNullable();
             int constructorIndent = symbolInfo.getRange().startIndex();
             int endLine = symbolInfo.getRange().endLine();
@@ -178,8 +178,9 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
 
             ApplyFeatureProcessingContext context = processedClassActionContextMap.computeIfAbsent(qualifiedName, k -> {
                 return ApplyFeatureProcessingContext.builder()
-                        .targetClass(targetClass)
                         .qualifiedName(qualifiedName)
+                        .targetClass(targetClass)
+                        .targetClassTypeInfo(targetClassSymbolInfo.getTypeInfo())
                         .classSymbolTable(classSymbolTable)
                         .fieldList(fieldList)
                         .primitiveFields(primitiveTypeFieldList)

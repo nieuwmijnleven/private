@@ -34,13 +34,65 @@ class JPlusTest2 {
     }
 
     @Test
-    void testApplyHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyHashCode.jplus", "FiHLi04TBUW4bDxmWsfSNLklKGg=");
+    void testApplySetter() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplySetter.jplus", "1z2wSaMFPEihup5zDR6wH5f+XEs=");
+    }
+
+    @Test
+    void testApplyGetter() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyGetter.jplus", "Cf0XeGQLc90wGb15PhG1AWJlTIo=");
     }
 
     @Test
     void testApplyGenerics() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyGenerics.jplus", "FiHLi04TBUW4bDxmWsfSNLklKGg=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyGenerics.jplus", "eFF4FV90LtZIV8mL4NtPmVQ85Y8=");
+    }
+
+
+
+    @Test
+    void testApplyHashCode() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyHashCode.jplus", "2swIgD1B8nYL4OVJPRs1QVw++Is=");
+    }
+
+    @Test
+    void testApplyEquals() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "vYHwVMopnX20qoAeZzJxoLuwt4A=");
+    }
+
+    @Test
+    void testApplyEquality() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "gGV3xA+ITehB4J6jswHKW9tw35I=");
+    }
+
+    @Test
+    void testApplyData() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "AHK8SQeb3M3liQ1M0WDF9NaaLf0=");
+    }
+
+    @Test
+    void testApplyConstructorWithNo() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithNo.jplus", "tMxYt2Y2giLz5PH7P+BfZCE+mVc=");
+    }
+
+    @Test
+    void testApplyConstructorWithAll() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithAll.jplus", "4HyrVpuRaCWYSGSFd6Ln8Ov3hdM=");
+    }
+
+    @Test
+    void testApplyConstructorWithRequired() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithRequired.jplus", "rryTmrcl69V24QLr9b2/ChFeiQE=");
+    }
+
+    @Test
+    void testApplyToString() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyToString.jplus", "33E7aLd5YiZz7yRnIeDe1Z3qlkU=");
+    }
+
+    @Test
+    void testApplyBuilder() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyBuilder.jplus", "UVR3TSB24yuHfuYnP+ZHhglChxg=");
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {
@@ -53,7 +105,11 @@ class JPlusTest2 {
         Project project = new Project(parentDirectory);
         JPlusProcessor processor = new JPlusProcessor(project, "", className);
         processor.process();
-//        System.err.println(processor.getParseTreeString());
+
+        String parseTreeString = processor.getParseTreeString();
+        String hashString = getHashString(parseTreeString);
+        System.err.println("hashString = " + hashString);
+
         processor.analyzeSymbols();
 
         var issues = processor.checkNullability();
@@ -63,11 +119,12 @@ class JPlusTest2 {
 
         String generatedJavaCode = processor.generateJavaCode();
         System.err.println("[BoilerplateCodeGeneration] = " + generatedJavaCode);
+
         processor = new JPlusProcessor(generatedJavaCode);
         processor.process();
 
-        String parseTreeString = processor.getParseTreeString();
-        String hashString = getHashString(parseTreeString);
+        parseTreeString = processor.getParseTreeString();
+        hashString = getHashString(parseTreeString);
 
         assertEquals(expected, hashString);
     }

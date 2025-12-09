@@ -19,6 +19,7 @@ package jplus.generator.apply;
 import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
+import jplus.util.CodeGenUtils;
 import jplus.util.CodeUtils;
 
 import java.util.ArrayList;
@@ -45,7 +46,16 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
         String indentation = context.getIndentation();
         String doubleIndentation = indentation.repeat(2);
 
-        String builder = "\npublic static class Builder {";
+        TypeInfo targetClassTypeInfo = context.getTargetClassTypeInfo();
+        System.err.println("[BuilderFeatureProcessor] targetClassTypeInfo = " + targetClassTypeInfo);
+        String targetClassTypeName = CodeGenUtils.getSimpleTypeName(targetClassTypeInfo);
+        System.err.println("[BuilderFeatureProcessor] targetClassTypeName = " + targetClassTypeName);
+        String typeArgumentString = CodeGenUtils.getGenericTypeArgumentString(targetClassTypeInfo);
+        System.err.println("[BuilderFeatureProcessor] typeArgumentString = " + typeArgumentString);
+
+
+        String builderTypeName = "Builder" + typeArgumentString;
+        String builder = "\npublic static class " + builderTypeName + " {";
         List<String> fieldDeclarations = new ArrayList<>();
         List<String> methodDeclarations = new ArrayList<>();
         List<String> nonStaticFieldList = new ArrayList<>();
@@ -58,11 +68,10 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
                 continue;
             }
 
-            String typeName = typeInfo.getName();
-            String simpleTypeName = CodeUtils.getSimpleName(typeName);
+            String simpleTypeName = CodeGenUtils.getSimpleTypeName(typeInfo);
 
             fieldDeclarations.add(indentation + "private " + simpleTypeName + " " + fieldName + ";");
-            methodDeclarations.add(indentation + "public Builder " + fieldName + "(" + simpleTypeName + " " + fieldName + ") {\n" +
+            methodDeclarations.add(indentation + "public " + builderTypeName + " " + fieldName + "(" + simpleTypeName + " " + fieldName + ") {\n" +
                     doubleIndentation + "this." + fieldName + " = " + fieldName + ";\n" +
                     doubleIndentation + "return this;\n" +
                     indentation + "}"
@@ -73,13 +82,13 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
 
         builder += fieldDeclarations.stream().collect(Collectors.joining("\n", "\n", "\n"));
         builder += methodDeclarations.stream().collect(Collectors.joining("\n\n", "\n", "\n"));
-        builder += "\n" + indentation + "public " + context.getTargetClass() + " build() {\n";
-        builder += doubleIndentation + "return new " + context.getTargetClass() + "(" + nonStaticFieldList.stream().collect(Collectors.joining(", ")) + ");\n";
+        builder += "\n" + indentation + "public " + targetClassTypeName + " build() {\n";
+        builder += doubleIndentation + "return new " + targetClassTypeName + "(" + nonStaticFieldList.stream().collect(Collectors.joining(", ")) + ");\n";
         builder += indentation + "}\n";
         builder += "}\n";
 
-        builder += "\npublic static Builder builder() {\n";
-        builder += indentation + "return new Builder();\n";
+        builder += "\npublic static " + typeArgumentString + " " + builderTypeName + " builder() {\n";
+        builder += indentation + "return new " + builderTypeName + "();\n";
         builder += "}\n";
 
         context.appendMethodPartText(builder);
