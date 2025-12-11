@@ -1046,7 +1046,7 @@ switchBlockStatementGroup
 switchLabel
     : 'case' caseConstant (',' caseConstant)*
     | 'case' 'null' (',' 'default')?
-    | 'case' casePattern
+    | 'case' casePattern (guard)?
     | 'default'
     ;
 
@@ -1055,7 +1055,7 @@ caseConstant
     ;
 
 casePattern:
-    pattern (guard)?
+    pattern
     ;
 
 guard:
@@ -1227,7 +1227,6 @@ yieldStatement
 pattern
     : typePattern
     | recordPattern
-    | parenthesizedPattern
     ;
 
 typePattern
@@ -1240,10 +1239,6 @@ recordPattern
 
 patternList
     : pattern (',' pattern)*
-    ;
-
-parenthesizedPattern
-    : '(' pattern ')'
     ;
 
 // Paragraph 15.2
