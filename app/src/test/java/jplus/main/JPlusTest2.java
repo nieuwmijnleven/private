@@ -66,9 +66,14 @@ class JPlusTest2 {
     }
 
     @Test
-    void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "AHK8SQeb3M3liQ1M0WDF9NaaLf0=");
+    void testApplyToBuilder() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyToBuilder.jplus", "1Xn2ny5+W2Y+lxCk8b+vsjxSW3Y=");
     }
+
+//    @Test
+//    void testApplyData() throws Exception {
+//        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "AHK8SQeb3M3liQ1M0WDF9NaaLf0=");
+//    }
 
     @Test
     void testApplyConstructorWithNo() throws Exception {

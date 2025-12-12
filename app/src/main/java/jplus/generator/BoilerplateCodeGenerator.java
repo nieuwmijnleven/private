@@ -36,6 +36,7 @@ import jplus.generator.apply.EqualsFeatureProcessor;
 import jplus.generator.apply.GetterFeatureProcessor;
 import jplus.generator.apply.HashCodeFeatureProcessor;
 import jplus.generator.apply.SetterFeatureProcessor;
+import jplus.generator.apply.ToBuilderFeatureProcessor;
 import jplus.generator.apply.ToStringFeatureProcessor;
 import jplus.util.FragmentedText;
 import jplus.util.Utils;
@@ -73,6 +74,7 @@ public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
         strategyMap.put("tostring", new ToStringFeatureProcessor());
         strategyMap.put("hashcode", new HashCodeFeatureProcessor());
         strategyMap.put("builder", new BuilderFeatureProcessor());
+        strategyMap.put("tobuilder", new ToBuilderFeatureProcessor());
         strategyMap.put("data", new DataFeatureProcessor());
     }
 
