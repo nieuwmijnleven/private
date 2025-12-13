@@ -139,6 +139,7 @@ public class JPlusProcessor {
 
     private void runInitialJavaProcessing() throws Exception {
         String javaCode = generateJavaCodeWithoutBoilerplate();
+        System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaCode = " + javaCode);
         CodeGenContext ctx = CodeGenContext.current();
         sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
 

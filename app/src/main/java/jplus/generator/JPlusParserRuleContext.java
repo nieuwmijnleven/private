@@ -22,6 +22,7 @@ import jplus.base.JPlus20Parser.ExpressionNameContext;
 import jplus.base.JPlus20Parser.FieldAccessContext;
 import jplus.base.JPlus20Parser.MethodInvocationContext;
 import jplus.base.JPlus20Parser.NullCoalescingExpressionContext;
+import jplus.base.JPlus20Parser.PNNAContext;
 import jplus.base.JPlus20Parser.PrimaryNoNewArrayContext;
 import jplus.base.JPlus20Parser.UnannTypeContext;
 import jplus.util.FragmentedText;
@@ -55,10 +56,36 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             return replaceNullType(unannTypeCtx);
         } else if (this instanceof NullCoalescingExpressionContext nullCoalescingCtx && nullCoalescingCtx.ELVIS() != null) {
             return replaceElvisOperator(nullCoalescingCtx);
-        } else if (this instanceof PrimaryNoNewArrayContext primaryCtx && primaryCtx.NULLSAFE() != null) {
-            return replaceNullsafeOperator(primaryCtx);
-        } else if (this instanceof FieldAccessContext fieldAccessCtx && fieldAccessCtx.NULLSAFE() != null) {
-            return replaceNullsafeOperator(fieldAccessCtx);
+        } else if (this instanceof JPlus20Parser.PrimaryContext primaryCtx) {
+            if (primaryCtx.primaryNoNewArray() != null) {
+                //return primaryCtx.primaryNoNewArray().getText();
+                return primaryCtx.primaryNoNewArray().getText();
+            }
+            return processDefaultText();
+        } /*else if (this instanceof PNNAContext pnnaCtx) {
+            if (pnnaCtx.parent instanceof PrimaryNoNewArrayContext ctx && ctx.NULLSAFE() != null) {
+
+            } else if (pnnaCtx.parent instanceof PNNAContext ctx && ctx.NULLSAFE() != null) {
+
+            }
+
+            return replaceNullsafeOperator(pnnaCtx);
+        } */else if (this instanceof PrimaryNoNewArrayContext primaryCtx) {
+            if (primaryCtx.NULLSAFE() != null) {
+                return replaceNullsafeOperator(primaryCtx);
+            }
+
+            return processDefaultText();
+        } else if (this instanceof ExpressionNameContext expressionNameCtx) {
+            return processExpressionName(expressionNameCtx);
+        } else if (this instanceof FieldAccessContext fieldAccessCtx) {
+            if (fieldAccessCtx.primary() != null && fieldAccessCtx.NULLSAFE() != null) {
+//                String primaryPart = fieldAccessCtx.primary().getText();
+//                String identifierPart = Utils.getTokenString(fieldAccessCtx.identifier());
+//                return replaceNullsafeOperator(fieldAccessCtx, primaryPart, identifierPart);
+                return replaceNullsafeOperator(fieldAccessCtx);
+            }
+            return processDefaultText();
         } else if (this instanceof MethodInvocationContext methodInvocationCtx) {
             if (methodInvocationCtx.NULLSAFE() != null) {
                 return replaceNullsafeOperator(methodInvocationCtx);
@@ -74,11 +101,52 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             System.err.println("updatedContextString = " + updatedContextString);
             updateFragmentedText(range, updatedContextString);
             return null;
-        } else if (this instanceof ExpressionNameContext expressionNameContext && expressionNameContext.NULLSAFE() != null) {
-            return replaceNullsafeOperator(expressionNameContext);
         }
 
         return processDefaultText();
+    }
+
+    private String processExpressionName(ExpressionNameContext expressionNameCtx) {
+        String lhsPart = processAmbigousName(expressionNameCtx.ambiguousName());
+        System.err.println("[processExpressionName] lhsPart = " + lhsPart);
+        String rhsPart = Utils.getTokenString(expressionNameCtx.identifier());
+        System.err.println("[processExpressionName] rhsPart = " + rhsPart);
+
+        if (expressionNameCtx.NULLSAFE() != null) {
+            return replaceNullsafeOperator(expressionNameCtx, lhsPart, rhsPart);
+        }
+
+        String replaced = rhsPart;
+        if (!lhsPart.isEmpty()) replaced = lhsPart + "." + rhsPart;
+
+        return updateContextString(expressionNameCtx, replaced);
+    }
+
+    private String updateContextString(ParserRuleContext ctx, String replaced) {
+        TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
+        //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+        System.err.println("[updateContextString] before debugString = " + getDebugString());
+        updateFragmentedText(range, replaced);
+        System.err.println("[updateContextString] after debugString = " + getDebugString());
+        this.updatedContextString = replaced;
+        return replaced;
+    }
+
+    private String processAmbigousName(JPlus20Parser.AmbiguousNameContext ambiguousNameContext) {
+        if (ambiguousNameContext == null) {
+            return "";
+        }
+
+        String lhsPart = Utils.getTokenString(ambiguousNameContext.identifier());
+        System.err.println("[processAmbigousName] lhsPart = " + lhsPart);
+        String rhsPart = processAmbigousName(ambiguousNameContext.ambiguousName());
+        System.err.println("[processAmbigousName] rhsPart = " + rhsPart);
+        if (ambiguousNameContext.NULLSAFE() != null) {
+            return replaceNullsafeOperator(ambiguousNameContext, lhsPart, rhsPart);
+        }
+
+        if (rhsPart.isEmpty()) return lhsPart;
+        return lhsPart + "." + rhsPart;
     }
 
     private String replaceApplyStatementWithComment(ApplyDeclarationContext ApplyDeclarationCtx) {
@@ -150,6 +218,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
     private String replaceNullsafeOperator(ParserRuleContext ctx) {
         String contextString = Utils.getTokenString(ctx);
+        System.err.println("[replaceNullsafeOperator] ParserRuleContext = " + this.getClass().getSimpleName());
         System.err.println("[replaceNullsafeOperator] contextString = " + contextString);
 
         String tokenString = contextString.replace("?.", ".");
@@ -170,6 +239,32 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         System.err.println("after debugString = " + getDebugString());
         this.updatedContextString = replaced;
         return null;
+    }
+
+    private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
+        System.err.println("[replaceNullsafeOperator] lhs = " + lhs);
+        System.err.println("[replaceNullsafeOperator] rhs = " + rhs);
+
+        String tokenString = lhs + "." + rhs;
+        String variableName = lhs;
+
+        String replaced = "(" +
+                "((" + variableName + ")!=null)?" +
+                "(" + tokenString + "):" +
+                "null" +
+                ")";
+
+//        String originalText = this.start.getInputStream().toString();
+//        TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
+//        TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
+//        //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
+//        System.err.println("before debugString = " + getDebugString());
+//        updateFragmentedText(range, replaced);
+//        System.err.println("after debugString = " + getDebugString());
+//        this.updatedContextString = replaced;
+//        return replaced;
+
+        return updateContextString(ctx, replaced);
     }
 
     private String getUpdatedContextString(TextChangeRange range, String contextString) {

@@ -1,0 +1,44 @@
+package jplus.example;
+
+import org.jspecify.annotations.Nullable;
+
+class UserMethodParamAnnotationForCodeGenerator {
+    // Name is required
+    final String name;
+    // Address can be null
+    AddressAnnotation address;
+
+    UserMethodParamAnnotationForCodeGenerator(String name, AddressAnnotation address) {
+        this.name = name;
+        this.address = address;
+    }
+
+    void updateAddress(AddressAnnotation address) {
+        this.address = address;
+    }
+
+    // Safely get the city name of the address
+    String getStreet() {
+        return address?.street?.name;
+    }
+
+    // Get the display name of the user
+    String getDisplayName() {
+        return name;
+    }
+
+    public static void main(String[] args) {
+        // Null-safe object creation
+        UserMethodParamAnnotationForCodeGenerator user1 = new UserMethodParamAnnotationForCodeGenerator("Jeroen", new AddressAnnotation("New Amsterdam"));
+        UserMethodParamAnnotationForCodeGenerator user2 = new UserMethodParamAnnotationForCodeGenerator("Jane Smith", null);
+        UserMethodParamAnnotationForCodeGenerator user3 = new UserMethodParamAnnotationForCodeGenerator(null, new AddressAnnotation(null));
+
+//        user2.updateAddress(new AddressAnnotation("Boston"));
+        user2.updateAddress(null);
+
+        // Null-safe access
+        System.out.println(user1.getDisplayName() + "'s city: " + user1.getStreet()); // Jeroen's city: New Amsterdam
+        System.out.println(user2.getDisplayName() + "'s city: " + user2.getStreet()); // Jane Smith's city: No Address
+        System.out.println(user3.getDisplayName() + "'s city: " + user3.getStreet()); // No Name's city: No Address
+    }
+}

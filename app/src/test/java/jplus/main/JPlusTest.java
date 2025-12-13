@@ -63,7 +63,7 @@ class JPlusTest {
             });
         }
 
-        assertEquals("Error: (line:8, column:8) s1 is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n", outContent.toString());
+        assertEquals("Error: (line:8, column:8) s1 is a nullable variable. it direct accesses to length(). Consider using null-safe operator(?.).\n", outContent.toString());
     }
 
 

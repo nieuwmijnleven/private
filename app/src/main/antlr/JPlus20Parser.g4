@@ -1404,6 +1404,14 @@ fieldAccess
     | typeName '.' 'super' ('.'|'?.') identifier
     ;
 
+/*
+fieldAccess
+    : primary '.' identifier
+    | 'super' '.' identifier
+    | typeName '.' 'super' '.' identifier
+    ;
+*/
+
 // Paragraph 15.12
 // ---------------
 
@@ -1415,6 +1423,17 @@ methodInvocation
     | 'super' ('.'|'?.') typeArguments? identifier '(' argumentList? ')'
     | typeName '.' 'super' ('.'|'?.') typeArguments? identifier '(' argumentList? ')'
     ;
+
+/*
+methodInvocation
+    : methodName '(' argumentList? ')'
+    | typeName '.' typeArguments? identifier '(' argumentList? ')'
+    | expressionName '.' typeArguments? identifier '(' argumentList? ')'
+    | primary '.' typeArguments? identifier '(' argumentList? ')'
+    | 'super' '.' typeArguments? identifier '(' argumentList? ')'
+    | typeName '.' 'super' '.' typeArguments? identifier '(' argumentList? ')'
+    ;
+*/
 
 argumentList
     : expression (',' expression)*

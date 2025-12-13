@@ -70,10 +70,33 @@ class JPlusTest2 {
         checkGeneratedCode("./src/test/samples/generics/ApplyToBuilder.jplus", "1Xn2ny5+W2Y+lxCk8b+vsjxSW3Y=");
     }
 
-//    @Test
-//    void testApplyData() throws Exception {
-//        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "AHK8SQeb3M3liQ1M0WDF9NaaLf0=");
-//    }
+    @Test
+    void testApplyData() throws Exception {
+        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "AHK8SQeb3M3liQ1M0WDF9NaaLf0=");
+    }
+
+    @Test
+    void testNullableMethodParamAnnotation() throws Exception {
+        Project project = new Project(Path.of("./src/test/files/NullableAnnotation"));
+        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "UserMethodParamAnnotationForCodeGenerator");
+        processor.process();
+//        System.err.println(processor.getParseTreeString());
+        processor.analyzeSymbols();
+
+        var issues = processor.checkNullability();
+        if (!issues.isEmpty()) {
+            issues.forEach(nullabilityIssue -> {
+                System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.line(), nullabilityIssue.column(), nullabilityIssue.message());
+                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.line(), nullabilityIssue.column(), nullabilityIssue.message());
+            });
+        }
+
+        assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:33, column:42) The 2nd argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:42) The 1st argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:78) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:37, column:8) The 1st argument of the user2.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+    }
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
