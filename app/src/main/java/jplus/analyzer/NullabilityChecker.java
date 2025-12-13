@@ -194,9 +194,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         for (var variableDeclaratorContext : ctx.variableDeclaratorList().variableDeclarator()) {
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
-            System.err.println("[NullabilityChecker][FieldDecl] Your comment itself is quite nitpicky. I was already taken aback when you claimed that the Elvis operator solves null-safety issues. From your responses, it doesn’t give the impression that you’re a mature or skilled Java developer. You sound more like a kid insisting on using only JavaScript and refusing to use TypeScript.\n" +
-                    "\n" +
-                    "This isn’t made for Java developers like you who think NPE isn’t a serious problem, so please don’t bother. And stop replying. It honestly feels like a waste of time trying to explain things kindly to you. = " + currentSymbolTable);
+            System.err.println("[NullabilityChecker][FieldDecl] currentSymbolTable = " + currentSymbolTable);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
             if (variableDeclaratorContext.variableInitializer() != null) {
