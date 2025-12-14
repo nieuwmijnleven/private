@@ -258,18 +258,25 @@ packageOrTypeName
     ;
 
 expressionName
+    : expressionName ('.'|'?.') identifier
+    | identifier
+    ;
+
+/*
+expressionName
     : (ambiguousName ('.'|'?.'))? identifier
     ;
 
-methodName
-    : unqualifiedMethodIdentifier
-    ;
 
 ambiguousName
     : identifier (('.'|'?.') ambiguousName)?
     // left recursion --> right recursion
     ;
+*/
 
+methodName
+    : unqualifiedMethodIdentifier
+    ;
 // Paragraph 7.3
 // -------------
 
@@ -1297,6 +1304,7 @@ primary
 //         ;
 //
 
+/*
 primaryNoNewArray
     : literal pNNA?
     | classLiteral pNNA?
@@ -1325,6 +1333,37 @@ primaryNoNewArray
     | classType '::' typeArguments? 'new' pNNA?
     | arrayType '::' 'new' pNNA?
     ;
+*/
+
+primaryNoNewArray
+    : literal pNNA?
+    | classLiteral pNNA?
+    | 'this' pNNA?
+    | typeName '.' 'this' pNNA?
+    | '(' expression ')' pNNA?
+    | unqualifiedClassInstanceCreationExpression pNNA?
+    | expressionName ('.' | '?.') unqualifiedClassInstanceCreationExpression pNNA?
+    | arrayCreationExpression '.' unqualifiedClassInstanceCreationExpression pNNA?
+    | arrayCreationExpression '.' identifier pNNA?
+    | 'super' '.' identifier pNNA?
+    | typeName '.' 'super' '.' identifier pNNA?
+    | expressionName '[' expression ']' pNNA?
+    | arrayCreationExpressionWithInitializer '[' expression ']' pNNA?
+    | methodName '(' argumentList? ')' pNNA?
+    | typeName '.' typeArguments? identifier '(' argumentList? ')' pNNA?
+    | expressionName ('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
+    | arrayCreationExpression '.' typeArguments? identifier '(' argumentList? ')' pNNA?
+    | 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
+    | typeName '.' 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
+    | expressionName '::' typeArguments? identifier pNNA?
+    | arrayCreationExpression '::' typeArguments? identifier pNNA?
+    | referenceType '::' typeArguments? identifier pNNA?
+    | 'super' '::' typeArguments? identifier pNNA?
+    | typeName '.' 'super' '::' typeArguments? identifier pNNA?
+    | classType '::' typeArguments? 'new' pNNA?
+    | arrayType '::' 'new' pNNA?
+    ;
+
 
 pNNA
     : ('.'|'?.') unqualifiedClassInstanceCreationExpression pNNA?

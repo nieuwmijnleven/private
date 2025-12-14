@@ -284,7 +284,7 @@ ordinaryCompilationUnit
     ;
 
 simpleCompilationUnit
-    : importDeclaration* classMemberDeclarationNoMethod* MethodDeclaration classMemberDeclaration*
+    : importDeclaration* classMemberDeclarationNoMethod* methodDeclaration classMemberDeclaration*
     ;
 
 classMemberDeclarationNoMethod
@@ -667,7 +667,7 @@ simpleTypeName
 constructorBody
     //: '{' explicitConstructorInvocation? blockStatements? '}'
     : '{' blockStatements? '}'
-    : '{' blockStatements? explicitConstructorInvocation blockStatement? '}'
+    | '{' blockStatements? explicitConstructorInvocation blockStatement? '}'
     ;
 
 explicitConstructorInvocation

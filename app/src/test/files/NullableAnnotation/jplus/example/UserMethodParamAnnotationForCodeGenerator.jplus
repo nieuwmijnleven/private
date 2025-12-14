@@ -19,7 +19,7 @@ class UserMethodParamAnnotationForCodeGenerator {
 
     // Safely get the city name of the address
     String getStreet() {
-        return address?.street?.name;
+        return address.street.name;
     }
 
     // Get the display name of the user

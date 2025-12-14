@@ -57,12 +57,12 @@ class JPlusTest2 {
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "vYHwVMopnX20qoAeZzJxoLuwt4A=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "bAioJccvFYsTG42fe868fAauOvQ=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "gGV3xA+ITehB4J6jswHKW9tw35I=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "hNBi4lB1CMbRmKREWzJiSH/XcrU=");
     }
 
     @Test
@@ -72,7 +72,7 @@ class JPlusTest2 {
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "AHK8SQeb3M3liQ1M0WDF9NaaLf0=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "rmzrm5bjtNGV+7Fw/jMkIYHPI9I=");
     }
 
     @Test
@@ -92,9 +92,9 @@ class JPlusTest2 {
         }
 
         assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:33, column:42) The 2nd argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:34, column:42) The 1st argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:34, column:78) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:33, column:58) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:58) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:34, column:110) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:37, column:8) The 1st argument of the user2.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 

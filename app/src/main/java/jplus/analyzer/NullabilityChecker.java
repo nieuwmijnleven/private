@@ -228,7 +228,60 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
     }
 
+    /**
+     * @return 현재 expressionName에서 계산된 symbolTable (부모 재귀에서 사용)
+     */
+    private SymbolTable processExpressionName(JPlus20Parser.ExpressionNameContext ctx) {
+        SymbolTable leftTable = currentSymbolTable; // 좌측 subtree에서 반환된 symbolTable
+
+        if (ctx.expressionName() != null) {
+            // 좌측 subtree 재귀 호출
+            leftTable = processExpressionName(ctx.expressionName());
+        }
+
+        // 현재 identifier 처리
+        String symbol = Utils.getTokenString(ctx.identifier());
+        SymbolInfo symbolInfo = leftTable.resolve(symbol);
+        System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
+
+
+        if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext) {
+
+            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && ((JPlus20Parser.ExpressionNameContext)ctx.getParent()).DOT() != null) {
+                String identifier = Utils.getTokenString(((JPlus20Parser.ExpressionNameContext) ctx.getParent()).identifier());
+                String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
+                reportIssue(ctx.start, msg);
+            }
+
+            TypeInfo typeInfo = symbolInfo.getTypeInfo();
+            String typeName = typeInfo.getName();
+            if (!SymbolUtils.isFQN(typeName)) {
+                typeName = this.packageName + "." + typeName;
+            }
+            System.err.println("[ExpressionName] typeName = " + typeName);
+
+            System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
+            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
+            SymbolTable topLevelTable = classSymbolInfo.getSymbolTable();
+            SymbolInfo topLevelClassInfo = topLevelTable.resolve("^TopLevelClass$");
+            SymbolTable nextTable = topLevelTable.getEnclosingSymbolTable(topLevelClassInfo.getSymbol());
+
+            // symbolTable을 부모 재귀 호출에 전달
+            return nextTable;
+        }
+
+        return leftTable;
+    }
+
     @Override
+    public Void visitExpressionName(JPlus20Parser.ExpressionNameContext ctx) {
+        System.err.println("[ExpressionName] code = " + Utils.getTokenString(ctx));
+        processExpressionName(ctx);
+//        return super.visitExpressionName(ctx);
+        return null;
+    }
+
+    /*@Override
     public Void visitExpressionName(JPlus20Parser.ExpressionNameContext ctx) {
         System.err.println("[ExpressionName] = code = " + Utils.getTokenString(ctx));
         var ambiguousNameCtx = ctx.ambiguousName();
@@ -271,7 +324,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             reportIssue(ctx.start, msg);
         }
         return super.visitExpressionName(ctx);
-    }
+    }*/
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
         SymbolTable symbolTable = symbolInfo.getSymbolTable();

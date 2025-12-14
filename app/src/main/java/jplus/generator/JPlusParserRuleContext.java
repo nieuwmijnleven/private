@@ -70,12 +70,8 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             }
 
             return replaceNullsafeOperator(pnnaCtx);
-        } */else if (this instanceof PrimaryNoNewArrayContext primaryCtx) {
-            if (primaryCtx.NULLSAFE() != null) {
-                return replaceNullsafeOperator(primaryCtx);
-            }
-
-            return processDefaultText();
+        } */else if (this instanceof PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
+            return processPrimaryNoNewArray(primaryNoNewArrayCtx);
         } else if (this instanceof ExpressionNameContext expressionNameCtx) {
             return processExpressionName(expressionNameCtx);
         } else if (this instanceof FieldAccessContext fieldAccessCtx) {
@@ -106,8 +102,40 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return processDefaultText();
     }
 
+    private String getContextString(ParserRuleContext ctx) {
+        if (ctx == null) return "";
+        return ctx.getText();
+    }
+
+    private String processPrimaryNoNewArray(PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
+        /*if (primaryNoNewArrayCtx.expressionName() != null && primaryNoNewArrayCtx.NULLSAFE() != null) {
+            String lhsPart = primaryNoNewArrayCtx.expressionName().getText();
+            String rhsPart = "";
+            if (primaryNoNewArrayCtx.unqualifiedClassInstanceCreationExpression() != null) {
+                rhsPart = primaryNoNewArrayCtx.unqualifiedClassInstanceCreationExpression().getText();
+            } else {
+                String typeArguments = getContextString(primaryNoNewArrayCtx.typeArguments());
+                String identifier = getContextString(primaryNoNewArrayCtx.identifier());
+                String argumentList = primaryNoNewArrayCtx.argumentList().getText();
+                rhsPart = typeArguments + identifier + argumentList;
+            }
+            System.err.println("[processPrimaryNoNewArray] rhsPart = " + rhsPart);
+            return replaceNullsafeOperator(primaryNoNewArrayCtx, lhsPart, rhsPart) + primaryNoNewArrayCtx.pNNA().getText();
+        }*/
+
+        if (primaryNoNewArrayCtx.NULLSAFE() != null) {
+            return replaceNullsafeOperator(primaryNoNewArrayCtx);
+        }
+
+
+
+        return processDefaultText();
+    }
+
     private String processExpressionName(ExpressionNameContext expressionNameCtx) {
-        String lhsPart = processAmbigousName(expressionNameCtx.ambiguousName());
+        if (expressionNameCtx == null) return "";
+
+        String lhsPart = processExpressionName(expressionNameCtx.expressionName());
         System.err.println("[processExpressionName] lhsPart = " + lhsPart);
         String rhsPart = Utils.getTokenString(expressionNameCtx.identifier());
         System.err.println("[processExpressionName] rhsPart = " + rhsPart);
@@ -132,22 +160,22 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return replaced;
     }
 
-    private String processAmbigousName(JPlus20Parser.AmbiguousNameContext ambiguousNameContext) {
-        if (ambiguousNameContext == null) {
-            return "";
-        }
-
-        String lhsPart = Utils.getTokenString(ambiguousNameContext.identifier());
-        System.err.println("[processAmbigousName] lhsPart = " + lhsPart);
-        String rhsPart = processAmbigousName(ambiguousNameContext.ambiguousName());
-        System.err.println("[processAmbigousName] rhsPart = " + rhsPart);
-        if (ambiguousNameContext.NULLSAFE() != null) {
-            return replaceNullsafeOperator(ambiguousNameContext, lhsPart, rhsPart);
-        }
-
-        if (rhsPart.isEmpty()) return lhsPart;
-        return lhsPart + "." + rhsPart;
-    }
+//    private String processAmbigousName(JPlus20Parser.AmbiguousNameContext ambiguousNameContext) {
+//        if (ambiguousNameContext == null) {
+//            return "";
+//        }
+//
+//        String lhsPart = Utils.getTokenString(ambiguousNameContext.identifier());
+//        System.err.println("[processAmbigousName] lhsPart = " + lhsPart);
+//        String rhsPart = processAmbigousName(ambiguousNameContext.ambiguousName());
+//        System.err.println("[processAmbigousName] rhsPart = " + rhsPart);
+//        if (ambiguousNameContext.NULLSAFE() != null) {
+//            return replaceNullsafeOperator(ambiguousNameContext, lhsPart, rhsPart);
+//        }
+//
+//        if (rhsPart.isEmpty()) return lhsPart;
+//        return lhsPart + "." + rhsPart;
+//    }
 
     private String replaceApplyStatementWithComment(ApplyDeclarationContext ApplyDeclarationCtx) {
         String originalText = getOriginalText();

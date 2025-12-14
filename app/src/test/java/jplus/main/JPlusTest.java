@@ -63,7 +63,7 @@ class JPlusTest {
             });
         }
 
-        assertEquals("Error: (line:8, column:8) s1 is a nullable variable. it direct accesses to length(). Consider using null-safe operator(?.).\n", outContent.toString());
+        assertEquals("Error: (line:8, column:8) s1 is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n", outContent.toString());
     }
 
 
@@ -159,7 +159,7 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "+Jk/HCMc+aO9cHbkLSyhYOZ185Q=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "DyYU2Z8TXAw+3sWSHAW/6g6Wx/w=");
     }
 
     @Test
@@ -189,17 +189,17 @@ class JPlusTest {
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "jN/DMdHIgKyDAs11SRYagASygi0=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "tF+cDQH0xL7fTp333CwxJ0ST2hE=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "+2gyKfUyySc1XkRvw14TFuasdUo=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "dodldMPlnUO4QasqxrnPq4NDtJo=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "LYAPBouq1JKIktjRfP4ImUzs080=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "bT4hV9QO9N+NaoZUauM9O8jRSRs=");
     }
 
     @Test
