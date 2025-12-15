@@ -229,9 +229,10 @@ public class FragmentedText {
         //skip
         int skipOffset = entry.getSource().indexOf(prior.string);
         if (skipOffset == -1) {
-            System.err.println("entry.getSource() = " + entry.getSource());
-            System.err.println("prior.string = " + prior.string);
-            throw new IllegalStateException("The recent change must contain the prior chages.");
+//            System.err.println("entry.getSource() = " + entry.getSource());
+//            System.err.println("prior.string = " + prior.string);
+//            throw new IllegalStateException("The recent change must contain the prior chages.");
+            return null;
         }
 
         int currentLine = entry.getTransformedRange().startLine();
@@ -314,7 +315,10 @@ public class FragmentedText {
             deque.addAll(node.priors);
             while (!deque.isEmpty()) {
                 TextFragmentNode priorNode = deque.removeFirst();
-                if (priorNode.rangeFixed) mapping.add(buildSourceMapForPrior(priorNode, entry));
+                if (priorNode.rangeFixed) {
+                    var sourceMappingEntry = buildSourceMapForPrior(priorNode, entry);
+                    if (sourceMappingEntry != null) mapping.add(sourceMappingEntry);
+                }
                 deque.addAll(priorNode.priors);
             }
 
@@ -322,7 +326,10 @@ public class FragmentedText {
                 if (!node.originalRange.equals(unchangedNode.originalRange) && node.originalRange.contains(unchangedNode.originalRange) && unchangedNode.rangeFixed) {
 //                    System.err.println("node = " + node.string);
 //                    System.err.println("unchanged = " + remainNode.string);
-                    mapping.add(buildSourceMapForPrior(unchangedNode, entry));
+                    var sourceMappingEntry = buildSourceMapForPrior(unchangedNode, entry);
+                    if (sourceMappingEntry != null) mapping.add(sourceMappingEntry);
+
+//                    mapping.add(buildSourceMapForPrior(unchangedNode, entry));
                 }
             }
         }

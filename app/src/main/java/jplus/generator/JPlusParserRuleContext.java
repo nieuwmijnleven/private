@@ -62,15 +62,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
                 return primaryCtx.primaryNoNewArray().getText();
             }
             return processDefaultText();
-        } /*else if (this instanceof PNNAContext pnnaCtx) {
-            if (pnnaCtx.parent instanceof PrimaryNoNewArrayContext ctx && ctx.NULLSAFE() != null) {
-
-            } else if (pnnaCtx.parent instanceof PNNAContext ctx && ctx.NULLSAFE() != null) {
-
-            }
-
-            return replaceNullsafeOperator(pnnaCtx);
-        } */else if (this instanceof PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
+        } else if (this instanceof PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
             return processPrimaryNoNewArray(primaryNoNewArrayCtx);
         } else if (this instanceof ExpressionNameContext expressionNameCtx) {
             return processExpressionName(expressionNameCtx);
@@ -107,29 +99,70 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return ctx.getText();
     }
 
-    private String processPrimaryNoNewArray(PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
-        /*if (primaryNoNewArrayCtx.expressionName() != null && primaryNoNewArrayCtx.NULLSAFE() != null) {
-            String lhsPart = primaryNoNewArrayCtx.expressionName().getText();
-            String rhsPart = "";
-            if (primaryNoNewArrayCtx.unqualifiedClassInstanceCreationExpression() != null) {
-                rhsPart = primaryNoNewArrayCtx.unqualifiedClassInstanceCreationExpression().getText();
-            } else {
-                String typeArguments = getContextString(primaryNoNewArrayCtx.typeArguments());
-                String identifier = getContextString(primaryNoNewArrayCtx.identifier());
-                String argumentList = primaryNoNewArrayCtx.argumentList().getText();
-                rhsPart = typeArguments + identifier + argumentList;
-            }
-            System.err.println("[processPrimaryNoNewArray] rhsPart = " + rhsPart);
-            return replaceNullsafeOperator(primaryNoNewArrayCtx, lhsPart, rhsPart) + primaryNoNewArrayCtx.pNNA().getText();
-        }*/
+    private String processPNNA(PNNAContext ctx, String lhsPart, boolean isNullable) {
+        if (ctx == null) return lhsPart;
 
-        if (primaryNoNewArrayCtx.NULLSAFE() != null) {
-            return replaceNullsafeOperator(primaryNoNewArrayCtx);
+        String rhsPart = getBase(ctx);
+        System.err.println("[processPNNA] rhsPart = " + rhsPart);
+
+        String replaced = lhsPart + "." + rhsPart;
+        if (isNullable && ctx.NULLSAFE() != null) {
+            replaced = replaceNullsafeOperator(lhsPart, rhsPart);
         }
 
+        if (ctx.pNNA() != null) {
+            return processPNNA(ctx.pNNA(), replaced, true);
+        }
+        return replaced;
+    }
 
+    private String processPrimaryNoNewArray(PrimaryNoNewArrayContext ctx) {
+        String base = getBase(ctx);
+        System.err.println("[processPrimaryNoNewArray] base = " + base);
 
-        return processDefaultText();
+        String replaced;
+        if (ctx.NULLSAFE() != null) {
+            base = replaceNullsafeOperator(base);
+            System.err.println("[processPrimaryNoNewArray] base = " + base);
+            replaced = processPNNA(ctx.pNNA(), base, true);
+        } else {
+            replaced = processPNNA(ctx.pNNA(), base, false);
+
+        }
+
+        System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
+        return updateContextString(ctx, replaced);
+    }
+
+    private String getBase(PrimaryNoNewArrayContext ctx) {
+        for (int i = 0; i < getChildCount(); i++) {
+            getChild(i).getText();
+        }
+        String contextString = Utils.getTokenString(ctx);
+//        String contextString = ctx.getText();
+        int pnnaPartIndex = contextString.length();
+        if (ctx.pNNA() != null) {
+            String pnnaPart = Utils.getTokenString(ctx.pNNA());
+            pnnaPartIndex = contextString.indexOf(pnnaPart);
+        }
+
+        return contextString.substring(0, pnnaPartIndex);
+    }
+
+    private String getBase(PNNAContext ctx) {
+        for (int i = 0; i < getChildCount(); i++) {
+            getChild(i).getText();
+        }
+        String contextString = Utils.getTokenString(ctx);
+//        String contextString = ctx.getText();
+        int pnnaPartIndex = contextString.length();
+        if (ctx.pNNA() != null) {
+            String pnnaPart = Utils.getTokenString(ctx.pNNA());
+            pnnaPartIndex = contextString.indexOf(pnnaPart);
+        }
+
+        String base = contextString.substring(0, pnnaPartIndex);
+        return base.replaceAll("^(\\.|\\?\\.)", "");
     }
 
     private String processExpressionName(ExpressionNameContext expressionNameCtx) {
@@ -242,6 +275,33 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         CodeGenContext codeGenContext = CodeGenContext.current();
         FragmentedText fragmentedText = codeGenContext.getFragmentedText();
         return fragmentedText.findFragmentedTextByRange(range);
+    }
+
+    private String replaceNullsafeOperator(String lhsPart, String rhsPart) {
+        System.err.println("[replaceNullsafeOperator] lhsPart = " + lhsPart);
+        System.err.println("[replaceNullsafeOperator] rhsPart = " + rhsPart);
+
+        String tokenString = lhsPart + "." + rhsPart;
+        String variableName = lhsPart;
+
+        return "(" +
+                "((" + variableName + ")!=null)?" +
+                "(" + tokenString + "):" +
+                "null" +
+                ")";
+    }
+
+    private String replaceNullsafeOperator(String basePart) {
+        System.err.println("[replaceNullsafeOperator] basePart = " + basePart);
+
+        String tokenString = basePart.replace("?.", ".");
+        String variableName = tokenString.split("\\.")[0];
+
+        return "(" +
+                "((" + variableName + ")!=null)?" +
+                "(" + tokenString + "):" +
+                "null" +
+                ")";
     }
 
     private String replaceNullsafeOperator(ParserRuleContext ctx) {
