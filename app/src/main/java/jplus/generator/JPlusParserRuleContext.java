@@ -68,6 +68,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             }
             return processDefaultText();
         } else if (this instanceof PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
+            for (int i = 0; i < getChildCount(); i++) {
+                getChild(i).getText();
+            }
             return processPrimaryNoNewArray(primaryNoNewArrayCtx);
         } else if (this instanceof ExpressionNameContext expressionNameCtx) {
             String replaced = Utils.getTokenString(expressionNameCtx);

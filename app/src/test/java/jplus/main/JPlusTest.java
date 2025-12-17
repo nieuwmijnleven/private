@@ -154,27 +154,27 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "+ywAQ2g9LZV8X6t06BOFGYYvq6E=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "HEtSZLmxahhv1q26XzAZqz36YWg=");
     }
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "DyYU2Z8TXAw+3sWSHAW/6g6Wx/w=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "FMp+fjQTehqEnTfNBuPgUmP1Fgg=");
     }
 
     @Test
     void testElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "JLeKw5/zB0HliNB2OJbyjEuqodY=");
+        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "kv2AxiPB/115C3O4/fFI+6uq3Rc=");
     }
 
     @Test
     void testCascadingElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "pHl0vgUWhwhLU6h8AlMeUVIg3v8=");
+        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "Y4T/S6Je0+QPYyN5tZEttKcYGI4=");
     }
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "vpV2giykX65l5vUgOQb2Pg/aSVY=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "yKxepf1XsJAUnIwxwT35LLdW28s=");
     }
 
     @Test
@@ -262,7 +262,7 @@ class JPlusTest {
         Project project = new Project(parentDirectory);
         JPlusProcessor processor = new JPlusProcessor(project, "", className);
         processor.process();
-//        System.err.println(processor.getParseTreeString());
+        System.err.println("[parseTreeString] " + processor.getParseTreeString());
         processor.analyzeSymbols();
 
 //        JPlusProcessor processor = new JPlusProcessor(Path.of(fileName));
