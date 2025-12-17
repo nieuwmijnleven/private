@@ -333,19 +333,15 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
 
 
-        String replaced = "java.util.Optional.ofNullable(";
-        replaced += conditionalOrExpressionString.orElse("null") + ")";
-        replaced += ".orElseGet(() -> " + expression.orElse("null") + ")";
-        /*if (usesNullSafety(ctx)) {
+        String replaced;
+        if (usesNullSafety(ctx)) {
             replaced = conditionalOrExpressionString.orElse("null");
             replaced = replaced.replace("orElse(null)", "orElse(" + expression.orElse("null") + ")");
         } else {
-            replaced = "(" +
-                    "((" + conditionalOrExpressionString.orElse("null") + ")!=null)?" +
-                    "(" + conditionalOrExpressionString.orElse("null") + "):" +
-                    "(" + expression.orElse("null") + ")" +
-                    ")";
-        }*/
+            replaced = "java.util.Optional.ofNullable(";
+            replaced += conditionalOrExpressionString.orElse("null") + ")";
+            replaced += ".orElseGet(() -> " + expression.orElse("null") + ")";
+        }
 
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         System.err.println("range = " + range);
