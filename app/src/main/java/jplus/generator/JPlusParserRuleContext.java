@@ -61,62 +61,73 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         } else if (this instanceof NullCoalescingExpressionContext nullCoalescingCtx && nullCoalescingCtx.ELVIS() != null) {
             return replaceElvisOperator(nullCoalescingCtx);
         } else if (this instanceof JPlus20Parser.PrimaryContext primaryCtx) {
-            if (primaryCtx.primaryNoNewArray() != null) {
-                //return primaryCtx.primaryNoNewArray().getText();
-                return primaryCtx.primaryNoNewArray().getText();
-            }
-            return processDefaultText();
+            return processPrimary(primaryCtx);
         } else if (this instanceof PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
-            for (int i = 0; i < getChildCount(); i++) {
-                getChild(i).getText();
-            }
             return processPrimaryNoNewArray(primaryNoNewArrayCtx);
         } else if (this instanceof ExpressionNameContext expressionNameCtx) {
-            String replaced = Utils.getTokenString(expressionNameCtx);
-            if (replaced.indexOf("?.") != -1) {
-                replaced = processExpressionName(expressionNameCtx);
-            }
-            System.err.println("[ExpressionNameContext] replaced = " + replaced);
-            return updateContextString(expressionNameCtx, replaced);
+            return processExpressionName(expressionNameCtx);
         } else if (this instanceof FieldAccessContext fieldAccessCtx) {
-            if (fieldAccessCtx.primary() != null) {
-                String primaryPart = fieldAccessCtx.primary().getText();
-                String replaced = primaryPart;
-                if (!usesNullSafety(fieldAccessCtx.primary())) {
-                    String identifierPart = Utils.getTokenString(fieldAccessCtx.identifier());
-                    if (fieldAccessCtx.NULLSAFE() != null) {
-                        replaced = replaceNullsafeOperator(fieldAccessCtx, primaryPart, identifierPart);
-                    } else {
-                        replaced = primaryPart + "." + identifierPart;
-                    }
-                }
-                return updateContextString(fieldAccessCtx, replaced);
-            }
-
-            return processDefaultText();
+            return processFieldAccess(fieldAccessCtx);
         } else if (this instanceof MethodInvocationContext methodInvocationCtx) {
-            if (methodInvocationCtx.NULLSAFE() != null) {
-                return replaceNullsafeOperator(methodInvocationCtx);
-            }
-
-            for (int i = 0; i < getChildCount(); i++) {
-                getChild(i).getText();
-            }
-
-            TextChangeRange range =Utils.getTextChangeRange(getOriginalText(), this);
-            String contextString = Utils.getTokenString(this);
-            this.updatedContextString = getUpdatedContextString(range, contextString);
-            System.err.println("updatedContextString = " + updatedContextString);
-            updateFragmentedText(range, updatedContextString);
-            return null;
+            return processMethodInvocation(methodInvocationCtx);
         }
 
         return processDefaultText();
     }
 
+    private String processMethodInvocation(MethodInvocationContext methodInvocationCtx) {
+        if (methodInvocationCtx.NULLSAFE() != null) {
+            return replaceNullsafeOperator(methodInvocationCtx);
+        }
+
+        ensureChildTextInitialized();
+        return forceUpdateContextString(methodInvocationCtx);
+    }
+
+    private String processFieldAccess(FieldAccessContext fieldAccessCtx) {
+        if (fieldAccessCtx.primary() != null) {
+            String primaryPart = fieldAccessCtx.primary().getText();
+            String replaced = primaryPart;
+            if (!usesNullSafety(fieldAccessCtx.primary())) {
+                String identifierPart = Utils.getTokenString(fieldAccessCtx.identifier());
+                if (fieldAccessCtx.NULLSAFE() != null) {
+                    replaced = replaceNullsafeOperator(fieldAccessCtx, primaryPart, identifierPart);
+                } else {
+                    replaced = primaryPart + "." + identifierPart;
+                }
+            }
+            return updateContextString(fieldAccessCtx, replaced);
+        }
+        return processDefaultText();
+    }
+
+    private String processExpressionName(ExpressionNameContext expressionNameCtx) {
+        String replaced = Utils.getTokenString(expressionNameCtx);
+        if (usesNullSafety(expressionNameCtx)) {
+            replaced = processNullsafety(expressionNameCtx);
+        }
+        System.err.println("[ExpressionNameContext] replaced = " + replaced);
+        return updateContextString(expressionNameCtx, replaced);
+    }
+
+    private String processPrimary(JPlus20Parser.PrimaryContext primaryCtx) {
+        if (primaryCtx.primaryNoNewArray() != null) {
+            return primaryCtx.primaryNoNewArray().getText();
+        }
+        return processDefaultText();
+    }
+
+    private void ensureChildTextInitialized() {
+        for (int i = 0; i < getChildCount(); i++) {
+            getChild(i).getText();
+        }
+    }
+
     private String processPrimaryNoNewArray(PrimaryNoNewArrayContext ctx) {
+        ensureChildTextInitialized();
+
         String replaced = Utils.getTokenString(ctx);
-        if (replaced.indexOf("?.") != -1) {
+        if (usesNullSafety(ctx)) {
             replaced = replaceBaseWithOptional(ctx, (FieldAccessContext) Optional.ofNullable(ctx.getParent()).map(context -> ctx.getParent()).filter(context -> context.getClass().getSimpleName().equals("FieldAccessContext")).orElse(null));
         }
         System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
@@ -124,9 +135,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String getBase(PrimaryNoNewArrayContext ctx) {
-        for (int i = 0; i < getChildCount(); i++) {
-            getChild(i).getText();
-        }
+        ensureChildTextInitialized();
         String contextString = Utils.getTokenString(ctx);
 //        String contextString = ctx.getText();
         int pnnaPartIndex = contextString.length();
@@ -139,9 +148,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String getBase(PNNAContext ctx) {
-        for (int i = 0; i < getChildCount(); i++) {
-            getChild(i).getText();
-        }
+        ensureChildTextInitialized();
         String contextString = Utils.getTokenString(ctx);
 //        String contextString = ctx.getText();
         int pnnaPartIndex = contextString.length();
@@ -154,7 +161,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return base.replaceAll("^(\\.|\\?\\.)", "");
     }
 
-    private String processExpressionName(ExpressionNameContext expressionNameCtx) {
+    private String processNullsafety(ExpressionNameContext expressionNameCtx) {
         Deque<ExpressionNameContext> expressionNameContextDeque = new ArrayDeque<>();
         ExpressionNameContext current = expressionNameCtx;
         expressionNameContextDeque.addFirst(current);
@@ -192,6 +199,13 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return replaced;
     }
 
+    private String forceUpdateContextString(ParserRuleContext ctx) {
+        TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
+        String contextString = Utils.getTokenString(ctx);
+        String replaced = getUpdatedContextString(range, contextString);
+        return updateContextString(ctx, replaced);
+    }
+
     private String replaceApplyStatementWithComment(ApplyDeclarationContext ApplyDeclarationCtx) {
         String originalText = getOriginalText();
         TextChangeRange range = Utils.getTextChangeRange(originalText, ApplyDeclarationCtx);
@@ -205,18 +219,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         String unannTypeText = Utils.getTokenString(ctx);
         if (ctx.QUESTION() != null) {
             String replaced = "@org.jspecify.annotations.Nullable " + unannTypeText.substring(0, unannTypeText.length()-1);
-
-            TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
-            System.err.println("[replaceNullType] originalText " + getOriginalText());
-            System.err.println("[replaceNullType] range " + range);
-            System.err.println("[replaceNullType] replaced " + replaced);
-
-//            _getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-            System.err.println("[replaceNullType] before debugString = " + getDebugString());
-            updateFragmentedText(range, replaced);
-            System.err.println("[replaceNullType] after debugString = " + getDebugString());
-            this.updatedContextString = replaced;
-            return null;
+            return updateContextString(ctx, replaced);
         }
         return null;
     }
@@ -255,8 +258,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             expression = getFragmentedTextByRange(expressionRange);
         }
 
-
-
         String replaced;
         if (usesNullSafety(ctx)) {
             replaced = conditionalOrExpressionString.orElse("null");
@@ -267,14 +268,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             replaced += ".orElseGet(() -> " + expression.orElse("null") + ")";
         }
 
-        TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
-        System.err.println("range = " + range);
-        System.err.println("replaced = " + replaced);
-        System.err.println("before debugString = " + getDebugString());
-        updateFragmentedText(range, replaced);
-        System.err.println("after debugString = " + getDebugString());
-        this.updatedContextString = replaced;
-        return null;
+        return updateContextString(ctx, replaced);
     }
 
     private Optional<String> getFragmentedTextByRange(TextChangeRange range) {
@@ -297,48 +291,11 @@ public class JPlusParserRuleContext extends ParserRuleContext {
                 ")";
     }
 
-    private String replaceBaseWithNullsafeMethodInvocation(PrimaryNoNewArrayContext ctx) {
-        String base = getBase(ctx);
-        System.err.println("[replaceNullsafeOperator] base = " + base);
-
-        if (ctx.NULLSAFE() != null) {
-            //String tokenString = basePart.replace("?.", ".");
-            String[] tokens = base.split("\\?\\.");
-            String instance = tokens[0];
-            String member = tokens[1];
-
-            return "__nullsafe(" + instance + ", t0 -> " +
-                    "__nullsafe(t1." + member +  replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), 1) + "))";
-        }
-
-        //return "__nullsafe(" + base +", t1 -> " + //replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), 1) + ")";
-        return "__nullsafe(" + base + replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), 0) + ")";
-    }
-
-    private String replacePNNAWithNullsafeMethodInvocation(PNNAContext ctx, int index) {
-        String curTVar = "t" + index;
-        if (ctx == null) {
-            return ", " + curTVar + " -> " + curTVar;
-        }
-
-        String member = getBase(ctx);
-        System.err.println("[replaceNullsafeOperator] member = " + member);
-
-//        String curTVar = "t" + (index + 1);
-        if (ctx.NULLSAFE() != null) {
-            return ", " + curTVar + " -> __nullsafe(" + curTVar + "." + member +
-                        replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), index + 1) + ")";
-        } else {
-            return "." + member + replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), index);
-        }
-    }
-
     private String replaceBaseWithOptional(PrimaryNoNewArrayContext ctx, FieldAccessContext faCtx) {
         String base = getBase(ctx);
         System.err.println("[replaceBaseWithOptional] base = " + base);
 
         if (ctx.NULLSAFE() != null) {
-            //String tokenString = basePart.replace("?.", ".");
             String[] tokens = base.split("\\?\\.");
             String instance = tokens[0];
             String member = tokens[1];
@@ -346,10 +303,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(ctx.pNNA(), 1, faCtx);
         }
 
-        //return "__nullsafe(" + base +", t1 -> " + //replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), 1) + ")";
-//        if (ctx.pNNA() != null && ctx.pNNA().NULLSAFE() != null) {
-//            return "java.util.Optional.ofNullable(" + base +  replacePNNAWithOptioanl(ctx.pNNA(), 0);
-//        }
         return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptional(ctx.pNNA(), 0, faCtx);
     }
 
@@ -409,42 +362,8 @@ public class JPlusParserRuleContext extends ParserRuleContext {
                 "null" +
                 ")";
 
-//        String originalText = this.start.getInputStream().toString();
-//        TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
-        TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
-        //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-        System.err.println("before debugString = " + getDebugString());
-        updateFragmentedText(range, replaced);
-        System.err.println("after debugString = " + getDebugString());
-        this.updatedContextString = replaced;
-        return null;
-    }
-
-    /*private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
-        System.err.println("[replaceNullsafeOperator] lhs = " + lhs);
-        System.err.println("[replaceNullsafeOperator] rhs = " + rhs);
-
-        String tokenString = lhs + "." + rhs;
-        String variableName = lhs;
-
-        String replaced = "(" +
-                "((" + variableName + ")!=null)?" +
-                "(" + tokenString + "):" +
-                "null" +
-                ")";
-
-//        String originalText = this.start.getInputStream().toString();
-//        TextChangeRange range = Utils.getTextChangeRange(originalText, ctx);
-//        TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
-//        //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-//        System.err.println("before debugString = " + getDebugString());
-//        updateFragmentedText(range, replaced);
-//        System.err.println("after debugString = " + getDebugString());
-//        this.updatedContextString = replaced;
-//        return replaced;
-
         return updateContextString(ctx, replaced);
-    }*/
+    }
 
     private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
         System.err.println("[replaceNullsafeOperator] lhs = " + lhs);
@@ -479,22 +398,16 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String processDefaultText() {
-        // force children to compute text and update map if needed
-        for (int i = 0; i < getChildCount(); i++) {
-            getChild(i).getText();
-        }
+        ensureChildTextInitialized();
 
         CodeGenContext codeGenContext = CodeGenContext.current();
         FragmentedText fragmentedText = codeGenContext.getFragmentedText();
         if (this instanceof JPlus20Parser.Start_Context startCtx) {
             System.err.println("debugString = " + fragmentedText.debugString());
-            return (this.updatedContextString = fragmentedText.toString());
+            this.updatedContextString = fragmentedText.toString();
+            return this.updatedContextString;
         } else {
-            System.err.println("ParserRuleContext = " + this.getClass().getSimpleName());
-            TextChangeRange range =Utils.getTextChangeRange(getOriginalText(), this);
-            String contextString = Utils.getTokenString(this);
-            System.err.println("contextString = " + contextString);
-            return (this.updatedContextString = getUpdatedContextString(range, contextString));
+            return forceUpdateContextString(this);
         }
     }
 
