@@ -174,7 +174,7 @@ class JPlusTest {
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "yKxepf1XsJAUnIwxwT35LLdW28s=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "Awha3N53huoIWJeMTgyQNxuB0nA=");
     }
 
     @Test

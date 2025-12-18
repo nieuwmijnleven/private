@@ -28,7 +28,6 @@ import jplus.base.JPlus20Parser.UnannTypeContext;
 import jplus.util.FragmentedText;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -80,12 +79,20 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             System.err.println("[ExpressionNameContext] replaced = " + replaced);
             return updateContextString(expressionNameCtx, replaced);
         } else if (this instanceof FieldAccessContext fieldAccessCtx) {
-            if (fieldAccessCtx.primary() != null && fieldAccessCtx.NULLSAFE() != null) {
-//                String primaryPart = fieldAccessCtx.primary().getText();
-//                String identifierPart = Utils.getTokenString(fieldAccessCtx.identifier());
-//                return replaceNullsafeOperator(fieldAccessCtx, primaryPart, identifierPart);
-                return replaceNullsafeOperator(fieldAccessCtx);
+            if (fieldAccessCtx.primary() != null) {
+                String primaryPart = fieldAccessCtx.primary().getText();
+                String replaced = primaryPart;
+                if (!usesNullSafety(fieldAccessCtx.primary())) {
+                    String identifierPart = Utils.getTokenString(fieldAccessCtx.identifier());
+                    if (fieldAccessCtx.NULLSAFE() != null) {
+                        replaced = replaceNullsafeOperator(fieldAccessCtx, primaryPart, identifierPart);
+                    } else {
+                        replaced = primaryPart + "." + identifierPart;
+                    }
+                }
+                return updateContextString(fieldAccessCtx, replaced);
             }
+
             return processDefaultText();
         } else if (this instanceof MethodInvocationContext methodInvocationCtx) {
             if (methodInvocationCtx.NULLSAFE() != null) {
@@ -107,49 +114,10 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return processDefaultText();
     }
 
-    private String getContextString(ParserRuleContext ctx) {
-        if (ctx == null) return "";
-        return ctx.getText();
-    }
-
-    /*private String processPNNA(PNNAContext ctx, String lhsPart, boolean isNullable) {
-        if (ctx == null) return lhsPart;
-
-        String rhsPart = getBase(ctx);
-        System.err.println("[processPNNA] rhsPart = " + rhsPart);
-
-        String replaced = lhsPart + "." + rhsPart;
-        if (isNullable && ctx.NULLSAFE() != null) {
-            replaced = replaceNullsafeOperator(lhsPart, rhsPart);
-        }
-
-        if (ctx.pNNA() != null) {
-            return processPNNA(ctx.pNNA(), replaced, true);
-        }
-        return replaced;
-    }*/
-
-    private String processPNNA(PNNAContext ctx, String lhsPart, boolean isNullable) {
-        if (ctx == null) return lhsPart;
-
-        String rhsPart = getBase(ctx);
-        System.err.println("[processPNNA] rhsPart = " + rhsPart);
-
-        String replaced = lhsPart + "." + rhsPart;
-        if (isNullable && ctx.NULLSAFE() != null) {
-            replaced = replaceNullsafeOperator(lhsPart, rhsPart);
-        }
-
-        if (ctx.pNNA() != null) {
-            return processPNNA(ctx.pNNA(), replaced, true);
-        }
-        return replaced;
-    }
-
     private String processPrimaryNoNewArray(PrimaryNoNewArrayContext ctx) {
         String replaced = Utils.getTokenString(ctx);
         if (replaced.indexOf("?.") != -1) {
-            replaced = replaceBaseWithOptional(ctx);
+            replaced = replaceBaseWithOptional(ctx, (FieldAccessContext) Optional.ofNullable(ctx.getParent()).map(context -> ctx.getParent()).filter(context -> context.getClass().getSimpleName().equals("FieldAccessContext")).orElse(null));
         }
         System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
         return updateContextString(ctx, replaced);
@@ -185,24 +153,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         String base = contextString.substring(0, pnnaPartIndex);
         return base.replaceAll("^(\\.|\\?\\.)", "");
     }
-
-    /*private String processExpressionName(ExpressionNameContext expressionNameCtx) {
-        if (expressionNameCtx == null) return "";
-
-        String lhsPart = processExpressionName(expressionNameCtx.expressionName());
-        System.err.println("[processExpressionName] lhsPart = " + lhsPart);
-        String rhsPart = Utils.getTokenString(expressionNameCtx.identifier());
-        System.err.println("[processExpressionName] rhsPart = " + rhsPart);
-
-        if (expressionNameCtx.NULLSAFE() != null) {
-            return replaceNullsafeOperator(expressionNameCtx, lhsPart, rhsPart);
-        }
-
-        String replaced = rhsPart;
-        if (!lhsPart.isEmpty()) replaced = lhsPart + "." + rhsPart;
-
-        return updateContextString(expressionNameCtx, replaced);
-    }*/
 
     private String processExpressionName(ExpressionNameContext expressionNameCtx) {
         Deque<ExpressionNameContext> expressionNameContextDeque = new ArrayDeque<>();
@@ -242,23 +192,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return replaced;
     }
 
-//    private String processAmbigousName(JPlus20Parser.AmbiguousNameContext ambiguousNameContext) {
-//        if (ambiguousNameContext == null) {
-//            return "";
-//        }
-//
-//        String lhsPart = Utils.getTokenString(ambiguousNameContext.identifier());
-//        System.err.println("[processAmbigousName] lhsPart = " + lhsPart);
-//        String rhsPart = processAmbigousName(ambiguousNameContext.ambiguousName());
-//        System.err.println("[processAmbigousName] rhsPart = " + rhsPart);
-//        if (ambiguousNameContext.NULLSAFE() != null) {
-//            return replaceNullsafeOperator(ambiguousNameContext, lhsPart, rhsPart);
-//        }
-//
-//        if (rhsPart.isEmpty()) return lhsPart;
-//        return lhsPart + "." + rhsPart;
-//    }
-
     private String replaceApplyStatementWithComment(ApplyDeclarationContext ApplyDeclarationCtx) {
         String originalText = getOriginalText();
         TextChangeRange range = Utils.getTextChangeRange(originalText, ApplyDeclarationCtx);
@@ -287,18 +220,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         }
         return null;
     }
-
-    /*private boolean usesNullSafety(ParserRuleContext ctx) {
-        for (int i = 0; i < ctx.getChildCount(); i++) {
-            ParseTree child = ctx.getChild(i);
-            if (child instanceof TerminalNode tn) {
-                if (tn.getSymbol().getType() == JPlus20Parser.NULLSAFE) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }*/
 
     private boolean usesNullSafety(ParserRuleContext ctx) {
         for (int i = 0; i < ctx.getChildCount(); i++) {
@@ -339,7 +260,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         String replaced;
         if (usesNullSafety(ctx)) {
             replaced = conditionalOrExpressionString.orElse("null");
-            replaced = replaced.replace("orElse(null)", "orElse(" + expression.orElse("null") + ")");
+            replaced = replaced.replace("orElse(null)", "orElseGet(() -> " + expression.orElse("null") + ")");
         } else {
             replaced = "java.util.Optional.ofNullable(";
             replaced += conditionalOrExpressionString.orElse("null") + ")";
@@ -412,7 +333,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         }
     }
 
-    private String replaceBaseWithOptional(PrimaryNoNewArrayContext ctx) {
+    private String replaceBaseWithOptional(PrimaryNoNewArrayContext ctx, FieldAccessContext faCtx) {
         String base = getBase(ctx);
         System.err.println("[replaceBaseWithOptional] base = " + base);
 
@@ -422,19 +343,31 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             String instance = tokens[0];
             String member = tokens[1];
 
-            return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptioanl(ctx.pNNA(), 1);
+            return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(ctx.pNNA(), 1, faCtx);
         }
 
         //return "__nullsafe(" + base +", t1 -> " + //replacePNNAWithNullsafeMethodInvocation(ctx.pNNA(), 1) + ")";
 //        if (ctx.pNNA() != null && ctx.pNNA().NULLSAFE() != null) {
 //            return "java.util.Optional.ofNullable(" + base +  replacePNNAWithOptioanl(ctx.pNNA(), 0);
 //        }
-        return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptioanl(ctx.pNNA(), 0);
+        return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptional(ctx.pNNA(), 0, faCtx);
     }
 
-    private String replacePNNAWithOptioanl(PNNAContext ctx, int index) {
+    private String replacePNNAWithOptional(PNNAContext ctx, int index, FieldAccessContext faCtx) {
         if (ctx == null) {
-            return ").orElse(null)";
+            String replaced = "";
+
+            if (faCtx != null) {
+                String member = Utils.getTokenString(faCtx.identifier());
+                if (faCtx.NULLSAFE() != null) {
+                    String curTVar = "t" + index;
+                    replaced = ").map(" + curTVar + " -> " + curTVar + "." + member;
+                } else {
+                    replaced = "." + member;
+                }
+            }
+
+            return replaced + ").orElse(null)";
         }
 
         String member = getBase(ctx);
@@ -442,9 +375,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
         String curTVar = "t" + index;
         if (ctx.NULLSAFE() != null) {
-            return ").map(" + curTVar + " -> " + curTVar + "." + member + replacePNNAWithOptioanl(ctx.pNNA(), index + 1);
+            return ").map(" + curTVar + " -> " + curTVar + "." + member + replacePNNAWithOptional(ctx.pNNA(), index + 1, faCtx);
         } else {
-            return "." + member + replacePNNAWithOptioanl(ctx.pNNA(), index);
+            return "." + member + replacePNNAWithOptional(ctx.pNNA(), index, faCtx);
         }
     }
 
@@ -487,7 +420,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return null;
     }
 
-    private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
+    /*private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
         System.err.println("[replaceNullsafeOperator] lhs = " + lhs);
         System.err.println("[replaceNullsafeOperator] rhs = " + rhs);
 
@@ -510,6 +443,14 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 //        this.updatedContextString = replaced;
 //        return replaced;
 
+        return updateContextString(ctx, replaced);
+    }*/
+
+    private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
+        System.err.println("[replaceNullsafeOperator] lhs = " + lhs);
+        System.err.println("[replaceNullsafeOperator] rhs = " + rhs);
+
+        String replaced = "java.util.Optional.ofNullable(" + lhs + ").map(t0 -> t0." + rhs + ").orElse(null)";
         return updateContextString(ctx, replaced);
     }
 
