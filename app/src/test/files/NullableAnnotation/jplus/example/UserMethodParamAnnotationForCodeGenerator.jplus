@@ -22,6 +22,86 @@ class UserMethodParamAnnotationForCodeGenerator {
         return address.street.name;
     }
 
+    String getStreet_ExpressionName() {
+        return address.street.name;
+    }
+
+    String getStreet_ExpressionName_AddressNullsafety() {
+        return address?.street.name;
+    }
+
+    String getStreet_ExpressionName_StreetNullsafety() {
+        return address.street?.name;
+    }
+
+    String getStreet_ExpressionName_AddressStreetNullsatey() {
+        return address?.street?.name;
+    }
+
+    String getStreet_FieldAccess() {
+        return this.address.street.name;
+    }
+
+    String getStreet_FieldAccess_AddressNullsafety() {
+        return this.address?.street.name;
+    }
+
+    String getStreet_FieldAccess_StreetNullsafety() {
+        return this.address.street?.name;
+    }
+
+    String getStreet_FieldAccess_AddressStreetNullsatey() {
+        return this.address?.street?.name;
+    }
+
+    String getStreet_MethodInvocation_Primary() {
+        return this.address.street.name();
+    }
+
+    String getStreet_MethodInvocation_Primary_AddressNullsafety() {
+        return this.address?.street.name();
+    }
+
+    String getStreet_MethodInvocation_Primary_StreetNullsafety() {
+        return this.address.street?.name();
+    }
+
+    String getStreet_MethodInvocation_Primary_AddressStreetNullsafety() {
+        return this.address?.street?.name();
+    }
+
+    String getStreet_MethodInvocation_ExpressionName() {
+        return address.street.name();
+    }
+
+    String getStreet_MethodInvocation_ExpressionName_AddressNullsafety() {
+        return address?.street.name();
+    }
+
+    String getStreet_MethodInvocation_ExpressionName_StreetNullsafety() {
+        return address.street?.name();
+    }
+
+    String getStreet_MethodInvocation_ExpressionName_AddressStreetNullsafety() {
+        return address?.street?.name();
+    }
+
+    void getStreet_MethodInvocationStatement_ExpressionName() {
+        address.street.name();
+    }
+
+    void getStreet_MethodInvocationStatement_ExpressionName_AddressNullsafety() {
+        address?.street.name();
+    }
+
+    void getStreet_MethodInvocationStatement_ExpressionName_StreetNullsafety() {
+        address.street?.name();
+    }
+
+    void getStreetMethodInvocationStatement_ExpressionName_AddressStreetNullsafety() {
+        address?.street?.name();
+    }
+
     // Get the display name of the user
     String getDisplayName() {
         return name;

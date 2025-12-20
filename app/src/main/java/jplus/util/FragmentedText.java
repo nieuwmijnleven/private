@@ -89,7 +89,7 @@ public class FragmentedText {
     }
 
     public Optional<String> findFragmentedTextByRange(TextChangeRange range) {
-        System.err.println("[findFragmentedText] range = " + range);
+        //System.err.println("[findFragmentedText] range = " + range);
         List<TextFragmentNode> allFragmentNodeList = new ArrayList<>();
         allFragmentNodeList.addAll(fragmentedNodeList);
         allFragmentNodeList.addAll(unchangedRangeList);
@@ -119,8 +119,8 @@ public class FragmentedText {
         FragmentedText fragmentedText = new FragmentedText(textChangeRange, string);
         for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
             if (textChangeRange.contains(textFragmentNode.originalRange) && !string.contains(textFragmentNode.string)) {
-                System.err.println("textFragmentNode.string = " + textFragmentNode.string);
-                System.err.println("string = " + string);
+                //System.err.println("textFragmentNode.string = " + textFragmentNode.string);
+                //System.err.println("string = " + string);
                 fragmentedText.update(textFragmentNode.originalRange, textFragmentNode.string);
             }
         }

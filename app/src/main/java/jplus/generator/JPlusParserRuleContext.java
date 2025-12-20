@@ -76,13 +76,15 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String processMethodInvocation(MethodInvocationContext methodInvocationCtx) {
+        System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx));
+
         if (methodInvocationCtx.primary() != null) {
             String primaryPart = methodInvocationCtx.primary().getText();
             String replaced = primaryPart;
             if (!usesNullSafety(methodInvocationCtx.primary())) {
                 String methodPart = getMethodPart(methodInvocationCtx);
                 if (methodInvocationCtx.NULLSAFE() != null) {
-                    replaced = replaceNullsafeOperator(methodInvocationCtx, primaryPart, methodPart);
+                    replaced = replaceNullsafeOperatorWithOptionalIfPresent(methodInvocationCtx, primaryPart, methodPart);
                 } else {
                     replaced = primaryPart + "." + methodPart;
                 }
@@ -91,10 +93,11 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         } else if (methodInvocationCtx.expressionName() != null) {
             String expressionNamePart = methodInvocationCtx.expressionName().getText();
             String replaced = expressionNamePart;
+
             if (!usesNullSafety(methodInvocationCtx.expressionName())) {
                 String methodPart = getMethodPart(methodInvocationCtx);
                 if (methodInvocationCtx.NULLSAFE() != null) {
-                    replaced = replaceNullsafeOperator(methodInvocationCtx, expressionNamePart, methodPart);
+                    replaced = replaceNullsafeOperatorWithOptionalIfPresent(methodInvocationCtx, expressionNamePart, methodPart);
                 } else {
                     replaced = expressionNamePart + "." + methodPart;
                 }
@@ -213,12 +216,14 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         }
 
         String identifier = Utils.getTokenString(expressionNameContextDeque.removeFirst().identifier());
+        System.err.println("[processNullSafety] identifier = " + identifier);
         String replaced = "java.util.Optional.ofNullable(" + identifier;
         int i = 0;
         while (!expressionNameContextDeque.isEmpty()) {
             String curTVar = "t" + i;
             var expressionNameContext = expressionNameContextDeque.removeFirst();
             String member = Utils.getTokenString(expressionNameContext.identifier());
+            System.err.println("[processNullSafety] member = " + member);
             if (expressionNameContext.NULLSAFE() != null) {
                 replaced += ").map(" + curTVar + " -> " + curTVar + "." + member;
                 ++i;
@@ -229,11 +234,22 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
         if (ruleCtx instanceof MethodInvocationContext miCtx) {
             String method = getMethodPart(miCtx);
-            System.err.println("[replacePNNAWithOptional] method = " + method);
+            System.err.println("[processNullsafety] method = " + method);
 
             String curTVar = "t" + i;
             replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
             return replaced;
+        } else if (ruleCtx instanceof PrimaryNoNewArrayContext pnnaCtx) {
+            String contextString = Utils.getTokenString(pnnaCtx);
+            String remainderPart = contextString.substring(Utils.getTokenString(ctx).length()).replaceAll("^(\\.|\\?\\.)", "");
+            System.err.println("[processNullsafety] remainderPart = " + remainderPart);
+            String curTVar = "t" + i;
+            if (pnnaCtx.NULLSAFE() != null) {
+                replaced += ").map(" + curTVar + " -> " + curTVar + "." + remainderPart;
+                ++i;
+            } else {
+                replaced += "." + remainderPart;
+            }
         }
 
         replaced += ").orElse(null)";
@@ -243,9 +259,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     private String updateContextString(ParserRuleContext ctx, String replaced) {
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-        System.err.println("[updateContextString] before debugString = " + getDebugString());
+        //System.err.println("[updateContextString] before debugString = " + getDebugString());
         updateFragmentedText(range, replaced);
-        System.err.println("[updateContextString] after debugString = " + getDebugString());
+        //System.err.println("[updateContextString] after debugString = " + getDebugString());
         this.updatedContextString = replaced;
         return replaced;
     }
@@ -329,8 +345,8 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String replaceNullsafeOperator(String lhsPart, String rhsPart) {
-        System.err.println("[replaceNullsafeOperator] lhsPart = " + lhsPart);
-        System.err.println("[replaceNullsafeOperator] rhsPart = " + rhsPart);
+        //System.err.println("[replaceNullsafeOperator] lhsPart = " + lhsPart);
+        //System.err.println("[replaceNullsafeOperator] rhsPart = " + rhsPart);
 
         String tokenString = lhsPart + "." + rhsPart;
         String variableName = lhsPart;
@@ -343,6 +359,10 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String replaceBaseWithOptional(PrimaryNoNewArrayContext ctx, ParserRuleContext ruleCtx) {
+        if (ctx.expressionName() != null && usesNullSafety(ctx.expressionName())) {
+            return ctx.expressionName().getText();
+        }
+
         String base = getBase(ctx);
         System.err.println("[replaceBaseWithOptional] base = " + base);
         System.err.println("[replaceBaseWithOptional] ruleCtx = " + ruleCtx.getClass().getSimpleName());
@@ -351,6 +371,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             String[] tokens = base.split("\\?\\.");
             String instance = tokens[0];
             String member = tokens[1];
+
+            System.err.println("[replaceBaseWithOptional] instance = " + instance);
+            System.err.println("[replaceBaseWithOptional] member = " + member);
 
             return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(ctx.pNNA(), 1, ruleCtx);
         }
@@ -438,6 +461,11 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return updateContextString(ctx, replaced);
     }
 
+    private String replaceNullsafeOperatorWithOptionalIfPresent(ParserRuleContext ctx, String lhs, String rhs) {
+        String replaced = "java.util.Optional.ofNullable(" + lhs + ").ifPresent(t0 -> t0." + rhs + ")";
+        return updateContextString(ctx, replaced);
+    }
+
     private String getUpdatedContextString(TextChangeRange range, String contextString) {
         CodeGenContext codeGenContext = CodeGenContext.current();
         FragmentedText fragmentedText = codeGenContext.getFragmentedText();
@@ -468,7 +496,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         if (this instanceof JPlus20Parser.Start_Context startCtx) {
             CodeGenContext codeGenContext = CodeGenContext.current();
             FragmentedText fragmentedText = codeGenContext.getFragmentedText();
-            System.err.println("debugString = " + fragmentedText.debugString());
+            //System.err.println("debugString = " + fragmentedText.debugString());
             this.updatedContextString = fragmentedText.toString();
             return this.updatedContextString;
         } else {

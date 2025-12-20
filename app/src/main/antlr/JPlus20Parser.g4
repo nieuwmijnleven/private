@@ -1350,8 +1350,8 @@ primaryNoNewArray
     | expressionName '[' expression ']' pNNA?
     | arrayCreationExpressionWithInitializer '[' expression ']' pNNA?
     | methodName '(' argumentList? ')' pNNA?
-    | typeName '.' typeArguments? identifier '(' argumentList? ')' pNNA?
     | expressionName ('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
+    | typeName '.' typeArguments? identifier '(' argumentList? ')' pNNA?
     | arrayCreationExpression '.' typeArguments? identifier '(' argumentList? ')' pNNA?
     | 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
     | typeName '.' 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
