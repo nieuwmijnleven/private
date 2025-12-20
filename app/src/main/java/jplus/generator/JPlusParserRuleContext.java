@@ -88,10 +88,19 @@ public class JPlusParserRuleContext extends ParserRuleContext {
                 }
             }
             return updateContextString(methodInvocationCtx, replaced);
-        } /*else if (methodInvocationCtx.expressionName() != null) {
-
-            //return updateContextString(methodInvocationCtx, replaced);
-        }*/
+        } else if (methodInvocationCtx.expressionName() != null) {
+            String expressionNamePart = methodInvocationCtx.expressionName().getText();
+            String replaced = expressionNamePart;
+            if (!usesNullSafety(methodInvocationCtx.expressionName())) {
+                String methodPart = getMethodPart(methodInvocationCtx);
+                if (methodInvocationCtx.NULLSAFE() != null) {
+                    replaced = replaceNullsafeOperator(methodInvocationCtx, expressionNamePart, methodPart);
+                } else {
+                    replaced = expressionNamePart + "." + methodPart;
+                }
+            }
+            return updateContextString(methodInvocationCtx, replaced);
+        }
 
         return processDefaultText();
     }
@@ -137,7 +146,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     private String processExpressionName(ExpressionNameContext expressionNameCtx) {
         String replaced = Utils.getTokenString(expressionNameCtx);
         if (usesNullSafety(expressionNameCtx)) {
-            replaced = processNullsafety(expressionNameCtx);
+            replaced = processNullsafety(expressionNameCtx, expressionNameCtx.getParent());
         }
         System.err.println("[ExpressionNameContext] replaced = " + replaced);
         return updateContextString(expressionNameCtx, replaced);
@@ -194,9 +203,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return base.replaceAll("^(\\.|\\?\\.)", "");
     }
 
-    private String processNullsafety(ExpressionNameContext expressionNameCtx) {
+    private String processNullsafety(ExpressionNameContext ctx, ParserRuleContext ruleCtx) {
         Deque<ExpressionNameContext> expressionNameContextDeque = new ArrayDeque<>();
-        ExpressionNameContext current = expressionNameCtx;
+        ExpressionNameContext current = ctx;
         expressionNameContextDeque.addFirst(current);
         while (current.expressionName() != null) {
             current = current.expressionName();
@@ -216,6 +225,15 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             } else {
                 replaced += "." + member;
             }
+        }
+
+        if (ruleCtx instanceof MethodInvocationContext miCtx) {
+            String method = getMethodPart(miCtx);
+            System.err.println("[replacePNNAWithOptional] method = " + method);
+
+            String curTVar = "t" + i;
+            replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
+            return replaced;
         }
 
         replaced += ").orElse(null)";
@@ -356,12 +374,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
                 String method = getMethodPart(miCtx);
                 System.err.println("[replacePNNAWithOptional] method = " + method);
 
-                if (miCtx.NULLSAFE() != null) {
-                    String curTVar = "t" + index;
-                    replaced = ").map(" + curTVar + " -> " + curTVar + "." + method;
-                } else {
-                    replaced = "." + method;
-                }
+                String curTVar = "t" + index;
+                replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
+                return replaced;
             }
 
             return replaced + ").orElse(null)";
