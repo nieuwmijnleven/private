@@ -250,6 +250,8 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             } else {
                 replaced += "." + remainderPart;
             }
+            replaced += ").orElse(null)";
+            return replaced;
         }
 
         replaced += ").orElse(null)";
@@ -259,9 +261,9 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     private String updateContextString(ParserRuleContext ctx, String replaced) {
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-        //System.err.println("[updateContextString] before debugString = " + getDebugString());
+        System.err.println("[updateContextString] before debugString = " + getDebugString());
         updateFragmentedText(range, replaced);
-        //System.err.println("[updateContextString] after debugString = " + getDebugString());
+        System.err.println("[updateContextString] after debugString = " + getDebugString());
         this.updatedContextString = replaced;
         return replaced;
     }
@@ -418,13 +420,21 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
     private String getMethodPart(MethodInvocationContext miCtx) {
         String contextString = Utils.getTokenString(miCtx);
-        int idx = contextString.lastIndexOf(".");
-        if (miCtx.NULLSAFE() != null) {
-            idx = contextString.lastIndexOf("?.") + 1;
-        }
-        return contextString.substring(idx + 1);
+        String receiverPart = getReceiverPart(miCtx);
+        String methodPart = contextString.substring(receiverPart.length()).replaceFirst("^(\\.|\\?\\.)", "");
+        System.err.println("[getMethodPart] methodPart = " + methodPart);
+        return methodPart;
     }
 
+    private String getReceiverPart(MethodInvocationContext miCtx) {
+        if (miCtx.primary() != null) {
+            return Utils.getTokenString(miCtx.primary());
+        } else if (miCtx.expressionName() != null) {
+            return Utils.getTokenString(miCtx.expressionName());
+        } else {
+            throw new IllegalStateException("cannot reach this state.");
+        }
+    }
 
     private String replaceNullsafeOperator(String basePart) {
         System.err.println("[replaceNullsafeOperator] basePart = " + basePart);

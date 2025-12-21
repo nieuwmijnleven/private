@@ -23,6 +23,7 @@ import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
+import jplus.generator.CodeGenContext;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.MethodUtils;
@@ -244,9 +245,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         SymbolInfo symbolInfo = leftTable.resolve(symbol);
         System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
 
-
-        if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext) {
-
+        if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext && symbolInfo != null) {
             if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && ((JPlus20Parser.ExpressionNameContext)ctx.getParent()).DOT() != null) {
                 String identifier = Utils.getTokenString(((JPlus20Parser.ExpressionNameContext) ctx.getParent()).identifier());
                 String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
@@ -354,8 +353,9 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     private Optional<TextChangeRange> findTransformedRange(TextChangeRange instanceRange) {
         return sourceMappingEntrySet.stream()
-                .peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange()))
+                //.peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange()))
                 .filter(entry -> instanceRange.equals(entry.getOriginalRange()))
+                .peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange() + ", transformedRange = " + entry.getTransformedRange()))
                 .map(SourceMappingEntry::getTransformedRange)
                 .findFirst();
     }
@@ -440,7 +440,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
         Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, transformedRange.get());
         if (invocationInfo.isEmpty()) {
-            throw new IllegalStateException("cannot find a method invocation info.");
+            throw new IllegalStateException("cannot find a method invocation info." + transformedRange.get());
         }
 
         invocationInfo.ifPresent(info -> {
@@ -589,13 +589,14 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
     @Override
     public Void visitMethodInvocation(JPlus20Parser.MethodInvocationContext ctx) {
         TextChangeRange invocationCodeRange = getCodeRange(ctx);
+        System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
         Optional<TextChangeRange> javaInvocationCodeRange = findTransformedRange(invocationCodeRange);
         if (javaInvocationCodeRange.isEmpty()) {
             throw new IllegalStateException("cannot find a mapping java code range.");
         }
 
-//        System.err.println("[MethodInvocation] javaInvocationCodeRange: " + javaInvocationCodeRange.get());
+        System.err.println("[MethodInvocation] javaInvocationCodeRange: " + javaInvocationCodeRange.get());
 
         Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, javaInvocationCodeRange.get());
         if (invocationInfo.isEmpty()) {

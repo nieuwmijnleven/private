@@ -1456,9 +1456,9 @@ fieldAccess
 
 methodInvocation
     : methodName '(' argumentList? ')'
-    | typeName '.' typeArguments? identifier '(' argumentList? ')'
     | expressionName ('.'|'?.') typeArguments? identifier '(' argumentList? ')'
     | primary ('.'|'?.') typeArguments? identifier '(' argumentList? ')'
+    | typeName '.' typeArguments? identifier '(' argumentList? ')'
     | 'super' '.' typeArguments? identifier '(' argumentList? ')'
     | typeName '.' 'super' '.' typeArguments? identifier '(' argumentList? ')'
     ;
