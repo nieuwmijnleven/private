@@ -78,6 +78,10 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     private String processMethodInvocation(MethodInvocationContext methodInvocationCtx) {
         System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx));
 
+        for (int i = 0; i < methodInvocationCtx.getChildCount(); i++) {
+            methodInvocationCtx.getChild(i).getText();
+        }
+
         if (methodInvocationCtx.primary() != null) {
             String primaryPart = methodInvocationCtx.primary().getText();
             String replaced = primaryPart;
@@ -105,7 +109,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             return updateContextString(methodInvocationCtx, replaced);
         }
 
-        return processDefaultText();
+        return forceUpdateContextString(methodInvocationCtx);
     }
 
     /*private String processMethodInvocationWithNullsafety(MethodInvocationContext methodInvocationCtx) {
@@ -269,9 +273,12 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String forceUpdateContextString(ParserRuleContext ctx) {
+        System.err.println("[forceUpdateContextString] ParserRuleContext = " + ctx.getClass().getSimpleName());
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         String contextString = Utils.getTokenString(ctx);
         String replaced = getUpdatedContextString(range, contextString);
+        System.err.println("[forceUpdateContextString] contextString = " + contextString);
+        System.err.println("[forceUpdateContextString] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -312,6 +319,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
 
     private String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
+        System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
         for (int i = 0; i < ctx.getChildCount(); i++) {
             ctx.getChild(i).getText();
         }
@@ -337,6 +345,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             replaced += ".orElseGet(() -> " + expression.orElse("null") + ")";
         }
 
+        System.err.println("[replaceElvisOperator] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -418,10 +427,20 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         }
     }
 
-    private String getMethodPart(MethodInvocationContext miCtx) {
+    /*private String getMethodPart(MethodInvocationContext miCtx) {
         String contextString = Utils.getTokenString(miCtx);
         String receiverPart = getReceiverPart(miCtx);
         String methodPart = contextString.substring(receiverPart.length()).replaceFirst("^(\\.|\\?\\.)", "");
+        System.err.println("[getMethodPart] methodPart = " + methodPart);
+        return methodPart;
+    }*/
+
+    private String getMethodPart(MethodInvocationContext miCtx) {
+        String typeArgument = Utils.getTokenString(miCtx.typeArguments());
+        String identifier = Utils.getTokenString(miCtx.identifier());
+        String argumentList = Optional.ofNullable(miCtx.argumentList()).map(t -> t.getText()).orElse("");
+
+        String methodPart = typeArgument + identifier + "(" + argumentList + ")";
         System.err.println("[getMethodPart] methodPart = " + methodPart);
         return methodPart;
     }

@@ -71,7 +71,7 @@ class JPlusTest {
     void testNullabilityChecker() throws Exception {
         JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullabilityChecker.jplus"));
         processor.process();
-//        System.err.println(processor.getParseTreeString());
+        System.err.println("[ParseTreeString] " + processor.getParseTreeString());
         processor.analyzeSymbols();
 
         var issues = processor.checkNullability();
@@ -82,11 +82,11 @@ class JPlusTest {
         }
 
         String expected = "Error: (line:5, column:4) lastname is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:9, column:26) fullname is a nullable variable. But it directly accesses split(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:9, column:26) fullname is a nullable variable. But it directly accesses split. Consider using null-safe operator(?.).\n" +
                 "Error: (line:13, column:8) lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:14, column:8) this.lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:15, column:8) User.this.lastname is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:19, column:15) firstname is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n";
+                "Error: (line:19, column:15) firstname is a nullable variable. But it directly accesses length. Consider using null-safe operator(?.).\n";
 
         assertEquals(expected, outContent.toString());
     }
@@ -107,7 +107,7 @@ class JPlusTest {
 
         String expected = "Error: (line:5, column:4) lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:12, column:12) lastname is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:17, column:15) firstname is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n";
+                "Error: (line:17, column:15) firstname is a nullable variable. But it directly accesses length. Consider using null-safe operator(?.).\n";
 
         assertEquals(expected, outContent.toString());
     }
@@ -154,27 +154,27 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "HEtSZLmxahhv1q26XzAZqz36YWg=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "uscMLnF+l6+tsgztgsVpxycevp4=");
     }
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "FMp+fjQTehqEnTfNBuPgUmP1Fgg=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "bpdhemNrk7aasiOnNqMQ1+U1Cy0=");
     }
 
     @Test
     void testElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "kv2AxiPB/115C3O4/fFI+6uq3Rc=");
+        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "4nKedpMRMHPKof2GaBGoFlH5cIg=");
     }
 
     @Test
     void testCascadingElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "Y4T/S6Je0+QPYyN5tZEttKcYGI4=");
+        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "ViJPZI8X4cHlCHxRkLwyyn7muUQ=");
     }
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "Awha3N53huoIWJeMTgyQNxuB0nA=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "GylLgcKiiwhyRwqc7Vskb8krUDc=");
     }
 
     @Test
@@ -189,17 +189,17 @@ class JPlusTest {
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "tF+cDQH0xL7fTp333CwxJ0ST2hE=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "iDf9RtgNUOoBl7GfrM55QEaSlhs=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "dodldMPlnUO4QasqxrnPq4NDtJo=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "Yu6yPh8yYjEmT92kla2unqTv86k=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "bT4hV9QO9N+NaoZUauM9O8jRSRs=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "i+TWiKfsFj+HeucjWAi1TbfVLXE=");
     }
 
     @Test
@@ -209,7 +209,7 @@ class JPlusTest {
 
     @Test
     void testApplyHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyHashCode.jplus", "FiHLi04TBUW4bDxmWsfSNLklKGg=");
+        checkGeneratedCode("./src/test/samples/ApplyHashCode.jplus", "o/Ugq6ZLP7mRCR7k7xnkb58e9Dk=");
     }
 
     @Test
@@ -249,7 +249,7 @@ class JPlusTest {
 
     @Test
     void testApplyDuplicatedHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyDuplicatedHashCode.jplus", "FiHLi04TBUW4bDxmWsfSNLklKGg=");
+        checkGeneratedCode("./src/test/samples/ApplyDuplicatedHashCode.jplus", "o/Ugq6ZLP7mRCR7k7xnkb58e9Dk=");
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {

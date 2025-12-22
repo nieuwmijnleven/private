@@ -1,5 +1,6 @@
 package jplus.analyzer;
 
+import com.sun.source.tree.ExpressionTree;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -92,6 +93,24 @@ public class JavaSymbolResolver {
 
         SymbolTable classSymbolTable = topLevelSymbolTable.getEnclosingSymbolTable(qualifiedName);
 
+        // Field Declaration
+        for (Element element : clazz.getEnclosedElements()) {
+            if (element.getKind() == ElementKind.FIELD) {
+                VariableElement field = (VariableElement) element;
+
+                TypeInfo fieldTypeInfo =
+                        TypeUtils.fromTypeMirror(field.asType(), field);
+
+                SymbolInfo fieldSymbol = SymbolInfo.builder()
+                        .symbol(field.getSimpleName().toString())
+                        .typeInfo(fieldTypeInfo)
+                        .symbolTable(classSymbolTable)
+                        .build();
+
+                classSymbolTable.declare(fieldSymbol.getSymbol(), fieldSymbol);
+            }
+        }
+
         // Method Declaration
         SymbolTable methodSymbolTable = new SymbolTable(classSymbolTable);
 
@@ -144,6 +163,55 @@ public class JavaSymbolResolver {
 
         return classSymbolInfo;
     }
+
+    public SymbolInfo resolveFieldAccess(SymbolInfo ownerClassSymbol,
+                                         VariableElement fieldElement) {
+
+        // 1. 필드 타입
+        TypeMirror fieldType = fieldElement.asType();
+        TypeInfo fieldTypeInfo = TypeUtils.fromTypeMirror(fieldType, fieldElement);
+
+        // 2. 필드 심볼
+        SymbolInfo fieldSymbol = SymbolInfo.builder()
+                .symbol(fieldElement.getSimpleName().toString())
+                .typeInfo(fieldTypeInfo)
+                .symbolTable(ownerClassSymbol.getSymbolTable())
+                .build();
+
+        ownerClassSymbol.getSymbolTable()
+                .declare(fieldSymbol.getSymbol(), fieldSymbol);
+
+        // 3. 필드 타입의 클래스 심볼 생성
+        String fieldTypeFQN = fieldTypeInfo.getName();
+        SymbolInfo fieldTypeClassSymbol = resolveClass(fieldTypeFQN);
+
+        return fieldTypeClassSymbol;
+    }
+
+
+    /*public SymbolInfo resolveExpressionChain(ExpressionTree expr) {
+        Element element = Trees.getElement(getCurrentPath());
+
+        if (element instanceof TypeElement type) {
+            return resolveClass(type.getQualifiedName().toString());
+        }
+
+        if (element instanceof VariableElement field) {
+            TypeElement owner = (TypeElement) field.getEnclosingElement();
+            SymbolInfo ownerSymbol =
+                    resolveClass(owner.getQualifiedName().toString());
+
+            return resolveFieldAccess(ownerSymbol, field);
+        }
+
+        if (element instanceof ExecutableElement method) {
+            TypeElement owner = (TypeElement) method.getEnclosingElement();
+            return resolveClass(owner.getQualifiedName().toString());
+        }
+
+        return null;
+    }*/
+
 
     private String getPackageName(TypeElement clazz) {
         PackageElement pkg = elements.getPackageOf(clazz);

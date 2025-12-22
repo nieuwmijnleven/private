@@ -47,6 +47,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
@@ -54,7 +55,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
@@ -469,6 +469,93 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         } finally {
             exitSymbolTable();
         }
+    }
+
+    public SymbolInfo resolveExpression(ExpressionTree expr) {
+
+        Element element = trees.getElement(getCurrentPath());
+
+        if (element == null) return null;
+
+        switch (element.getKind()) {
+            case CLASS, INTERFACE, ENUM -> {
+                return resolveClass(((TypeElement) element)
+                        .getQualifiedName().toString());
+            }
+
+            case FIELD -> {
+                return resolveField((VariableElement) element);
+            }
+
+            case METHOD -> {
+                return resolveMethod((ExecutableElement) element);
+            }
+
+            default -> {
+                return resolveTypeMirror(element.asType());
+            }
+        }
+    }
+
+
+    private SymbolInfo resolveField(VariableElement field) {
+
+        // 1. 필드 소유 타입
+        TypeElement owner =
+                (TypeElement) field.getEnclosingElement();
+
+        // 2. 소유 타입 심볼
+        SymbolInfo ownerSymbol =
+                resolveClass(owner.getQualifiedName().toString());
+
+        // 3. 필드 타입
+        TypeMirror fieldType = field.asType();
+        TypeInfo fieldTypeInfo =
+                TypeUtils.fromTypeMirror(fieldType, field);
+
+        // 4. 필드 심볼 등록
+        SymbolInfo fieldSymbol = SymbolInfo.builder()
+                .symbol(field.getSimpleName().toString())
+                .typeInfo(fieldTypeInfo)
+                .symbolTable(ownerSymbol.getSymbolTable())
+                .build();
+
+        ownerSymbol.getSymbolTable()
+                .declare(fieldSymbol.getSymbol(), fieldSymbol);
+
+        // 5. 필드 타입으로 이동
+        return resolveTypeMirror(fieldType);
+    }
+
+    private SymbolInfo resolveMethod(ExecutableElement method) {
+
+        // 1. 메서드 소유 타입
+        TypeElement owner =
+                (TypeElement) method.getEnclosingElement();
+
+        // 2. 소유 타입 심볼
+        SymbolInfo ownerSymbol =
+                resolveClass(owner.getQualifiedName().toString());
+
+        // 3. 반환 타입으로 이동
+        return resolveTypeMirror(method.getReturnType());
+    }
+
+
+    private SymbolInfo resolveTypeMirror(TypeMirror tm) {
+        if (tm.getKind().isPrimitive()) {
+            return null; // primitive 종료
+        }
+
+        TypeElement type =
+                (TypeElement) types.asElement(tm);
+
+        return resolveClass(type.getQualifiedName().toString());
+    }
+
+    private SymbolInfo resolveClass(String qualifiedName) {
+        JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
+        return resolver.resolveClass(qualifiedName);
     }
 
 }

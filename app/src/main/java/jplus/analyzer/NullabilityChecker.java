@@ -31,6 +31,8 @@ import jplus.util.SymbolUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -229,6 +231,17 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
     }
 
+    private boolean hasDot(ParserRuleContext ctx) {
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            ParseTree child = ctx.getChild(i);
+            if (child instanceof TerminalNode tn &&
+                    tn.getSymbol().getType() == JPlus20Parser.DOT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * @return 현재 expressionName에서 계산된 symbolTable (부모 재귀에서 사용)
      */
@@ -250,11 +263,20 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
         }
 
-        if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext && symbolInfo != null) {
-            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && ((JPlus20Parser.ExpressionNameContext)ctx.getParent()).DOT() != null) {
-                String identifier = Utils.getTokenString(((JPlus20Parser.ExpressionNameContext) ctx.getParent()).identifier());
-                String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
-                reportIssue(ctx.start, msg);
+        if (symbolInfo != null && hasDot(ctx.getParent())) {
+//            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
+            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable()) {
+                String identifier = null;
+                if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext expressionNameCtx) {
+                    identifier = Utils.getTokenString(expressionNameCtx.identifier());
+                } else if (ctx.getParent() instanceof JPlus20Parser.PrimaryNoNewArrayContext pnnaCtx) {
+                    identifier = Utils.getTokenString(pnnaCtx.identifier());
+                }
+
+                if (identifier != null) {
+                    String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
+                    reportIssue(ctx.start, msg);
+                }
             }
 
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
@@ -342,7 +364,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 //        return symbolTable;
         }
 
-        String classSymbol = symbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
+        String classSymbol;
+        if(symbolTable.containsInCurrent("^TopLevelClass$", TypeInfo.Type.Class) ) {
+            classSymbol = symbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
+        } else {
+            classSymbol = symbolInfo.getSymbol();
+        }
+
         SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(classSymbol);
         log("[resolveClassSymbolTable] enclosingSymbolTable = " + classSymbolTable);
         return classSymbolTable;
@@ -647,7 +675,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
     @Override
     public Void visitPrimaryNoNewArray(JPlus20Parser.PrimaryNoNewArrayContext ctx) {
-        if (ctx.typeName() != null) {
+        /*if (ctx.typeName() != null) {
             if (ctx.THIS() == null) {
                 String instanceName = Utils.getTokenString(ctx.typeName());
                 String methodName = Utils.getTokenString(ctx.identifier());
@@ -659,7 +687,12 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                     reportIssue(ctx.start, msg);
                 }
             }
+        }*/
+
+        if (ctx.expressionName() !=  null) {
+
         }
+
         return super.visitPrimaryNoNewArray(ctx);
     }
 
