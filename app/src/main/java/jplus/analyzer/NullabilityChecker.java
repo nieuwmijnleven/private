@@ -242,8 +242,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 
         // 현재 identifier 처리
         String symbol = Utils.getTokenString(ctx.identifier());
+        System.err.println("[ExpressionName] symbol = " + symbol);
         SymbolInfo symbolInfo = leftTable.resolve(symbol);
         System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
+        if (symbolInfo == null) {
+            symbolInfo = leftTable.resolve(Utils.getTokenString(ctx));
+            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
+        }
 
         if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext && symbolInfo != null) {
             if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && ((JPlus20Parser.ExpressionNameContext)ctx.getParent()).DOT() != null) {
@@ -334,9 +339,11 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
                 symbolTable = classSymbolInfo.getSymbolTable();
                 symbolInfo = classSymbolInfo;
             }
-        }
 //        return symbolTable;
-        SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(symbolInfo.getSymbol());
+        }
+
+        String classSymbol = symbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
+        SymbolTable classSymbolTable = symbolTable.getEnclosingSymbolTable(classSymbol);
         log("[resolveClassSymbolTable] enclosingSymbolTable = " + classSymbolTable);
         return classSymbolTable;
     }

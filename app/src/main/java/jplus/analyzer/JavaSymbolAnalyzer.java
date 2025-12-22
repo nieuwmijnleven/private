@@ -54,6 +54,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
@@ -399,22 +400,62 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitVariable(node, unused);
     }
 
+    private String getFQN(ExpressionTree expr) {
+        Element element = trees.getElement(TreePath.getPath(ast, expr)); // TreePath 필요
+        if (element != null) {
+            return element.asType().toString(); // 타입의 FQN
+        }
+        return expr.toString(); // fallback
+    }
+
+    private String getFieldFQN(ExpressionTree expr) {
+        Element element = trees.getElement(TreePath.getPath(ast, expr));
+        if (element != null) {
+            if (element.getKind().isField()) {
+                String classFQN = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
+                return classFQN + "." + element.getSimpleName().toString(); // java.lang.System.out
+            } else if (element.getKind() == ElementKind.METHOD) {
+                String classFQN = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
+                return classFQN + "." + element.getSimpleName().toString();
+            } else if (element.getKind().isClass() || element.getKind().isInterface()) {
+                return ((TypeElement) element).getQualifiedName().toString();
+            }
+        }
+        return expr.toString(); // fallback
+    }
+
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
         String instanceName = null;
+        String fqnInstanceName = null;
+        String instanceTypeName = null;
         String methodName = "";
 
         ExpressionTree methodSelect = node.getMethodSelect();
         if (methodSelect instanceof MemberSelectTree mst) {
             instanceName = mst.getExpression().toString();
+            fqnInstanceName = getFieldFQN(mst.getExpression());
+            instanceTypeName = getFQN(mst.getExpression());
             methodName = mst.getIdentifier().toString();
         } else if (methodSelect instanceof IdentifierTree it) {
             methodName = it.getName().toString();
         }
 
+        if (instanceName != null) {
+            JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
+            SymbolInfo symbolInfo = resolver.resolveClass(instanceTypeName);
+            if (symbolInfo != null) {
+                System.err.println("[JavaSymbolResolver] instanceName = " + instanceName);
+                System.err.println("[JavaSymbolResolver] fqnInstanceName = " + fqnInstanceName);
+                System.err.println("[JavaSymbolResolver] instanceTypeName = " + instanceTypeName);
+                System.err.println("[JavaSymbolResolver] symbolInfo = " + symbolInfo);
+                currentSymbolTable.declare(instanceName, symbolInfo.toBuilder().symbol(instanceName).build());
+            }
+        }
+
         MethodInvocationInfo info = buildMethodInvocationInfo(node, instanceName, methodName);
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
-        //System.err.println("methodInvocationInfo = " + info);
+        System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);
 
         return super.visitMethodInvocation(node, unused);
     }
