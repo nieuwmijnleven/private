@@ -17702,25 +17702,25 @@ public class JPlus20Parser extends Parser {
 		public ArgumentListContext argumentList() {
 			return getRuleContext(ArgumentListContext.class,0);
 		}
-		public TypeNameContext typeName() {
-			return getRuleContext(TypeNameContext.class,0);
+		public ExpressionNameContext expressionName() {
+			return getRuleContext(ExpressionNameContext.class,0);
+		}
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
 		}
 		public List<TerminalNode> DOT() { return getTokens(JPlus20Parser.DOT); }
 		public TerminalNode DOT(int i) {
 			return getToken(JPlus20Parser.DOT, i);
 		}
-		public IdentifierContext identifier() {
-			return getRuleContext(IdentifierContext.class,0);
-		}
+		public TerminalNode NULLSAFE() { return getToken(JPlus20Parser.NULLSAFE, 0); }
 		public TypeArgumentsContext typeArguments() {
 			return getRuleContext(TypeArgumentsContext.class,0);
 		}
-		public ExpressionNameContext expressionName() {
-			return getRuleContext(ExpressionNameContext.class,0);
-		}
-		public TerminalNode NULLSAFE() { return getToken(JPlus20Parser.NULLSAFE, 0); }
 		public PrimaryContext primary() {
 			return getRuleContext(PrimaryContext.class,0);
+		}
+		public TypeNameContext typeName() {
+			return getRuleContext(TypeNameContext.class,0);
 		}
 		public TerminalNode SUPER() { return getToken(JPlus20Parser.SUPER, 0); }
 		public MethodInvocationContext(ParserRuleContext parent, int invokingState) {
@@ -17775,9 +17775,17 @@ public class JPlus20Parser extends Parser {
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(2613);
-				typeName();
+				expressionName(0);
 				setState(2614);
-				match(DOT);
+				_la = _input.LA(1);
+				if ( !(_la==DOT || _la==NULLSAFE) ) {
+				_errHandler.recoverInline(this);
+				}
+				else {
+					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+					_errHandler.reportMatch(this);
+					consume();
+				}
 				setState(2616);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
@@ -17810,7 +17818,7 @@ public class JPlus20Parser extends Parser {
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(2625);
-				expressionName(0);
+				primary();
 				setState(2626);
 				_la = _input.LA(1);
 				if ( !(_la==DOT || _la==NULLSAFE) ) {
@@ -17853,17 +17861,9 @@ public class JPlus20Parser extends Parser {
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(2637);
-				primary();
+				typeName();
 				setState(2638);
-				_la = _input.LA(1);
-				if ( !(_la==DOT || _la==NULLSAFE) ) {
-				_errHandler.recoverInline(this);
-				}
-				else {
-					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-					_errHandler.reportMatch(this);
-					consume();
-				}
+				match(DOT);
 				setState(2640);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
@@ -22971,21 +22971,21 @@ public class JPlus20Parser extends Parser {
 		"\u0a2f\u0a31\u0005M\u0000\u0000\u0a30\u0a32\u0003\u01bc\u00de\u0000\u0a31"+
 		"\u0a30\u0001\u0000\u0000\u0000\u0a31\u0a32\u0001\u0000\u0000\u0000\u0a32"+
 		"\u0a33\u0001\u0000\u0000\u0000\u0a33\u0a34\u0005N\u0000\u0000\u0a34\u0a74"+
-		"\u0001\u0000\u0000\u0000\u0a35\u0a36\u0003>\u001f\u0000\u0a36\u0a38\u0005"+
-		"U\u0000\u0000\u0a37\u0a39\u00030\u0018\u0000\u0a38\u0a37\u0001\u0000\u0000"+
+		"\u0001\u0000\u0000\u0000\u0a35\u0a36\u0003B!\u0000\u0a36\u0a38\u0007\u0006"+
+		"\u0000\u0000\u0a37\u0a39\u00030\u0018\u0000\u0a38\u0a37\u0001\u0000\u0000"+
 		"\u0000\u0a38\u0a39\u0001\u0000\u0000\u0000\u0a39\u0a3a\u0001\u0000\u0000"+
 		"\u0000\u0a3a\u0a3b\u0003\u0002\u0001\u0000\u0a3b\u0a3d\u0005M\u0000\u0000"+
 		"\u0a3c\u0a3e\u0003\u01bc\u00de\u0000\u0a3d\u0a3c\u0001\u0000\u0000\u0000"+
 		"\u0a3d\u0a3e\u0001\u0000\u0000\u0000\u0a3e\u0a3f\u0001\u0000\u0000\u0000"+
 		"\u0a3f\u0a40\u0005N\u0000\u0000\u0a40\u0a74\u0001\u0000\u0000\u0000\u0a41"+
-		"\u0a42\u0003B!\u0000\u0a42\u0a44\u0007\u0006\u0000\u0000\u0a43\u0a45\u0003"+
-		"0\u0018\u0000\u0a44\u0a43\u0001\u0000\u0000\u0000\u0a44\u0a45\u0001\u0000"+
-		"\u0000\u0000\u0a45\u0a46\u0001\u0000\u0000\u0000\u0a46\u0a47\u0003\u0002"+
-		"\u0001\u0000\u0a47\u0a49\u0005M\u0000\u0000\u0a48\u0a4a\u0003\u01bc\u00de"+
-		"\u0000\u0a49\u0a48\u0001\u0000\u0000\u0000\u0a49\u0a4a\u0001\u0000\u0000"+
-		"\u0000\u0a4a\u0a4b\u0001\u0000\u0000\u0000\u0a4b\u0a4c\u0005N\u0000\u0000"+
-		"\u0a4c\u0a74\u0001\u0000\u0000\u0000\u0a4d\u0a4e\u0003\u019c\u00ce\u0000"+
-		"\u0a4e\u0a50\u0007\u0006\u0000\u0000\u0a4f\u0a51\u00030\u0018\u0000\u0a50"+
+		"\u0a42\u0003\u019c\u00ce\u0000\u0a42\u0a44\u0007\u0006\u0000\u0000\u0a43"+
+		"\u0a45\u00030\u0018\u0000\u0a44\u0a43\u0001\u0000\u0000\u0000\u0a44\u0a45"+
+		"\u0001\u0000\u0000\u0000\u0a45\u0a46\u0001\u0000\u0000\u0000\u0a46\u0a47"+
+		"\u0003\u0002\u0001\u0000\u0a47\u0a49\u0005M\u0000\u0000\u0a48\u0a4a\u0003"+
+		"\u01bc\u00de\u0000\u0a49\u0a48\u0001\u0000\u0000\u0000\u0a49\u0a4a\u0001"+
+		"\u0000\u0000\u0000\u0a4a\u0a4b\u0001\u0000\u0000\u0000\u0a4b\u0a4c\u0005"+
+		"N\u0000\u0000\u0a4c\u0a74\u0001\u0000\u0000\u0000\u0a4d\u0a4e\u0003>\u001f"+
+		"\u0000\u0a4e\u0a50\u0005U\u0000\u0000\u0a4f\u0a51\u00030\u0018\u0000\u0a50"+
 		"\u0a4f\u0001\u0000\u0000\u0000\u0a50\u0a51\u0001\u0000\u0000\u0000\u0a51"+
 		"\u0a52\u0001\u0000\u0000\u0000\u0a52\u0a53\u0003\u0002\u0001\u0000\u0a53"+
 		"\u0a55\u0005M\u0000\u0000\u0a54\u0a56\u0003\u01bc\u00de\u0000\u0a55\u0a54"+
