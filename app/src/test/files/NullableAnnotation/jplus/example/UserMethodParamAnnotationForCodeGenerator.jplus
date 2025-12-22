@@ -54,10 +54,6 @@ class UserMethodParamAnnotationForCodeGenerator {
         return this.address?.street?.name;
     }
 
-    String getStreet_MethodInvocation_Primary() {
-        return this.address.street.name();
-    }
-
     String getStreet_MethodInvocation_Primary_AddressNullsafety() {
         return this.address?.street.name();
     }
