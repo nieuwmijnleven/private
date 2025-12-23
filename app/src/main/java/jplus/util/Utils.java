@@ -29,6 +29,9 @@ public class Utils {
     private Utils() {}
 
     public static String getTokenString(ParserRuleContext ctx) {
+        if (ctx == null)
+            return "";
+
         int startIndex = ctx.start.getStartIndex();
         int stopIndex = (ctx.stop != null) ? ctx.stop.getStopIndex() : ctx.start.getStopIndex();
         return ctx.start.getTokenSource().getInputStream().getText(Interval.of(startIndex, stopIndex));

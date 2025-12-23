@@ -266,17 +266,14 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         if (symbolInfo != null && hasDot(ctx.getParent())) {
 //            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
             if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable()) {
-                String identifier = null;
-                if (ctx.getParent() instanceof JPlus20Parser.ExpressionNameContext expressionNameCtx) {
-                    identifier = Utils.getTokenString(expressionNameCtx.identifier());
-                } else if (ctx.getParent() instanceof JPlus20Parser.PrimaryNoNewArrayContext pnnaCtx) {
-                    identifier = Utils.getTokenString(pnnaCtx.identifier());
-                }
-
-                if (identifier != null) {
-                    String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
-                    reportIssue(ctx.start, msg);
-                }
+                System.err.println("[ExpressionName] nullability warning(" + ctx.start.getLine() + ") = " + symbolInfo);
+                getIdentifierFromParent(ctx).ifPresent(id ->
+                        reportIssue(
+                                ctx.start,
+                                symbol + " is a nullable variable. But it directly accesses "
+                                        + id + ". Consider using null-safe operator(?.)."
+                        )
+                );
             }
 
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
@@ -297,6 +294,30 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         }
 
         return leftTable;
+    }
+
+    private Optional<String> getIdentifierFromParent(JPlus20Parser.ExpressionNameContext ctx) {
+        var parent = ctx.getParent();
+
+        if (parent instanceof JPlus20Parser.ExpressionNameContext expressionNameCtx) {
+            return Optional.ofNullable(
+                    Utils.getTokenString(expressionNameCtx.identifier())
+            );
+        }
+
+        if (parent instanceof JPlus20Parser.PrimaryNoNewArrayContext pnnaCtx) {
+            return Optional.ofNullable(
+                    Utils.getTokenString(pnnaCtx.identifier())
+            );
+        }
+
+        if (parent instanceof JPlus20Parser.MethodInvocationContext miCtx) {
+            return Optional.ofNullable(
+                    Utils.getTokenString(miCtx.identifier())
+            );
+        }
+
+        return Optional.empty();
     }
 
     @Override

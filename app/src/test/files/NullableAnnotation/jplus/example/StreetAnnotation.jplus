@@ -8,7 +8,7 @@ public class StreetAnnotation {
         this.name = name;
     }
 
-    String getName() {
+    String name() {
         return this.name;
     }
 }

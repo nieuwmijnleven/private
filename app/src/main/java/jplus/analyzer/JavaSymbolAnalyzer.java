@@ -48,9 +48,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
@@ -424,7 +427,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return expr.toString(); // fallback
     }
 
-    @Override
+    /*@Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
         String instanceName = null;
         String fqnInstanceName = null;
@@ -458,43 +461,171 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);
 
         return super.visitMethodInvocation(node, unused);
-    }
+    }*/
 
     @Override
-    public Void visitBlock(BlockTree node, Void unused) {
-        //System.err.println("[visitBlock] invoked");
-        enterSymbolTable("^block$");
-        try {
-            return super.visitBlock(node, unused);
-        } finally {
-            exitSymbolTable();
+    public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
+
+        System.err.println("[JavaSymbolAnalyzer] code = " + node.getMethodSelect().toString());
+
+        // 🔥 여기서 체인 전체 해석
+        //SymbolInfo ownerType = resolveExpressionChain(node.getMethodSelect());
+        SymbolInfo ownerType = resolveExpressionChain(
+                node.getMethodSelect() instanceof MemberSelectTree mst
+                        ? mst.getExpression()
+                        : node.getMethodSelect()
+        );
+        System.err.println("[JavaSymbolAnalyzer] ownerType = " + ownerType);
+
+        Element e = trees.getElement(getCurrentPath());
+        if (e instanceof ExecutableElement method) {
+
+            String methodName = method.getSimpleName().toString();
+            System.err.println("[JavaSymbolAnalyzer] methodName = " + methodName);
+
+            MethodInvocationInfo info =
+                    buildMethodInvocationInfo(
+                            node,
+                            ownerType != null ? ownerType.getSymbol() : null,
+                            methodName
+                    );
+
+            javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
+            System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);
         }
+
+        return super.visitMethodInvocation(node, unused);
     }
 
-    public SymbolInfo resolveExpression(ExpressionTree expr) {
+    public SymbolInfo resolveExpressionChain(ExpressionTree expr) {
 
-        Element element = trees.getElement(getCurrentPath());
-
-        if (element == null) return null;
-
-        switch (element.getKind()) {
-            case CLASS, INTERFACE, ENUM -> {
-                return resolveClass(((TypeElement) element)
-                        .getQualifiedName().toString());
+        if (expr instanceof IdentifierTree id) {
+            // System
+            Element e = trees.getElement(TreePath.getPath(ast, expr));
+            if (e instanceof TypeElement type) {
+                System.err.println("[resolveExpressionChain] identifer = " + type.getQualifiedName().toString());
+                return resolveClass(
+                        type.getQualifiedName().toString());
             }
 
-            case FIELD -> {
-                return resolveField((VariableElement) element);
+            if (e instanceof VariableElement var) {
+                // 변수 / 필드 / 파라미터
+                TypeMirror varType = var.asType();
+
+                if (varType.getKind() == TypeKind.DECLARED) {
+                    TypeElement varTypeElement = (TypeElement) types.asElement(varType);
+                    SymbolInfo typeSymbol = resolveClass(varTypeElement.getQualifiedName().toString());
+                    System.err.println("[resolveExpressionChain] identifier (variable) = " + var.getSimpleName()
+                            + ", type = " + varTypeElement.getQualifiedName());
+                    System.err.println("[resolveExpressionChain] typeSymbol = " + typeSymbol);
+
+                    // ownerType이 null이면 현재 SymbolTable 사용
+                    SymbolTable parentTable = currentSymbolTable;
+                    typeSymbol = typeSymbol.toBuilder()
+                            .symbolTable(parentTable)
+                            .build();
+                    return typeSymbol;
+                }
             }
 
-            case METHOD -> {
-                return resolveMethod((ExecutableElement) element);
+            return null;
+        }
+
+        if (expr instanceof MemberSelectTree mst) {
+            // 1️⃣ 왼쪽 먼저 처리 (System / System.out)
+            SymbolInfo ownerType =
+                    resolveExpressionChain(mst.getExpression());
+
+            // 2️⃣ 현재 멤버의 Element
+            Element e = trees.getElement(TreePath.getPath(ast, expr));
+            if (e == null) return ownerType;
+
+            // 3️⃣ 필드 접근
+            if (e instanceof VariableElement field) {
+                TypeMirror fieldType = field.asType();
+                TypeElement fieldTypeElement =
+                        (TypeElement) types.asElement(fieldType);
+
+                System.err.println("[resolveExpressionChain] field = " + field.toString());
+                System.err.println("[resolveExpressionChain] fieldType = " + fieldTypeElement.getQualifiedName().toString());
+                return resolveClass(
+                        fieldTypeElement.getQualifiedName().toString());
             }
 
-            default -> {
-                return resolveTypeMirror(element.asType());
+            // 4️⃣ 메서드 접근
+            if (e instanceof ExecutableElement method) {
+
+                TypeMirror returnType = method.getReturnType();
+                System.err.println("[resolveExpressionChain] returnType = " + returnType.toString());
+
+                // 1️⃣ void 처리 (체인 종료)
+                if (TypeKind.VOID == returnType.getKind()) {
+                    System.err.println(
+                            "[resolveExpressionChain] method returns void: "
+                                    + method.getSimpleName()
+                    );
+                    return null;
+                }
+
+                // 2️⃣ primitive 처리 (int, boolean ...)
+                if (returnType.getKind().isPrimitive()) {
+                    System.err.println(
+                            "[resolveExpressionChain] method returns primitive: "
+                                    + returnType
+                    );
+                    return null;
+                }
+
+                // 3️⃣ DeclaredType (일반 클래스, 인터페이스)
+                if (returnType.getKind() == TypeKind.DECLARED) {
+                    TypeElement returnTypeElement =
+                            (TypeElement) types.asElement(returnType);
+
+                    return resolveClass(
+                            returnTypeElement.getQualifiedName().toString()
+                    );
+                }
+
+                // 4️⃣ TypeVariable (T, E, K, V 등)
+                if (returnType.getKind() == TypeKind.TYPEVAR) {
+                    TypeVariable tv = (TypeVariable) returnType;
+
+                    // 상한(bound)으로 해석
+                    TypeMirror upperBound = tv.getUpperBound();
+
+                    // 보통 Object
+                    if (upperBound.getKind() == TypeKind.DECLARED) {
+                        TypeElement boundElement =
+                                (TypeElement) types.asElement(upperBound);
+
+                        return resolveClass(
+                                boundElement.getQualifiedName().toString()
+                        );
+                    }
+
+                    return null;
+                }
+
+                // 5️⃣ ArrayType
+                if (returnType.getKind() == TypeKind.ARRAY) {
+                    ArrayType at = (ArrayType) returnType;
+                    TypeMirror component = at.getComponentType();
+
+                    if (component.getKind() == TypeKind.DECLARED) {
+                        TypeElement componentElement =
+                                (TypeElement) types.asElement(component);
+
+                        return resolveClass(
+                                componentElement.getQualifiedName().toString()
+                        );
+                    }
+                }
+
+                return null;
             }
         }
+
+        return null;
     }
 
 
@@ -556,6 +687,17 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private SymbolInfo resolveClass(String qualifiedName) {
         JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
         return resolver.resolveClass(qualifiedName);
+    }
+
+    @Override
+    public Void visitBlock(BlockTree node, Void unused) {
+        //System.err.println("[visitBlock] invoked");
+        enterSymbolTable("^block$");
+        try {
+            return super.visitBlock(node, unused);
+        } finally {
+            exitSymbolTable();
+        }
     }
 
 }

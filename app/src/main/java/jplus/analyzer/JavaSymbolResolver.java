@@ -101,13 +101,13 @@ public class JavaSymbolResolver {
                 TypeInfo fieldTypeInfo =
                         TypeUtils.fromTypeMirror(field.asType(), field);
 
-                SymbolInfo fieldSymbol = SymbolInfo.builder()
+                SymbolInfo fieldSymbolInfo = SymbolInfo.builder()
                         .symbol(field.getSimpleName().toString())
                         .typeInfo(fieldTypeInfo)
                         .symbolTable(classSymbolTable)
                         .build();
 
-                classSymbolTable.declare(fieldSymbol.getSymbol(), fieldSymbol);
+                classSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
             }
         }
 
