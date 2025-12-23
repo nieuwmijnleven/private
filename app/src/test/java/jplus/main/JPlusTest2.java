@@ -35,44 +35,44 @@ class JPlusTest2 {
 
     @Test
     void testApplySetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplySetter.jplus", "1z2wSaMFPEihup5zDR6wH5f+XEs=");
+        checkGeneratedCode("./src/test/samples/generics/ApplySetter.jplus", "wPKhrny4qhcRQUsYO0+zAm7KMpg=");
     }
 
     @Test
     void testApplyGetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyGetter.jplus", "Cf0XeGQLc90wGb15PhG1AWJlTIo=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyGetter.jplus", "ngP1x8iwnp9zE5UL5hEHhgnPxeM=");
     }
 
     @Test
     void testApplyGenerics() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyGenerics.jplus", "eFF4FV90LtZIV8mL4NtPmVQ85Y8=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyGenerics.jplus", "YjZlxsnWSUhBuxCCPk52Wup/HPw=");
     }
 
 
 
     @Test
     void testApplyHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyHashCode.jplus", "2swIgD1B8nYL4OVJPRs1QVw++Is=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyHashCode.jplus", "GoGv4wptqzWrWxozkV3gN6N35aw=");
     }
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "bAioJccvFYsTG42fe868fAauOvQ=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "G0Kw+8iWktD6w29oRj5YJ2RfuQE=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "hNBi4lB1CMbRmKREWzJiSH/XcrU=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "6udO+Lhyqehr1ct4AH582I9CFE8=");
     }
 
     @Test
     void testApplyToBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyToBuilder.jplus", "1Xn2ny5+W2Y+lxCk8b+vsjxSW3Y=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyToBuilder.jplus", "gelnDevoQZEs9mKZ4cFJllVH8t4=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "rmzrm5bjtNGV+7Fw/jMkIYHPI9I=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "amnGh2AW2D7x6vlOKyj6voimwOc=");
     }
 
     @Test
@@ -93,36 +93,37 @@ class JPlusTest2 {
 
         assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:26, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:30, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:70, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:86, column:8) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:109, column:58) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:110, column:58) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:110, column:110) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:113, column:8) The 1st argument of the user2.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:113, column:8) The 1st argument of the UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithNo.jplus", "tMxYt2Y2giLz5PH7P+BfZCE+mVc=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithNo.jplus", "mCOocA3c9h2396LcUTepeJUmxC0=");
     }
 
     @Test
     void testApplyConstructorWithAll() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithAll.jplus", "4HyrVpuRaCWYSGSFd6Ln8Ov3hdM=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithAll.jplus", "u8IYl7H++eeomF+k1AoELdRLiSQ=");
     }
 
     @Test
     void testApplyConstructorWithRequired() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithRequired.jplus", "rryTmrcl69V24QLr9b2/ChFeiQE=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithRequired.jplus", "pFh2+Tkvb1yJiJzKXKu3ivk6XvU=");
     }
 
     @Test
     void testApplyToString() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyToString.jplus", "33E7aLd5YiZz7yRnIeDe1Z3qlkU=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyToString.jplus", "VgDOxwpRb9n2gn7qLSP9w0pF5E0=");
     }
 
     @Test
     void testApplyBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyBuilder.jplus", "UVR3TSB24yuHfuYnP+ZHhglChxg=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyBuilder.jplus", "cB7/mwtLK3cWvziXjvPLhUr8LVA=");
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {

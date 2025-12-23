@@ -258,10 +258,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         System.err.println("[ExpressionName] symbol = " + symbol);
         SymbolInfo symbolInfo = leftTable.resolve(symbol);
         System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-        if (symbolInfo == null) {
-            symbolInfo = leftTable.resolve(Utils.getTokenString(ctx));
-            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-        }
+//        if (symbolInfo == null) {
+//            symbolInfo = leftTable.resolve(Utils.getTokenString(ctx));
+//            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
+//        }
 
         if (symbolInfo != null && hasDot(ctx.getParent())) {
 //            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
@@ -279,7 +279,7 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
             String typeName = typeInfo.getName();
             if (!SymbolUtils.isFQN(typeName)) {
-                typeName = this.packageName + "." + typeName;
+                typeName = Optional.ofNullable(this.packageName).map(pkg -> pkg + "." + typeInfo.getName()).orElse(typeName);
             }
             System.err.println("[ExpressionName] typeName = " + typeName);
 
