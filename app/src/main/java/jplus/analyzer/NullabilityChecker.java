@@ -23,7 +23,6 @@ import jplus.base.MethodInvocationInfo;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
-import jplus.generator.CodeGenContext;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.MethodUtils;
@@ -258,14 +257,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         System.err.println("[ExpressionName] symbol = " + symbol);
         SymbolInfo symbolInfo = leftTable.resolve(symbol);
         System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-//        if (symbolInfo == null) {
-//            symbolInfo = leftTable.resolve(Utils.getTokenString(ctx));
-//            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-//        }
 
         if (symbolInfo != null && hasDot(ctx.getParent())) {
 //            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
-            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable()) {
+            if (symbolInfo.getTypeInfo().isNullable()) {
                 System.err.println("[ExpressionName] nullability warning(" + ctx.start.getLine() + ") = " + symbolInfo);
                 getIdentifierFromParent(ctx).ifPresent(id ->
                         reportIssue(
@@ -283,14 +278,13 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
             }
             System.err.println("[ExpressionName] typeName = " + typeName);
 
-            System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
+            //System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
             SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
             SymbolTable topLevelTable = classSymbolInfo.getSymbolTable();
             SymbolInfo topLevelClassInfo = topLevelTable.resolve("^TopLevelClass$");
-            SymbolTable nextTable = topLevelTable.getEnclosingSymbolTable(topLevelClassInfo.getSymbol());
 
             // symbolTable을 부모 재귀 호출에 전달
-            return nextTable;
+            return topLevelTable.getEnclosingSymbolTable(topLevelClassInfo.getSymbol());
         }
 
         return leftTable;
@@ -327,51 +321,6 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
 //        return super.visitExpressionName(ctx);
         return null;
     }
-
-    /*@Override
-    public Void visitExpressionName(JPlus20Parser.ExpressionNameContext ctx) {
-        System.err.println("[ExpressionName] = code = " + Utils.getTokenString(ctx));
-        var ambiguousNameCtx = ctx.ambiguousName();
-        SymbolInfo symbolInfo = null;
-        SymbolTable symbolTable = currentSymbolTable;
-        while (ambiguousNameCtx != null) {
-            String symbol = Utils.getTokenString(ambiguousNameCtx.identifier());
-            System.err.println("[ExpressionName] symbol = " + symbol);
-
-            symbolInfo = symbolTable.resolve(symbol);
-            System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-
-            TypeInfo typeInfo = symbolInfo.getTypeInfo();
-
-
-            String typeName = typeInfo.getName();
-            if (!SymbolUtils.isFQN(typeName)) {
-                typeName = this.packageName + "." + typeName;
-            }
-            System.err.println("[ExpressionName] typeName = " + typeName);
-            System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
-
-            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
-            symbolTable = classSymbolInfo.getSymbolTable();
-            SymbolInfo symInfo = symbolTable.resolve("^TopLevelClass$");
-            symbolTable = symbolTable.getEnclosingSymbolTable(symInfo.getSymbol());
-
-            if (symbolInfo.getTypeInfo().isNullable() && ambiguousNameCtx.DOT() != null) {
-                String identifier = Utils.getTokenString(ambiguousNameCtx.ambiguousName().identifier());
-                String msg = symbol + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
-                reportIssue(ambiguousNameCtx.start, msg);
-            }
-
-            ambiguousNameCtx = ambiguousNameCtx.ambiguousName();
-        }
-
-        if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && ctx.DOT() != null) {
-            String identifier = Utils.getTokenString(ctx.identifier());
-            String msg = symbolInfo.getSymbol() + " is a nullable variable. But it directly accesses " + identifier + ". Consider using null-safe operator(?.).";
-            reportIssue(ctx.start, msg);
-        }
-        return super.visitExpressionName(ctx);
-    }*/
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
         SymbolTable symbolTable = symbolInfo.getSymbolTable();
@@ -694,28 +643,10 @@ public class NullabilityChecker extends JPlus20ParserBaseVisitor<Void> {
         return super.visitMethodInvocation(ctx);
     }
 
-    @Override
-    public Void visitPrimaryNoNewArray(JPlus20Parser.PrimaryNoNewArrayContext ctx) {
-        /*if (ctx.typeName() != null) {
-            if (ctx.THIS() == null) {
-                String instanceName = Utils.getTokenString(ctx.typeName());
-                String methodName = Utils.getTokenString(ctx.identifier());
-                boolean nullsafe = ctx.NULLSAFE() != null;
-
-                SymbolInfo symbolInfo = currentSymbolTable.resolve(instanceName);
-                if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && !nullsafe) {
-                    String msg = instanceName + " is a nullable variable. But it directly accesses " + methodName + "(). Consider using null-safe operator(?.).";
-                    reportIssue(ctx.start, msg);
-                }
-            }
-        }*/
-
-        if (ctx.expressionName() !=  null) {
-
-        }
-
-        return super.visitPrimaryNoNewArray(ctx);
-    }
+//    @Override
+//    public Void visitPrimaryNoNewArray(JPlus20Parser.PrimaryNoNewArrayContext ctx) {
+//        return super.visitPrimaryNoNewArray(ctx);
+//    }
 
     public boolean hasPassed() {
         return hasPassed;

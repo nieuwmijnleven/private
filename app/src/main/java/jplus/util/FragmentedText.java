@@ -24,6 +24,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class FragmentedText {
     private final String original;
     private final TextChangeRange originalTextChangeRange;
     private final List<TextFragmentNode> fragmentedNodeList;
-    private final List<TextFragmentNode> unchangedRangeList;
+    //private final List<TextFragmentNode> unchangedRangeList;
 
     static class TextFragmentNode {
         TextChangeRange originalRange;
@@ -57,7 +58,7 @@ public class FragmentedText {
             boolean rangeFixed = node.rangeFixed;
             List<TextFragmentNode> priors = node.priors;
             int parentSliceStart = node.parentSliceStart;
-            int parentSliceEnd= node.parentSliceEnd;
+            int parentSliceEnd = node.parentSliceEnd;
             return new TextFragmentNode(originalRange, string, rangeFixed, parentSliceStart, parentSliceEnd, priors);
         }
 
@@ -77,7 +78,7 @@ public class FragmentedText {
         this.originalTextChangeRange = range;
         this.fragmentedNodeList = new LinkedList<>();
         this.fragmentedNodeList.add(new TextFragmentNode(range, original, false, -1, -1, null));
-        this.unchangedRangeList = new ArrayList<>();
+        //this.unchangedRangeList = new ArrayList<>();
 //        this.deletedFragmentedNodeList = new ArrayList<>();
     }
 
@@ -93,7 +94,7 @@ public class FragmentedText {
         //System.err.println("[findFragmentedText] range = " + range);
         List<TextFragmentNode> allFragmentNodeList = new ArrayList<>();
         allFragmentNodeList.addAll(fragmentedNodeList);
-        allFragmentNodeList.addAll(unchangedRangeList);
+        //allFragmentNodeList.addAll(unchangedRangeList);
 
         for (TextFragmentNode textFragmentNode : allFragmentNodeList) {
 //            System.err.println("[findFragmentedText] originalRange = " + textFragmentNode.originalRange);
@@ -116,19 +117,16 @@ public class FragmentedText {
         return Optional.empty();
     }
 
-    public String add(TextChangeRange textChangeRange, String string) {
-        FragmentedText fragmentedText = new FragmentedText(textChangeRange, string);
+    public String projectOn(TextChangeRange textChangeRange, String string) {
+        FragmentedText temp = new FragmentedText(textChangeRange, string);
         for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
-            if (textChangeRange.contains(textFragmentNode.originalRange) && !string.contains(textFragmentNode.string)) {
+            if (textChangeRange.contains(textFragmentNode.originalRange)) {
                 //System.err.println("textFragmentNode.string = " + textFragmentNode.string);
                 //System.err.println("string = " + string);
-                fragmentedText.update(textFragmentNode.originalRange, textFragmentNode.string);
+                temp.update(textFragmentNode.originalRange, textFragmentNode.string);
             }
         }
-
-        String updated = fragmentedText.toString();
-        this.unchangedRangeList.add(new TextFragmentNode(textChangeRange, updated, true, -1, -1, null));
-        return updated;
+        return temp.toString();
     }
 
     public void update(TextChangeRange textChangeRange, String replace) {
@@ -215,7 +213,7 @@ public class FragmentedText {
                     priorNode.parentSliceStart = 0;
                     priorNode.parentSliceEnd = priorNode.string.length() - 1;
                 } else {
-                    TextFragmentNode prevNode = fragmentedNodeList.get(i-1);
+                    TextFragmentNode prevNode = fragmentedNodeList.get(i - 1);
                     TextFragmentNode removed = fragmentedNodeList.remove(i);
 
                     removed.parentSliceStart = 0;
@@ -281,13 +279,6 @@ public class FragmentedText {
         return new SourceMappingEntry(prior.string, prior.originalRange, newRange);
     }
 
-    // 간단한 Pair 클래스
-    private static class Pair<F, S> {
-        public final F first;
-        public final S second;
-        public Pair(F first, S second) { this.first = first; this.second = second; }
-    }
-
     public Set<SourceMappingEntry> buildSourceMap() {
         System.err.println("[buildSourceMap] debugString() = " + debugString());
         Set<SourceMappingEntry> mapping = new HashSet<>();
@@ -322,17 +313,17 @@ public class FragmentedText {
                     ));
             mapping.add(entry);
 
-            Deque<Pair<TextFragmentNode, Integer>> stack = new LinkedList<>();
+            Deque<Map.Entry<TextFragmentNode, Integer>> stack = new LinkedList<>();
             int offset = 0;
             for (TextFragmentNode prior : node.priors) {
-                stack.push(new Pair<>(prior, offset));
+                stack.push(Map.entry(prior, offset));
                 offset += prior.string.length(); // 누적 offset
             }
 
             while (!stack.isEmpty()) {
-                Pair<TextFragmentNode, Integer> p = stack.pop();
-                TextFragmentNode priorNode = p.first;
-                int accumulatedOffset = p.second;
+                var pair = stack.pop();
+                TextFragmentNode priorNode = pair.getKey();
+                int accumulatedOffset = pair.getValue();
 
                 SourceMappingEntry priorEntry = buildSourceMapForPrior(priorNode, entry, accumulatedOffset);
                 if (priorEntry != null) mapping.add(priorEntry);
@@ -340,23 +331,11 @@ public class FragmentedText {
                 // priorNode의 priors도 누적 offset으로 DFS
                 int childOffset = 0;
                 for (TextFragmentNode child : priorNode.priors) {
-                    stack.push(new Pair<>(child, accumulatedOffset + childOffset));
+                    stack.push(Map.entry(child, accumulatedOffset + childOffset));
                     childOffset += child.string.length();
                 }
             }
         }
-
-//            for (TextFragmentNode unchangedNode : unchangedRangeList) {
-//                if (!node.originalRange.equals(unchangedNode.originalRange) && node.originalRange.contains(unchangedNode.originalRange) && unchangedNode.rangeFixed) {
-////                    System.err.println("node = " + node.string);
-////                    System.err.println("unchanged = " + remainNode.string);
-//                    var sourceMappingEntry = buildSourceMapForPrior(unchangedNode, entry);
-//                    if (sourceMappingEntry != null) mapping.add(sourceMappingEntry);
-//
-////                    mapping.add(buildSourceMapForPrior(unchangedNode, entry));
-//                }
-//            }
-//        }
 
         return mapping;
     }
@@ -365,11 +344,11 @@ public class FragmentedText {
         StringBuilder sb = new StringBuilder();
         for (TextFragmentNode node : fragmentedNodeList) {
             sb.append("[")
-            .append(node.originalRange)
-            .append(node.rangeFixed ? " FIXED" : "")
-            .append("]:\n")
-            .append(node.string)
-            .append("\n");
+                    .append(node.originalRange)
+                    .append(node.rangeFixed ? " FIXED" : "")
+                    .append("]:\n")
+                    .append(node.string)
+                    .append("\n");
         }
         return sb.toString();
     }
