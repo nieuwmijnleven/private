@@ -16,11 +16,11 @@
 
 package jplus.generator;
 
-import jplus.base.JPlus20Parser.ApplyBlockContext;
-import jplus.base.JPlus20Parser.ApplyDeclarationContext;
-import jplus.base.JPlus20Parser.ApplyFeatureListContext;
-import jplus.base.JPlus20Parser.ApplyStatementContext;
-import jplus.base.JPlus20ParserBaseVisitor;
+import jplus.base.JPlus25Parser.ApplyBlockContext;
+import jplus.base.JPlus25Parser.ApplyDeclarationContext;
+import jplus.base.JPlus25Parser.ApplyFeatureListContext;
+import jplus.base.JPlus25Parser.ApplyStatementContext;
+import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
+public class BoilerplateCodeGenerator extends JPlus25ParserBaseVisitor<Void> {
 
     private final SymbolTable symbolTable;
     private final FragmentedText fragmentedText;

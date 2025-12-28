@@ -18,8 +18,8 @@ package jplus.processor;
 
 import jplus.analyzer.NullabilityChecker;
 import jplus.analyzer.UnresolvedReferenceScanner;
-import jplus.base.JPlus20Lexer;
-import jplus.base.JPlus20Parser;
+import jplus.base.JPlus25Lexer;
+import jplus.base.JPlus25Parser;
 import jplus.base.Project;
 import jplus.base.SymbolTable;
 import jplus.generator.BoilerplateCodeGenerator;
@@ -51,7 +51,7 @@ public class JPlusProcessor {
     private final Project project;
     private final String originalText;
 
-    private JPlus20Parser parser;
+    private JPlus25Parser parser;
     private JPlusParserRuleContext parseTree;
     private Set<SourceMappingEntry> sourceMappingEntrySet;
 
@@ -113,9 +113,9 @@ public class JPlusProcessor {
         CodeGenContext.push();
         try {
             CharStream input = CharStreams.fromString(originalText);
-            JPlus20Lexer lexer = new JPlus20Lexer(input);
+            JPlus25Lexer lexer = new JPlus25Lexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            parser = new JPlus20Parser(tokens);
+            parser = new JPlus25Parser(tokens);
 
             parseTree = parser.start_();
             processed = true;

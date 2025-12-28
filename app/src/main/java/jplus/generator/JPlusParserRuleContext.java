@@ -16,15 +16,15 @@
 
 package jplus.generator;
 
-import jplus.base.JPlus20Parser;
-import jplus.base.JPlus20Parser.ApplyDeclarationContext;
-import jplus.base.JPlus20Parser.ExpressionNameContext;
-import jplus.base.JPlus20Parser.FieldAccessContext;
-import jplus.base.JPlus20Parser.MethodInvocationContext;
-import jplus.base.JPlus20Parser.NullCoalescingExpressionContext;
-import jplus.base.JPlus20Parser.PNNAContext;
-import jplus.base.JPlus20Parser.PrimaryNoNewArrayContext;
-import jplus.base.JPlus20Parser.UnannTypeContext;
+import jplus.base.JPlus25Parser;
+import jplus.base.JPlus25Parser.ApplyDeclarationContext;
+import jplus.base.JPlus25Parser.ExpressionNameContext;
+import jplus.base.JPlus25Parser.FieldAccessContext;
+import jplus.base.JPlus25Parser.MethodInvocationContext;
+import jplus.base.JPlus25Parser.NullCoalescingExpressionContext;
+import jplus.base.JPlus25Parser.PNNAContext;
+import jplus.base.JPlus25Parser.PrimaryNoNewArrayContext;
+import jplus.base.JPlus25Parser.UnannTypeContext;
 import jplus.editor.FragmentedText;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -50,13 +50,14 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         if (processed) return this.updatedContextString;
         processed = true;
 
-        if (this instanceof ApplyDeclarationContext ApplyDeclarationCtx) {
-            return replaceApplyStatementWithComment(ApplyDeclarationCtx);
+        if (this instanceof ApplyDeclarationContext applyDeclarationCtx) {
+            System.err.println("[ApplyDeclarationCtx] code = " + Utils.getTokenString(applyDeclarationCtx));
+            return replaceApplyStatementWithComment(applyDeclarationCtx);
         } else if (this instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
             return replaceNullType(unannTypeCtx);
         } else if (this instanceof NullCoalescingExpressionContext nullCoalescingCtx && nullCoalescingCtx.ELVIS() != null) {
             return replaceElvisOperator(nullCoalescingCtx);
-        } else if (this instanceof JPlus20Parser.PrimaryContext primaryCtx) {
+        } else if (this instanceof JPlus25Parser.PrimaryContext primaryCtx) {
             return processPrimary(primaryCtx);
         } else if (this instanceof PrimaryNoNewArrayContext primaryNoNewArrayCtx) {
             return processPrimaryNoNewArray(primaryNoNewArrayCtx);
@@ -132,7 +133,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return updateContextString(expressionNameCtx, replaced);
     }
 
-    private String processPrimary(JPlus20Parser.PrimaryContext primaryCtx) {
+    private String processPrimary(JPlus25Parser.PrimaryContext primaryCtx) {
         if (primaryCtx.primaryNoNewArray() != null) {
             return primaryCtx.primaryNoNewArray().getText();
         }
@@ -276,7 +277,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             ParseTree child = ctx.getChild(i);
 
             if (child instanceof TerminalNode tn) {
-                if (tn.getSymbol().getType() == JPlus20Parser.NULLSAFE) {
+                if (tn.getSymbol().getType() == JPlus25Parser.NULLSAFE) {
                     return true;
                 }
             } else if (child instanceof ParserRuleContext prc) {
@@ -436,7 +437,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     private String processDefaultText() {
         ensureChildTextInitialized();
 
-        if (this instanceof JPlus20Parser.Start_Context) {
+        if (this instanceof JPlus25Parser.Start_Context) {
             FragmentedText fragmentedText = getCurrentFragmentedText();
             //System.err.println("debugString = " + fragmentedText.debugString());
             this.updatedContextString = fragmentedText.toString();
