@@ -16,6 +16,9 @@
 
 package jplus.util;
 
+import jplus.editor.BufferManager;
+import jplus.editor.BufferType;
+import jplus.editor.DefaultBufferManager;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 
@@ -30,41 +33,54 @@ import java.util.Set;
 
 public class FragmentedText {
     private final String original;
+    private final BufferManager bufferManager;
     private final TextChangeRange originalRange;
     private final List<Fragment> fragments = new ArrayList<>();
 
+    static final class TextRef {
+        BufferType bufType;
+        int start;
+        int length;
+
+        public TextRef(BufferType bufType, int start, int length) {
+            this.bufType = bufType;
+            this.start = start;
+            this.length = length;
+        }
+    }
+
     static final class Fragment {
         TextChangeRange range;
-        String text;
+        TextRef ref;
         boolean fixed;
         List<Fragment> priors;
 
-        Fragment(TextChangeRange range, String text, boolean fixed, List<Fragment> priors) {
+        Fragment(TextChangeRange range, TextRef ref, boolean fixed, List<Fragment> priors) {
             this.range = Objects.requireNonNull(range);
-            this.text = Objects.requireNonNull(text);
+            this.ref = Objects.requireNonNull(ref);
             this.fixed = fixed;
             this.priors = new ArrayList<>(
                     Objects.requireNonNull(priors)
             );
         }
 
-        Fragment(TextChangeRange range, String text, boolean fixed) {
-            this(range, text, fixed, List.of());
+        Fragment(TextChangeRange range, TextRef ref, boolean fixed) {
+            this(range, ref, fixed, List.of());
         }
 
         static Fragment copyFrom(final Fragment node) {
             TextChangeRange originalRange = TextChangeRange.copyFrom(node.range);
-            String string = node.text;
+            TextRef ref = node.ref;
             boolean rangeFixed = node.fixed;
             List<Fragment> priors = node.priors;
-            return new Fragment(originalRange, string, rangeFixed, priors);
+            return new Fragment(originalRange, ref, rangeFixed, priors);
         }
 
         @Override
         public String toString() {
             return "TextFragmentNode{" +
                     "originalRange=" + range +
-                    ", string='" + text + '\'' +
+                    ", textRef ='" + ref + '\'' +
                     ", rangeFixed=" + fixed +
                     ", priors=" + priors +
                     '}';
@@ -73,8 +89,9 @@ public class FragmentedText {
 
     public FragmentedText(TextChangeRange range, String original) {
         this.original = original;
+        this.bufferManager = new DefaultBufferManager(original);
         this.originalRange = range;
-        this.fragments.add(new Fragment(range, original, false));
+        this.fragments.add(new Fragment(range, new TextRef(BufferType.ORIGINAL, 0, original.length()), false));
     }
 
     public FragmentedText(String original) {
@@ -96,9 +113,13 @@ public class FragmentedText {
         return Optional.empty();
     }
 
+    private String getTextFromRef(TextRef ref) {
+        return bufferManager.substring(ref.bufType, ref.start, ref.length);
+    }
+
     private Optional<String> find(Fragment f, TextChangeRange range) {
         if (range.equals(f.range)) {
-            return Optional.of(f.text);
+            return Optional.of(getTextFromRef(f.ref));
         }
 
         Deque<Fragment> deque = new LinkedList<>();
@@ -107,7 +128,7 @@ public class FragmentedText {
             Fragment node = deque.removeFirst();
 //                System.err.println("[findFragmentedText] prior = " + node.originalRange);
             if (range.equals(node.range)) {
-                return Optional.of(node.text);
+                return Optional.of(getTextFromRef(node.ref));
             }
             deque.addAll(node.priors);
         }
@@ -118,7 +139,7 @@ public class FragmentedText {
         FragmentedText temp = new FragmentedText(textChangeRange, string);
         for (Fragment fragment : fragments) {
             if (textChangeRange.contains(fragment.range)) {
-                temp.update(fragment.range, fragment.text);
+                temp.update(fragment.range, getTextFromRef(fragment.ref));
             }
         }
         return temp.toString();
@@ -154,17 +175,17 @@ public class FragmentedText {
             int relStart = overlapStart - nodeStart;
             int relEnd = overlapEnd - nodeStart + 1;
 
-            if (relStart > 0) {
-                fragments.add(i++, new Fragment(rangeFrom(nodeStart, overlapStart - 1), f.text.substring(0, relStart), false));
+            if (overlapStart > nodeStart) {
+                fragments.add(i++, new Fragment(rangeFrom(nodeStart, overlapStart - 1), new TextRef(BufferType.ORIGINAL, nodeStart, overlapStart - nodeStart), false));
             }
 
-            if (relEnd < f.text.length()) {
-                fragments.add(i + 1, new Fragment(rangeFrom(overlapEnd + 1, nodeEnd), f.text.substring(relEnd), false));
+            if (overlapEnd < nodeEnd) {
+                fragments.add(i + 1, new Fragment(rangeFrom(overlapEnd + 1, nodeEnd), new TextRef(BufferType.ORIGINAL, overlapEnd + 1, nodeEnd - overlapEnd), false));
             }
 
             Fragment priorNode = Fragment.copyFrom(f);
             f.range = rangeFrom(overlapStart, overlapEnd);
-            f.text = f.text.substring(relStart, relEnd);
+            f.ref = new TextRef(BufferType.ORIGINAL, overlapStart, overlapEnd - overlapStart + 1);
             f.fixed = false;
             f.priors = new ArrayList<>(List.of(priorNode));
         }
@@ -189,7 +210,7 @@ public class FragmentedText {
             if (!replaced) {
                 Fragment priorNode = Fragment.copyFrom(f);
                 f.range = range;
-                f.text = replacement;
+                f.ref = new TextRef(BufferType.ADD, bufferManager.add(replacement), replacement.length());
                 f.fixed = true;
                 f.priors = new ArrayList(List.of(priorNode));
                 replaced = true;
@@ -225,7 +246,8 @@ public class FragmentedText {
         int endLine = startLine;
         int endCol = startCol;
 
-        for (char c : prior.text.toCharArray()) {
+        for (int i = 0; i < prior.ref.length; i++) {
+            char c = bufferManager.charAt(prior.ref.bufType, prior.ref.start + i);
             if (c == '\n') {
                 currentLine++;
                 currentCol = 0;
@@ -238,7 +260,7 @@ public class FragmentedText {
         endCol = currentCol;
 
         TextChangeRange newRange = new TextChangeRange(startLine, startCol, endLine, endCol);
-        return new SourceMappingEntry(prior.text, prior.range, newRange);
+        return new SourceMappingEntry(getTextFromRef(prior.ref), prior.range, newRange);
     }
 
     public Set<SourceMappingEntry> buildSourceMap() {
@@ -252,7 +274,8 @@ public class FragmentedText {
             int transformedStartLine = currentLine;
             int transformedStartCol = currentCol;
 
-            for (char c : f.text.toCharArray()) {
+            for (int i = 0; i < f.ref.length; i++) {
+                char c = bufferManager.charAt(f.ref.bufType, f.ref.start + i);
                 if (c == '\n') {
                     currentLine++;
                     currentCol = 0;
@@ -265,7 +288,7 @@ public class FragmentedText {
             int transformedEndCol = currentCol;
 
             SourceMappingEntry entry = new SourceMappingEntry(
-                    f.text,
+                    getTextFromRef(f.ref),
                     f.range,
                     new TextChangeRange(
                             transformedStartLine,
@@ -278,7 +301,7 @@ public class FragmentedText {
             int offset = 0;
             for (Fragment p : f.priors) {
                 traversePrior(p, offset, entry, mapping);
-                offset += p.text.length();
+                offset += p.ref.length;
             }
         }
 
@@ -302,7 +325,7 @@ public class FragmentedText {
                     entry,
                     mapping
             );
-            childOffset += child.text.length();
+            childOffset += child.ref.length;
         }
     }
 
@@ -313,7 +336,7 @@ public class FragmentedText {
                     .append(node.range)
                     .append(node.fixed ? " FIXED" : "")
                     .append("]:\n")
-                    .append(node.text)
+                    .append(getTextFromRef(node.ref))
                     .append("\n");
         }
         return sb.toString();
@@ -327,7 +350,7 @@ public class FragmentedText {
 
         StringBuilder sb = new StringBuilder();
         for (Fragment node : fragments) {
-            sb.append(node.text);
+            sb.append(getTextFromRef(node.ref));
         }
         return sb.toString();
     }
