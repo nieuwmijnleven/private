@@ -98,8 +98,4 @@ class FragmentedTextTest {
 //        //System.out.println(stringVersion.toString());
 //        assertEquals(replaced, fragmentedText.toString());
 //    }
-
-    @Test
-    void testToString() {
-    }
 }
