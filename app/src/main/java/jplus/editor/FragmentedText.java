@@ -75,20 +75,23 @@ public class FragmentedText {
             this(range, ref, fixed, List.of());
         }
 
-        static Fragment copyFrom(final Fragment node) {
-            TextChangeRange originalRange = TextChangeRange.copyFrom(node.range);
-            TextRef ref = node.ref;
-            boolean rangeFixed = node.fixed;
-            List<Fragment> priors = node.priors;
-            return new Fragment(originalRange, ref, rangeFixed, priors);
+        public Fragment(Fragment other) {
+            this.range = other.range;
+            this.ref = other.ref;
+            this.fixed = other.fixed;
+            this.priors = other.priors;
+        }
+
+        public static Fragment from(Fragment other) {
+            return new Fragment(other);
         }
 
         @Override
         public String toString() {
-            return "TextFragmentNode{" +
-                    "originalRange=" + range +
-                    ", textRef ='" + ref + '\'' +
-                    ", rangeFixed=" + fixed +
+            return "Fragment{" +
+                    "range=" + range +
+                    ", ref='" + ref + '\'' +
+                    ", fixed=" + fixed +
                     ", priors=" + priors +
                     '}';
         }
@@ -111,9 +114,7 @@ public class FragmentedText {
 
     public Optional<String> findFragmentByRange(TextChangeRange range) {
         //System.err.println("[findFragmentedText] range = " + range);
-
         for (Fragment f : fragments) {
-            //System.err.println("[findFragmentedText] originalRange = " + textFragmentNode.originalRange);
             Optional<String> found = find(f, range);
             if (found.isPresent()) return found;
         }
@@ -132,12 +133,11 @@ public class FragmentedText {
         Deque<Fragment> deque = new LinkedList<>();
         deque.addAll(f.priors);
         while (!deque.isEmpty()) {
-            Fragment node = deque.removeFirst();
-//                System.err.println("[findFragmentedText] prior = " + node.originalRange);
-            if (range.equals(node.range)) {
-                return Optional.of(getTextFromRef(node.ref));
+            Fragment prior = deque.removeFirst();
+            if (range.equals(prior.range)) {
+                return Optional.of(getTextFromRef(prior.ref));
             }
-            deque.addAll(node.priors);
+            deque.addAll(prior.priors);
         }
         return Optional.empty();
     }
@@ -170,31 +170,31 @@ public class FragmentedText {
                 continue;
             }
 
-            int nodeStart = toIndex(f.range.startLine(), f.range.startIndex());
-            int nodeEnd = toIndex(f.range.endLine(), f.range.inclusiveEndIndex());
+            int fragmentStart = toIndex(f.range.startLine(), f.range.startIndex());
+            int fragmentEnd = toIndex(f.range.endLine(), f.range.inclusiveEndIndex());
 
             int rangeStart = toIndex(target.startLine(), target.startIndex());
             int rangeEnd = toIndex(target.endLine(), target.inclusiveEndIndex());
 
-            int overlapStart = Math.max(rangeStart, nodeStart);
-            int overlapEnd = Math.min(rangeEnd, nodeEnd);
+            int overlapStart = Math.max(rangeStart, fragmentStart);
+            int overlapEnd = Math.min(rangeEnd, fragmentEnd);
 
-            int relStart = overlapStart - nodeStart;
-            int relEnd = overlapEnd - nodeStart + 1;
+            int relStart = overlapStart - fragmentStart;
+            int relEnd = overlapEnd - fragmentStart + 1;
 
-            if (overlapStart > nodeStart) {
-                fragments.add(i++, new Fragment(rangeFrom(nodeStart, overlapStart - 1), new TextRef(BufferType.ORIGINAL, nodeStart, overlapStart - nodeStart), false));
+            if (overlapStart > fragmentStart) {
+                fragments.add(i++, new Fragment(rangeFrom(fragmentStart, overlapStart - 1), new TextRef(BufferType.ORIGINAL, fragmentStart, overlapStart - fragmentStart), false));
             }
 
-            if (overlapEnd < nodeEnd) {
-                fragments.add(i + 1, new Fragment(rangeFrom(overlapEnd + 1, nodeEnd), new TextRef(BufferType.ORIGINAL, overlapEnd + 1, nodeEnd - overlapEnd), false));
+            if (overlapEnd < fragmentEnd) {
+                fragments.add(i + 1, new Fragment(rangeFrom(overlapEnd + 1, fragmentEnd), new TextRef(BufferType.ORIGINAL, overlapEnd + 1, fragmentEnd - overlapEnd), false));
             }
 
-            Fragment priorNode = Fragment.copyFrom(f);
+            Fragment prior = Fragment.from(f);
             f.range = rangeFrom(overlapStart, overlapEnd);
             f.ref = new TextRef(BufferType.ORIGINAL, overlapStart, overlapEnd - overlapStart + 1);
             f.fixed = false;
-            f.priors = new ArrayList<>(List.of(priorNode));
+            f.priors = new ArrayList<>(List.of(prior));
         }
     }
 
@@ -215,20 +215,20 @@ public class FragmentedText {
             if (!range.contains(f.range)) continue;
 
             if (!replaced) {
-                Fragment priorNode = Fragment.copyFrom(f);
+                Fragment prior = Fragment.from(f);
                 f.range = range;
                 f.ref = new TextRef(BufferType.ADD, bufferManager.add(replacement), replacement.length());
                 f.fixed = true;
-                f.priors = new ArrayList(List.of(priorNode));
+                f.priors = new ArrayList(List.of(prior));
                 replaced = true;
             } else {
-                Fragment prevNode = fragments.get(i - 1);
-                prevNode.priors.add(fragments.remove(i--));
+                Fragment prev = fragments.get(i - 1);
+                prev.priors.add(fragments.remove(i--));
             }
         }
 
         if (!replaced) {
-            throw new IllegalStateException("No nodes were affected by the given range:" + range + ", replacement = " + replacement + ", debugString" + debugString());
+            throw new IllegalStateException("No nodes were affected by the given range:" + range);
         }
     }
 
@@ -271,7 +271,7 @@ public class FragmentedText {
     }
 
     public Set<SourceMappingEntry> buildSourceMap() {
-        System.err.println("[buildSourceMap] debugString() = " + debugString());
+        //System.err.println("[buildSourceMap] debugString() = " + debugString());
         Set<SourceMappingEntry> mapping = new HashSet<>();
 
         int currentLine = originalRange.startLine();
@@ -338,12 +338,12 @@ public class FragmentedText {
 
     public String debugString() {
         StringBuilder sb = new StringBuilder();
-        for (Fragment node : fragments) {
+        for (Fragment f : fragments) {
             sb.append("[")
-                    .append(node.range)
-                    .append(node.fixed ? " FIXED" : "")
+                    .append(f.range)
+                    .append(f.fixed ? " FIXED" : "")
                     .append("]:\n")
-                    .append(getTextFromRef(node.ref))
+                    .append(getTextFromRef(f.ref))
                     .append("\n");
         }
         return sb.toString();
@@ -356,8 +356,8 @@ public class FragmentedText {
         }
 
         StringBuilder sb = new StringBuilder();
-        for (Fragment node : fragments) {
-            sb.append(getTextFromRef(node.ref));
+        for (Fragment f : fragments) {
+            sb.append(getTextFromRef(f.ref));
         }
         return sb.toString();
     }
