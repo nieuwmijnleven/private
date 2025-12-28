@@ -16,7 +16,7 @@
 
 package jplus.generator;
 
-import jplus.util.FragmentedText;
+import jplus.editor.FragmentedText;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

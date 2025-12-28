@@ -26,7 +26,7 @@ import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.CodeGenContext;
 import jplus.generator.JPlusParserRuleContext;
 import jplus.generator.SourceMappingEntry;
-import jplus.util.FragmentedText;
+import jplus.editor.FragmentedText;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;

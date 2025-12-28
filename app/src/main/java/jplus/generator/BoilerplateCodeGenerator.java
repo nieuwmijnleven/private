@@ -38,7 +38,7 @@ import jplus.generator.apply.HashCodeFeatureProcessor;
 import jplus.generator.apply.SetterFeatureProcessor;
 import jplus.generator.apply.ToBuilderFeatureProcessor;
 import jplus.generator.apply.ToStringFeatureProcessor;
-import jplus.util.FragmentedText;
+import jplus.editor.FragmentedText;
 import jplus.util.Utils;
 
 import java.util.ArrayList;
@@ -47,8 +47,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 public class BoilerplateCodeGenerator extends JPlus20ParserBaseVisitor<Void> {
 

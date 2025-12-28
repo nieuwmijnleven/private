@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package jplus.util;
+package jplus.editor;
 
-import jplus.editor.BufferManager;
-import jplus.editor.BufferType;
-import jplus.editor.DefaultBufferManager;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
+import jplus.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -46,6 +44,15 @@ public class FragmentedText {
             this.bufType = bufType;
             this.start = start;
             this.length = length;
+        }
+
+        @Override
+        public String toString() {
+            return "TextRef{" +
+                    "bufType=" + bufType +
+                    ", start=" + start +
+                    ", length=" + length +
+                    '}';
         }
     }
 

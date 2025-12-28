@@ -25,7 +25,7 @@ import jplus.base.JPlus20Parser.NullCoalescingExpressionContext;
 import jplus.base.JPlus20Parser.PNNAContext;
 import jplus.base.JPlus20Parser.PrimaryNoNewArrayContext;
 import jplus.base.JPlus20Parser.UnannTypeContext;
-import jplus.util.FragmentedText;
+import jplus.editor.FragmentedText;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
