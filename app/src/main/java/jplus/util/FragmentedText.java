@@ -24,50 +24,48 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 public class FragmentedText {
     private final String original;
-    private final TextChangeRange originalTextChangeRange;
-    private final List<TextFragmentNode> fragmentedNodeList;
-    //private final List<TextFragmentNode> unchangedRangeList;
+    private final TextChangeRange originalRange;
+    private final List<Fragment> fragments = new ArrayList<>();
 
-    static class TextFragmentNode {
-        TextChangeRange originalRange;
-        String string;
-        boolean rangeFixed;
-        List<TextFragmentNode> priors;
+    static final class Fragment {
+        TextChangeRange range;
+        String text;
+        boolean fixed;
+        List<Fragment> priors;
 
-        int parentSliceStart;
-        int parentSliceEnd;
-
-        public TextFragmentNode(TextChangeRange originalRange, String string, boolean rangeFixed, int parentSliceStart, int parentSliceEnd, List<TextFragmentNode> priors) {
-            this.originalRange = originalRange;
-            this.string = string;
-            this.rangeFixed = rangeFixed;
-            this.parentSliceStart = parentSliceStart;
-            this.parentSliceEnd = parentSliceEnd;
-            this.priors = priors != null ? new ArrayList(priors) : new ArrayList<>();
+        Fragment(TextChangeRange range, String text, boolean fixed, List<Fragment> priors) {
+            this.range = Objects.requireNonNull(range);
+            this.text = Objects.requireNonNull(text);
+            this.fixed = fixed;
+            this.priors = new ArrayList<>(
+                    Objects.requireNonNull(priors)
+            );
         }
 
-        public static TextFragmentNode copyFrom(final TextFragmentNode node) {
-            TextChangeRange originalRange = TextChangeRange.copyFrom(node.originalRange);
-            String string = node.string;
-            boolean rangeFixed = node.rangeFixed;
-            List<TextFragmentNode> priors = node.priors;
-            int parentSliceStart = node.parentSliceStart;
-            int parentSliceEnd = node.parentSliceEnd;
-            return new TextFragmentNode(originalRange, string, rangeFixed, parentSliceStart, parentSliceEnd, priors);
+        Fragment(TextChangeRange range, String text, boolean fixed) {
+            this(range, text, fixed, List.of());
+        }
+
+        static Fragment copyFrom(final Fragment node) {
+            TextChangeRange originalRange = TextChangeRange.copyFrom(node.range);
+            String string = node.text;
+            boolean rangeFixed = node.fixed;
+            List<Fragment> priors = node.priors;
+            return new Fragment(originalRange, string, rangeFixed, priors);
         }
 
         @Override
         public String toString() {
             return "TextFragmentNode{" +
-                    "originalRange=" + originalRange +
-                    ", string='" + string + '\'' +
-                    ", rangeFixed=" + rangeFixed +
+                    "originalRange=" + range +
+                    ", string='" + text + '\'' +
+                    ", rangeFixed=" + fixed +
                     ", priors=" + priors +
                     '}';
         }
@@ -75,11 +73,8 @@ public class FragmentedText {
 
     public FragmentedText(TextChangeRange range, String original) {
         this.original = original;
-        this.originalTextChangeRange = range;
-        this.fragmentedNodeList = new LinkedList<>();
-        this.fragmentedNodeList.add(new TextFragmentNode(range, original, false, -1, -1, null));
-        //this.unchangedRangeList = new ArrayList<>();
-//        this.deletedFragmentedNodeList = new ArrayList<>();
+        this.originalRange = range;
+        this.fragments.add(new Fragment(range, original, false));
     }
 
     public FragmentedText(String original) {
@@ -90,74 +85,68 @@ public class FragmentedText {
         return this.original;
     }
 
-    public Optional<String> findFragmentedTextByRange(TextChangeRange range) {
+    public Optional<String> findFragmentByRange(TextChangeRange range) {
         //System.err.println("[findFragmentedText] range = " + range);
-        List<TextFragmentNode> allFragmentNodeList = new ArrayList<>();
-        allFragmentNodeList.addAll(fragmentedNodeList);
-        //allFragmentNodeList.addAll(unchangedRangeList);
 
-        for (TextFragmentNode textFragmentNode : allFragmentNodeList) {
-//            System.err.println("[findFragmentedText] originalRange = " + textFragmentNode.originalRange);
-            if (range.equals(textFragmentNode.originalRange)) {
-                return Optional.of(textFragmentNode.string);
-            }
+        for (Fragment f : fragments) {
+            //System.err.println("[findFragmentedText] originalRange = " + textFragmentNode.originalRange);
+            Optional<String> found = find(f, range);
+            if (found.isPresent()) return found;
+        }
+        return Optional.empty();
+    }
 
-//            List<TextFragmentNode> priors = textFragmentNode.priors;
-            Deque<TextFragmentNode> deque = new LinkedList<>();
-            deque.addAll(textFragmentNode.priors);
-            while (!deque.isEmpty()) {
-                TextFragmentNode node = deque.removeFirst();
+    private Optional<String> find(Fragment f, TextChangeRange range) {
+        if (range.equals(f.range)) {
+            return Optional.of(f.text);
+        }
+
+        Deque<Fragment> deque = new LinkedList<>();
+        deque.addAll(f.priors);
+        while (!deque.isEmpty()) {
+            Fragment node = deque.removeFirst();
 //                System.err.println("[findFragmentedText] prior = " + node.originalRange);
-                if (range.equals(node.originalRange)) {
-                    return Optional.of(node.string);
-                }
-                deque.addAll(node.priors);
+            if (range.equals(node.range)) {
+                return Optional.of(node.text);
             }
+            deque.addAll(node.priors);
         }
         return Optional.empty();
     }
 
     public String projectOn(TextChangeRange textChangeRange, String string) {
         FragmentedText temp = new FragmentedText(textChangeRange, string);
-        for (TextFragmentNode textFragmentNode : fragmentedNodeList) {
-            if (textChangeRange.contains(textFragmentNode.originalRange)) {
-                //System.err.println("textFragmentNode.string = " + textFragmentNode.string);
-                //System.err.println("string = " + string);
-                temp.update(textFragmentNode.originalRange, textFragmentNode.string);
+        for (Fragment fragment : fragments) {
+            if (textChangeRange.contains(fragment.range)) {
+                temp.update(fragment.range, fragment.text);
             }
         }
         return temp.toString();
     }
 
     public void update(TextChangeRange textChangeRange, String replace) {
-        split(textChangeRange);
+        splitOverlappingFragment(textChangeRange);
         replace(textChangeRange, replace);
     }
 
     //split overlap range
-    private void split(TextChangeRange textChangeRange) {
-        for (int i = 0; i < fragmentedNodeList.size(); ++i) {
-            TextFragmentNode node = fragmentedNodeList.get(i);
-            TextChangeRange nodeRange = node.originalRange;
+    private void splitOverlappingFragment(TextChangeRange target) {
+        for (int i = 0; i < fragments.size(); ++i) {
+            Fragment f = fragments.get(i);
 
-            if (!textChangeRange.overlaps(nodeRange)) {
-                continue;
-            }
-
-            if (textChangeRange.equals(nodeRange)) {
+            if (target.equals(f.range)) {
                 break;
             }
 
-            if (node.rangeFixed) {
-//                throw new IllegalArgumentException("Cannot partially overwrite a fixed range: " + nodeRange);
+            if (!target.overlaps(f.range) || f.fixed) {
                 continue;
             }
 
-            int nodeStart = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, nodeRange.startLine(), nodeRange.startIndex());
-            int nodeEnd = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, nodeRange.endLine(), nodeRange.inclusiveEndIndex());
+            int nodeStart = toIndex(f.range.startLine(), f.range.startIndex());
+            int nodeEnd = toIndex(f.range.endLine(), f.range.inclusiveEndIndex());
 
-            int rangeStart = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, textChangeRange.startLine(), textChangeRange.startIndex());
-            int rangeEnd = Utils.getIndexFromLineColumn(this.original, this.originalTextChangeRange, textChangeRange.endLine(), textChangeRange.inclusiveEndIndex());
+            int rangeStart = toIndex(target.startLine(), target.startIndex());
+            int rangeEnd = toIndex(target.endLine(), target.inclusiveEndIndex());
 
             int overlapStart = Math.max(rangeStart, nodeStart);
             int overlapEnd = Math.min(rangeEnd, nodeEnd);
@@ -165,84 +154,57 @@ public class FragmentedText {
             int relStart = overlapStart - nodeStart;
             int relEnd = overlapEnd - nodeStart + 1;
 
-            if (overlapStart > nodeStart) {
-                TextChangeRange headRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, nodeStart, overlapStart - 1);
-                String head = node.string.substring(0, relStart);
-                fragmentedNodeList.add(i, new TextFragmentNode(headRange, head, false, 0, relStart - 1, null));
-                ++i;
+            if (relStart > 0) {
+                fragments.add(i++, new Fragment(rangeFrom(nodeStart, overlapStart - 1), f.text.substring(0, relStart), false));
             }
 
-            if (overlapEnd < nodeEnd) {
-                TextChangeRange tailRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapEnd + 1, nodeEnd);
-                String tail = node.string.substring(relEnd);
-                fragmentedNodeList.add(i + 1, new TextFragmentNode(tailRange, tail, false, relEnd, node.string.length() - 1, null));
+            if (relEnd < f.text.length()) {
+                fragments.add(i + 1, new Fragment(rangeFrom(overlapEnd + 1, nodeEnd), f.text.substring(relEnd), false));
             }
 
-            TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
-            node.originalRange = Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalTextChangeRange, overlapStart, overlapEnd);
-            node.string = node.string.substring(relStart, relEnd);
-            node.rangeFixed = false;
-            node.parentSliceStart = relStart;
-            node.parentSliceEnd = relEnd - 1;
-            node.priors = new ArrayList<>(List.of(priorNode));
+            Fragment priorNode = Fragment.copyFrom(f);
+            f.range = rangeFrom(overlapStart, overlapEnd);
+            f.text = f.text.substring(relStart, relEnd);
+            f.fixed = false;
+            f.priors = new ArrayList<>(List.of(priorNode));
         }
     }
 
-    private void replace(TextChangeRange textChangeRange, String replace) {
-        int affectedRangeCount = 0;
+    private TextChangeRange rangeFrom(int start, int end) {
+        return Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalRange, start, end);
+    }
+
+    private int toIndex(int line, int col) {
+        return Utils.getIndexFromLineColumn(this.original, this.originalRange, line, col);
+    }
+
+    private void replace(TextChangeRange range, String replacement) {
         boolean replaced = false;
-        for (int i = 0; i < fragmentedNodeList.size(); ++i) {
-            TextFragmentNode node = fragmentedNodeList.get(i);
-            TextChangeRange nodeRange = node.originalRange;
 
-            if (!textChangeRange.overlaps(nodeRange)) {
-                continue;
+        for (int i = 0; i < fragments.size(); ++i) {
+            Fragment f = fragments.get(i);
+
+            if (!range.contains(f.range)) continue;
+
+            if (!replaced) {
+                Fragment priorNode = Fragment.copyFrom(f);
+                f.range = range;
+                f.text = replacement;
+                f.fixed = true;
+                f.priors = new ArrayList(List.of(priorNode));
+                replaced = true;
+            } else {
+                Fragment prevNode = fragments.get(i - 1);
+                prevNode.priors.add(fragments.remove(i--));
             }
-
-            if (textChangeRange.contains(nodeRange)) {
-//                System.err.println("nodeRange = " + nodeRange);
-                if (!replaced) {
-                    TextFragmentNode priorNode = TextFragmentNode.copyFrom(node);
-                    node.originalRange = textChangeRange;
-                    node.string = replace;
-                    node.rangeFixed = true;
-                    node.priors = new ArrayList(List.of(priorNode));
-                    ++affectedRangeCount;
-                    replaced = true;
-
-                    priorNode.parentSliceStart = 0;
-                    priorNode.parentSliceEnd = priorNode.string.length() - 1;
-                } else {
-                    TextFragmentNode prevNode = fragmentedNodeList.get(i - 1);
-                    TextFragmentNode removed = fragmentedNodeList.remove(i);
-
-                    removed.parentSliceStart = 0;
-                    removed.parentSliceEnd = removed.string.length() - 1;
-
-                    prevNode.priors.add(removed);
-                    --i;
-                }
-                continue;
-            }
-
-            //if (node.string.contains(replace)) ++affectedRangeCount;
         }
 
-        if (affectedRangeCount == 0) {
-            throw new IllegalStateException("No nodes were affected by the given range." + "\ntextChangeRange = " + textChangeRange + ", replace = " + replace + ", debugString" + debugString());
+        if (!replaced) {
+            throw new IllegalStateException("No nodes were affected by the given range:" + range + ", replacement = " + replacement + ", debugString" + debugString());
         }
     }
 
-    private SourceMappingEntry buildSourceMapForPrior(TextFragmentNode prior, SourceMappingEntry entry, int skipOffset) {
-        //skip
-        if (skipOffset == -1) {
-            System.err.println("[buildSourceMapForPrior] skipOffset = " + skipOffset);
-            System.err.println("entry.getSource() = " + entry.getSource());
-            System.err.println("prior.string = " + prior.string);
-//            throw new IllegalStateException("The recent change must contain the prior chages.");
-            return null;
-        }
-
+    private SourceMappingEntry buildSourceMapForPrior( SourceMappingEntry entry, Fragment prior, int skipOffset) {
         int currentLine = entry.getTransformedRange().startLine();
         int currentCol = entry.getTransformedRange().startIndex();
 
@@ -263,7 +225,7 @@ public class FragmentedText {
         int endLine = startLine;
         int endCol = startCol;
 
-        for (char c : prior.string.toCharArray()) {
+        for (char c : prior.text.toCharArray()) {
             if (c == '\n') {
                 currentLine++;
                 currentCol = 0;
@@ -276,21 +238,21 @@ public class FragmentedText {
         endCol = currentCol;
 
         TextChangeRange newRange = new TextChangeRange(startLine, startCol, endLine, endCol);
-        return new SourceMappingEntry(prior.string, prior.originalRange, newRange);
+        return new SourceMappingEntry(prior.text, prior.range, newRange);
     }
 
     public Set<SourceMappingEntry> buildSourceMap() {
         System.err.println("[buildSourceMap] debugString() = " + debugString());
         Set<SourceMappingEntry> mapping = new HashSet<>();
 
-        int currentLine = originalTextChangeRange.startLine();
-        int currentCol = originalTextChangeRange.startIndex();
+        int currentLine = originalRange.startLine();
+        int currentCol = originalRange.startIndex();
 
-        for (var node : fragmentedNodeList) {
+        for (Fragment f : fragments) {
             int transformedStartLine = currentLine;
             int transformedStartCol = currentCol;
 
-            for (char c : node.string.toCharArray()) {
+            for (char c : f.text.toCharArray()) {
                 if (c == '\n') {
                     currentLine++;
                     currentCol = 0;
@@ -303,8 +265,8 @@ public class FragmentedText {
             int transformedEndCol = currentCol;
 
             SourceMappingEntry entry = new SourceMappingEntry(
-                    node.string,
-                    node.originalRange,
+                    f.text,
+                    f.range,
                     new TextChangeRange(
                             transformedStartLine,
                             transformedStartCol,
@@ -313,41 +275,45 @@ public class FragmentedText {
                     ));
             mapping.add(entry);
 
-            Deque<Map.Entry<TextFragmentNode, Integer>> stack = new LinkedList<>();
             int offset = 0;
-            for (TextFragmentNode prior : node.priors) {
-                stack.push(Map.entry(prior, offset));
-                offset += prior.string.length(); // 누적 offset
-            }
-
-            while (!stack.isEmpty()) {
-                var pair = stack.pop();
-                TextFragmentNode priorNode = pair.getKey();
-                int accumulatedOffset = pair.getValue();
-
-                SourceMappingEntry priorEntry = buildSourceMapForPrior(priorNode, entry, accumulatedOffset);
-                if (priorEntry != null) mapping.add(priorEntry);
-
-                // priorNode의 priors도 누적 offset으로 DFS
-                int childOffset = 0;
-                for (TextFragmentNode child : priorNode.priors) {
-                    stack.push(Map.entry(child, accumulatedOffset + childOffset));
-                    childOffset += child.string.length();
-                }
+            for (Fragment p : f.priors) {
+                traversePrior(p, offset, entry, mapping);
+                offset += p.text.length();
             }
         }
 
         return mapping;
     }
 
+    void traversePrior(
+            Fragment fragment,
+            int offsetInParent,
+            SourceMappingEntry entry,
+            Set<SourceMappingEntry> mapping
+    ) {
+        SourceMappingEntry priorEntry = buildSourceMapForPrior(entry, fragment, offsetInParent);
+        if (priorEntry != null) mapping.add(priorEntry);
+
+        int childOffset = 0;
+        for (Fragment child : fragment.priors) {
+            traversePrior(
+                    child,
+                    offsetInParent + childOffset,
+                    entry,
+                    mapping
+            );
+            childOffset += child.text.length();
+        }
+    }
+
     public String debugString() {
         StringBuilder sb = new StringBuilder();
-        for (TextFragmentNode node : fragmentedNodeList) {
+        for (Fragment node : fragments) {
             sb.append("[")
-                    .append(node.originalRange)
-                    .append(node.rangeFixed ? " FIXED" : "")
+                    .append(node.range)
+                    .append(node.fixed ? " FIXED" : "")
                     .append("]:\n")
-                    .append(node.string)
+                    .append(node.text)
                     .append("\n");
         }
         return sb.toString();
@@ -355,13 +321,13 @@ public class FragmentedText {
 
     @Override
     public String toString() {
-        if (fragmentedNodeList.isEmpty()) {
+        if (fragments.isEmpty()) {
             return null;
         }
 
         StringBuilder sb = new StringBuilder();
-        for (TextFragmentNode node : fragmentedNodeList) {
-            sb.append(node.string);
+        for (Fragment node : fragments) {
+            sb.append(node.text);
         }
         return sb.toString();
     }

@@ -326,7 +326,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
     private Optional<String> getRangeFragmentedText(TextChangeRange range) {
         FragmentedText fragmentedText = getCurrentFragmentedText();
-        return fragmentedText.findFragmentedTextByRange(range);
+        return fragmentedText.findFragmentByRange(range);
     }
 
     private FragmentedText getCurrentFragmentedText() {
