@@ -9,4 +9,6 @@ public interface BufferManager {
 
     // 부분 문자열 접근
     String substring(BufferType buffer, int start, int length);
+
+    String getOriginal();
 }

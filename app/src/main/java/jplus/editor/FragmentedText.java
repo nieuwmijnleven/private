@@ -20,17 +20,16 @@ import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.Utils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 public class FragmentedText {
-    private final String original;
     private final BufferManager bufferManager;
     private final TextChangeRange originalRange;
     private final List<Fragment> fragments = new ArrayList<>();
@@ -98,7 +97,6 @@ public class FragmentedText {
     }
 
     public FragmentedText(TextChangeRange range, String original) {
-        this.original = original;
         this.bufferManager = new DefaultBufferManager(original);
         this.originalRange = range;
         this.fragments.add(new Fragment(range, new TextRef(BufferType.ORIGINAL, 0, original.length()), false));
@@ -109,7 +107,7 @@ public class FragmentedText {
     }
 
     public String getOriginalText() {
-        return this.original;
+        return bufferManager.getOriginal();
     }
 
     public Optional<String> findFragmentByRange(TextChangeRange range) {
@@ -130,8 +128,7 @@ public class FragmentedText {
             return Optional.of(getTextFromRef(f.ref));
         }
 
-        Deque<Fragment> deque = new LinkedList<>();
-        deque.addAll(f.priors);
+        Deque<Fragment> deque = new ArrayDeque<>(f.priors);
         while (!deque.isEmpty()) {
             Fragment prior = deque.removeFirst();
             if (range.equals(prior.range)) {
@@ -179,9 +176,6 @@ public class FragmentedText {
             int overlapStart = Math.max(rangeStart, fragmentStart);
             int overlapEnd = Math.min(rangeEnd, fragmentEnd);
 
-            int relStart = overlapStart - fragmentStart;
-            int relEnd = overlapEnd - fragmentStart + 1;
-
             if (overlapStart > fragmentStart) {
                 fragments.add(i++, new Fragment(rangeFrom(fragmentStart, overlapStart - 1), new TextRef(BufferType.ORIGINAL, fragmentStart, overlapStart - fragmentStart), false));
             }
@@ -199,11 +193,11 @@ public class FragmentedText {
     }
 
     private TextChangeRange rangeFrom(int start, int end) {
-        return Utils.getRangeFromStartIndexAndEndIndex(this.original, this.originalRange, start, end);
+        return Utils.getRangeFromStartIndexAndEndIndex(getOriginalText(), this.originalRange, start, end);
     }
 
     private int toIndex(int line, int col) {
-        return Utils.getIndexFromLineColumn(this.original, this.originalRange, line, col);
+        return Utils.getIndexFromLineColumn(getOriginalText(), this.originalRange, line, col);
     }
 
     private void replace(TextChangeRange range, String replacement) {
@@ -219,7 +213,7 @@ public class FragmentedText {
                 f.range = range;
                 f.ref = new TextRef(BufferType.ADD, bufferManager.add(replacement), replacement.length());
                 f.fixed = true;
-                f.priors = new ArrayList(List.of(prior));
+                f.priors = new ArrayList<>(List.of(prior));
                 replaced = true;
             } else {
                 Fragment prev = fragments.get(i - 1);
@@ -250,8 +244,8 @@ public class FragmentedText {
         //calculate text range
         int startLine = currentLine;
         int startCol = currentCol;
-        int endLine = startLine;
-        int endCol = startCol;
+        int endLine;
+        int endCol;
 
         for (int i = 0; i < prior.ref.length; i++) {
             char c = bufferManager.charAt(prior.ref.bufType, prior.ref.start + i);
@@ -271,7 +265,6 @@ public class FragmentedText {
     }
 
     public Set<SourceMappingEntry> buildSourceMap() {
-        //System.err.println("[buildSourceMap] debugString() = " + debugString());
         Set<SourceMappingEntry> mapping = new HashSet<>();
 
         int currentLine = originalRange.startLine();
@@ -322,7 +315,7 @@ public class FragmentedText {
             Set<SourceMappingEntry> mapping
     ) {
         SourceMappingEntry priorEntry = buildSourceMapForPrior(entry, fragment, offsetInParent);
-        if (priorEntry != null) mapping.add(priorEntry);
+        mapping.add(priorEntry);
 
         int childOffset = 0;
         for (Fragment child : fragment.priors) {

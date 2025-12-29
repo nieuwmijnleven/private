@@ -24,6 +24,7 @@ public class DefaultBufferManager implements BufferManager {
         return start;
     }
 
+    @Override
     public String getOriginal() {
         return originalBuffer.toString();
     }

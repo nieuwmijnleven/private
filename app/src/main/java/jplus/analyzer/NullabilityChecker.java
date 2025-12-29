@@ -241,6 +241,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return false;
     }
 
+    private boolean usedNullsafety(JPlus25Parser.ExpressionNameContext ctx) {
+        boolean nullsafetyInExprNameCtx = ctx.getParent() instanceof JPlus25Parser.ExpressionNameContext p && p.NULLSAFE() != null;
+        boolean nullsafetyInPnnaCtx = ctx.getParent() instanceof JPlus25Parser.PrimaryNoNewArrayContext p && p.NULLSAFE() != null;
+        boolean nullsafetyInMiCtx = ctx.getParent() instanceof JPlus25Parser.MethodInvocationContext p && p.NULLSAFE() != null;
+
+        return nullsafetyInExprNameCtx || nullsafetyInPnnaCtx || nullsafetyInMiCtx;
+    }
+
     /**
      * @return 현재 expressionName에서 계산된 symbolTable (부모 재귀에서 사용)
      */
@@ -258,9 +266,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         SymbolInfo symbolInfo = leftTable.resolve(symbol);
         System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
 
-        if (symbolInfo != null && hasDot(ctx.getParent())) {
-//            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
-            if (symbolInfo.getTypeInfo().isNullable()) {
+        if (symbolInfo != null) {
+            if (!usedNullsafety(ctx) && symbolInfo.getTypeInfo().isNullable()) {
+                //            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
+
                 System.err.println("[ExpressionName] nullability warning(" + ctx.start.getLine() + ") = " + symbolInfo);
                 getIdentifierFromParent(ctx).ifPresent(id ->
                         reportIssue(
@@ -271,23 +280,34 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 );
             }
 
-            TypeInfo typeInfo = symbolInfo.getTypeInfo();
-            String typeName = typeInfo.getName();
-            if (!SymbolUtils.isFQN(typeName)) {
-                typeName = Optional.ofNullable(this.packageName).map(pkg -> pkg + "." + typeInfo.getName()).orElse(typeName);
+
+            if (hasNextAccess(ctx)) {
+                TypeInfo typeInfo = symbolInfo.getTypeInfo();
+                if (typeInfo.getType() != TypeInfo.Type.Reference) {
+                    return leftTable;
+                }
+
+                String typeName = typeInfo.getName();
+                if (!SymbolUtils.isFQN(typeName)) {
+                    typeName = Optional.ofNullable(this.packageName).map(pkg -> pkg + "." + typeInfo.getName()).orElse(typeName);
+                }
+                System.err.println("[ExpressionName] typeName = " + typeName);
+
+                //System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
+                SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
+                SymbolTable topLevelTable = classSymbolInfo.getSymbolTable();
+                SymbolInfo topLevelClassInfo = topLevelTable.resolve("^TopLevelClass$");
+
+                // symbolTable을 부모 재귀 호출에 전달
+                return topLevelTable.getEnclosingSymbolTable(topLevelClassInfo.getSymbol());
             }
-            System.err.println("[ExpressionName] typeName = " + typeName);
-
-            //System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
-            SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
-            SymbolTable topLevelTable = classSymbolInfo.getSymbolTable();
-            SymbolInfo topLevelClassInfo = topLevelTable.resolve("^TopLevelClass$");
-
-            // symbolTable을 부모 재귀 호출에 전달
-            return topLevelTable.getEnclosingSymbolTable(topLevelClassInfo.getSymbol());
         }
 
         return leftTable;
+    }
+
+    private boolean hasNextAccess(JPlus25Parser.ExpressionNameContext ctx) {
+        return ctx.getParent() instanceof JPlus25Parser.ExpressionNameContext;
     }
 
     private Optional<String> getIdentifierFromParent(JPlus25Parser.ExpressionNameContext ctx) {
