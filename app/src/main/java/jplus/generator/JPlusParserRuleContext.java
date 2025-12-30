@@ -26,10 +26,9 @@ import jplus.base.JPlus25Parser.PNNAContext;
 import jplus.base.JPlus25Parser.PrimaryNoNewArrayContext;
 import jplus.base.JPlus25Parser.UnannTypeContext;
 import jplus.editor.FragmentedText;
+import jplus.util.ParserUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -80,7 +79,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         if (methodInvocationCtx.primary() != null) {
             String primaryPart = methodInvocationCtx.primary().getText();
             String replaced = primaryPart;
-            if (!usesNullSafety(methodInvocationCtx.primary())) {
+            if (!ParserUtils.usesNullSafety(methodInvocationCtx.primary())) {
                 String methodPart = getMethodPart(methodInvocationCtx);
                 if (methodInvocationCtx.NULLSAFE() != null) {
                     replaced = replaceNullsafeOperatorWithOptionalIfPresent(methodInvocationCtx, primaryPart, methodPart);
@@ -93,7 +92,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
             String expressionNamePart = methodInvocationCtx.expressionName().getText();
             String replaced = expressionNamePart;
 
-            if (!usesNullSafety(methodInvocationCtx.expressionName())) {
+            if (!ParserUtils.usesNullSafety(methodInvocationCtx.expressionName())) {
                 String methodPart = getMethodPart(methodInvocationCtx);
                 if (methodInvocationCtx.NULLSAFE() != null) {
                     replaced = replaceNullsafeOperatorWithOptionalIfPresent(methodInvocationCtx, expressionNamePart, methodPart);
@@ -111,7 +110,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         if (fieldAccessCtx.primary() != null) {
             String primaryPart = fieldAccessCtx.primary().getText();
             String replaced = primaryPart;
-            if (!usesNullSafety(fieldAccessCtx.primary())) {
+            if (!ParserUtils.usesNullSafety(fieldAccessCtx.primary())) {
                 String identifierPart = Utils.getTokenString(fieldAccessCtx.identifier());
                 if (fieldAccessCtx.NULLSAFE() != null) {
                     replaced = replaceNullsafeOperator(fieldAccessCtx, primaryPart, identifierPart);
@@ -126,7 +125,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
 
     private String processExpressionName(ExpressionNameContext expressionNameCtx) {
         String replaced = Utils.getTokenString(expressionNameCtx);
-        if (usesNullSafety(expressionNameCtx)) {
+        if (ParserUtils.usesNullSafety(expressionNameCtx)) {
             replaced = processNullsafety(expressionNameCtx, expressionNameCtx.getParent());
         }
         System.err.println("[ExpressionNameContext] replaced = " + replaced);
@@ -150,7 +149,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         ensureChildTextInitialized();
 
         String replaced = Utils.getTokenString(ctx);
-        if (usesNullSafety(ctx)) {
+        if (ParserUtils.usesNullSafety(ctx)) {
             replaced = replaceBaseWithOptional(ctx, Optional.ofNullable(ctx.getParent()).map(ParserRuleContext::getParent).orElse(null));
         }
         System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
@@ -272,24 +271,6 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         return null;
     }
 
-    private boolean usesNullSafety(ParserRuleContext ctx) {
-        for (int i = 0; i < ctx.getChildCount(); i++) {
-            ParseTree child = ctx.getChild(i);
-
-            if (child instanceof TerminalNode tn) {
-                if (tn.getSymbol().getType() == JPlus25Parser.NULLSAFE) {
-                    return true;
-                }
-            } else if (child instanceof ParserRuleContext prc) {
-                if (usesNullSafety(prc)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
     private String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
         System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
         ensureChildTextInitialized();
@@ -298,7 +279,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
         Optional<String> rhsExpressionString = getRhsExpressionRangeText(ctx);
 
         String replaced;
-        if (usesNullSafety(ctx)) {
+        if (ParserUtils.usesNullSafety(ctx)) {
             replaced = conditionalOrExpressionString.orElse("null");
             replaced = replaced.replace("orElse(null)", "orElseGet(() -> " + rhsExpressionString.orElse("null") + ")");
         } else {
@@ -337,7 +318,7 @@ public class JPlusParserRuleContext extends ParserRuleContext {
     }
 
     private String replaceBaseWithOptional(PrimaryNoNewArrayContext ctx, ParserRuleContext ruleCtx) {
-        if (ctx.expressionName() != null && usesNullSafety(ctx.expressionName())) {
+        if (ctx.expressionName() != null && ParserUtils.usesNullSafety(ctx.expressionName())) {
             return ctx.expressionName().getText();
         }
 

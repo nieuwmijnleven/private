@@ -26,6 +26,7 @@ import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.MethodUtils;
+import jplus.util.ParserUtils;
 import jplus.util.SymbolUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -230,18 +231,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
     }
 
-    private boolean hasDot(ParserRuleContext ctx) {
-        for (int i = 0; i < ctx.getChildCount(); i++) {
-            ParseTree child = ctx.getChild(i);
-            if (child instanceof TerminalNode tn &&
-                    tn.getSymbol().getType() == JPlus25Parser.DOT) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean usedNullsafety(JPlus25Parser.ExpressionNameContext ctx) {
+    private boolean usesNullSafety(JPlus25Parser.ExpressionNameContext ctx) {
         boolean nullsafetyInExprNameCtx = ctx.getParent() instanceof JPlus25Parser.ExpressionNameContext p && p.NULLSAFE() != null;
         boolean nullsafetyInPnnaCtx = ctx.getParent() instanceof JPlus25Parser.PrimaryNoNewArrayContext p && p.NULLSAFE() != null;
         boolean nullsafetyInMiCtx = ctx.getParent() instanceof JPlus25Parser.MethodInvocationContext p && p.NULLSAFE() != null;
@@ -267,9 +257,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
 
         if (symbolInfo != null) {
-            if (!usedNullsafety(ctx) && symbolInfo.getTypeInfo().isNullable()) {
-                //            if (symbolInfo != null && symbolInfo.getTypeInfo().isNullable() && hasDot(ctx.getParent())) {
-
+            if (!usesNullSafety(ctx) && symbolInfo.getTypeInfo().isNullable()) {
                 System.err.println("[ExpressionName] nullability warning(" + ctx.start.getLine() + ") = " + symbolInfo);
                 getIdentifierFromParent(ctx).ifPresent(id ->
                         reportIssue(
@@ -279,7 +267,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                         )
                 );
             }
-
 
             if (hasNextAccess(ctx)) {
                 TypeInfo typeInfo = symbolInfo.getTypeInfo();
@@ -613,6 +600,18 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
+        /*if (ParserUtils.usesNullSafety(ctx)) {
+            if (ctx.expressionName() != null) {
+                return visitExpressionName(ctx.expressionName());
+            } else if (ctx.primary() != null) {
+                return visitPrimary(ctx.primary());
+            }
+        }*/
+
+        return processMethodByUsingMethodInvocationInfo(ctx);
+    }
+
+    private Void processMethodByUsingMethodInvocationInfo(JPlus25Parser.MethodInvocationContext ctx) {
         TextChangeRange invocationCodeRange = getCodeRange(ctx);
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
@@ -663,10 +662,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return super.visitMethodInvocation(ctx);
     }
 
-//    @Override
-//    public Void visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
-//        return super.visitPrimaryNoNewArray(ctx);
-//    }
+    @Override
+    public Void visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
+
+        return super.visitPrimaryNoNewArray(ctx);
+    }
 
     public boolean hasPassed() {
         return hasPassed;
