@@ -16,9 +16,12 @@
 
 package jplus.analyzer;
 
+import com.sun.source.tree.ArrayAccessTree;
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ConditionalExpressionTree;
+import com.sun.source.tree.ExpressionStatementTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberSelectTree;
@@ -26,7 +29,11 @@ import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.PackageTree;
+import com.sun.source.tree.ParenthesizedTree;
+import com.sun.source.tree.ReturnTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
@@ -75,6 +82,179 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     private final JavaMethodInvocationManager javaMethodInvocationManager;
     private final JavaSymbolResolver resolver;
+
+    final class ExpressionChainBuilder {
+
+        private final Trees trees;
+        private final Types types;
+        private final JavaSymbolResolver resolver;
+        private final CompilationUnitTree ast;
+        private final String source;
+        private final JavaMethodInvocationManager invocationManager;
+
+        ExpressionChainBuilder(
+                Trees trees,
+                Types types,
+                JavaSymbolResolver resolver,
+                CompilationUnitTree ast,
+                String source,
+                JavaMethodInvocationManager invocationManager
+        ) {
+            this.trees = trees;
+            this.types = types;
+            this.resolver = resolver;
+            this.ast = ast;
+            this.source = source;
+            this.invocationManager = invocationManager;
+        }
+
+        public ResolvedChain build(ExpressionTree expr) {
+            ResolvedChain chain = new ResolvedChain();
+            visit(expr, chain);
+            return chain;
+        }
+
+        private void visit(ExpressionTree expr, ResolvedChain chain) {
+            while (true) {
+                if (expr instanceof ParenthesizedTree p) {
+                    expr = p.getExpression();
+                } else if (expr instanceof TypeCastTree c) {
+                    expr = c.getExpression();
+                } else if (expr instanceof UnaryTree u) {
+                    expr = u.getExpression();
+                } else {
+                    break;
+                }
+            }
+
+            if (expr instanceof ArrayAccessTree aa) {
+                visit(aa.getExpression(), chain);
+                return;
+            }
+
+            if (expr instanceof ConditionalExpressionTree ce) {
+                visit(ce.getTrueExpression(), chain);
+                visit(ce.getFalseExpression(), chain);
+                return;
+            }
+
+            if (expr instanceof IdentifierTree id) {
+                handleIdentifier(id, chain);
+            } else if (expr instanceof MemberSelectTree ms) {
+                visit(ms.getExpression(), chain);
+                handleMemberSelect(ms, chain);
+            } else if (expr instanceof MethodInvocationTree mi) {
+                handleMethodInvocation(mi, chain);
+            }
+        }
+
+        private void handleIdentifier(IdentifierTree id, ResolvedChain chain) {
+            Element e = trees.getElement(TreePath.getPath(ast, id));
+            if (e == null) return;
+
+            TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
+
+            chain.addStep(new ResolvedChain.Step(
+                    ResolvedChain.Kind.IDENTIFIER,
+                    id.getName().toString(),
+                    ti,
+                    ti.isNullable(),
+                    false,
+                    computeRange(id),
+                    null
+            ));
+        }
+
+        private void handleMemberSelect(MemberSelectTree ms, ResolvedChain chain) {
+            // 1️⃣ 왼쪽 먼저
+            //visit(ms.getExpression(), chain);
+
+            Element e = trees.getElement(TreePath.getPath(ast, ms));
+            if (e == null) return;
+
+            TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
+            boolean nullSafe = ms.toString().contains("?."); // 네 문법에 맞게
+
+            chain.addStep(new ResolvedChain.Step(
+                    ResolvedChain.Kind.FIELD,
+                    ms.getIdentifier().toString(),
+                    ti,
+                    ti.isNullable(),
+                    nullSafe,
+                    computeRange(ms),
+                    null
+            ));
+        }
+
+        private void handleMethodInvocation(MethodInvocationTree mi, ResolvedChain chain) {
+            ExpressionTree select = mi.getMethodSelect();
+
+            if (select instanceof MemberSelectTree ms) {
+                visit(ms.getExpression(), chain);
+                addMethodStep(ms, mi, chain);
+            } else {
+                visit(select, chain);
+            }
+        }
+
+        private void addMethodStep(
+                MemberSelectTree ms,
+                MethodInvocationTree mi,
+                ResolvedChain chain
+        ) {
+            Element e = trees.getElement(TreePath.getPath(ast, mi));
+            if (!(e instanceof ExecutableElement method)) return;
+
+            TypeMirror ret = method.getReturnType();
+            if (ret.getKind() == TypeKind.VOID) return;
+
+            TypeInfo ti = TypeUtils.fromTypeMirror(ret, method);
+            boolean nullSafe = ms.toString().contains("?.");
+
+            chain.addStep(new ResolvedChain.Step(
+                    ResolvedChain.Kind.METHOD,
+                    method.getSimpleName().toString(),
+                    ti,
+                    ti.isNullable(),
+                    nullSafe,
+                    computeRange(mi),
+                    buildMethodInvocationInfo(mi, null, method.getSimpleName().toString())
+            ));
+        }
+
+
+    }
+
+    @Override
+    public Void visitExpressionStatement(ExpressionStatementTree node, Void unused) {
+        buildChain(node.getExpression());
+        buildChain(node.getExpression());
+        return super.visitExpressionStatement(node, unused);
+    }
+
+    private void buildChain(ExpressionTree expr) {
+        ExpressionChainBuilder chainBuilder = new ExpressionChainBuilder(
+                trees, types, resolver, ast, source, javaMethodInvocationManager
+        );
+        ResolvedChain chain = chainBuilder.build(expr);
+        currentSymbolTable.addResolvedChain(chain);
+    }
+
+//    @Override
+//    public Void visitExpression(ExpressionTree node, Void unused) {
+//        Tree parent = getCurrentPath().getParentPath().getLeaf();
+//
+//        boolean isChainRoot =
+//                !(parent instanceof ExpressionTree);
+//
+//        if (isChainRoot) {
+//            ExpressionChainBuilder chainBuilder = new ExpressionChainBuilder(trees, types, resolver, ast, source, javaMethodInvocationManager);
+//            ResolvedChain chain = chainBuilder.build(node);
+//            currentSymbolTable.addResolvedChain(chain);
+//        }
+//
+//        return super.visitExpression(node, unused);
+//    }
 
 
     public JavaSymbolAnalyzer(String source, CompilationUnitTree ast, Trees trees, SymbolTable globalSymbolTable, Elements elements, Types types) {
@@ -380,10 +560,20 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         Element element = trees.getElement(path);
 
         if (element != null && element.getKind() == ElementKind.LOCAL_VARIABLE) {
+            ExpressionTree initializer = node.getInitializer();
+            if (initializer != null) {
+                buildChain(initializer);
+            }
             return handleLocalVariable(node, p);
         }
 
         return super.visitVariable(node, p);
+    }
+
+    @Override
+    public Void visitReturn(ReturnTree node, Void unused) {
+        buildChain(node.getExpression());
+        return super.visitReturn(node, unused);
     }
 
     private Void handleLocalVariable(VariableTree node, Void unused) {
@@ -414,7 +604,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         // 🔥 여기서 체인 전체 해석
         //SymbolInfo ownerType = resolveExpressionChain(node.getMethodSelect());
-        SymbolInfo ownerType = resolveExpressionChain(
+        SymbolInfo ownerType = buildResolvedChain(
                 node.getMethodSelect() instanceof MemberSelectTree mst
                         ? mst.getExpression()
                         : node.getMethodSelect()
@@ -434,6 +624,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                             methodName
                     );
 
+            /*for (ExpressionTree arg : node.getArguments()) {
+                buildChain(arg);
+            }*/
+
             javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
             System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);
         }
@@ -441,7 +635,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitMethodInvocation(node, unused);
     }
 
-    public SymbolInfo resolveExpressionChain(ExpressionTree expr) {
+    public SymbolInfo buildResolvedChain(ExpressionTree expr) {
 
         Element e = trees.getElement(TreePath.getPath(ast, expr));
 
@@ -476,7 +670,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         if (expr instanceof MemberSelectTree mst) {
             // 왼쪽 먼저 처리 (System / System.out)
-            SymbolInfo ownerType = resolveExpressionChain(mst.getExpression());
+            SymbolInfo ownerType = buildResolvedChain(mst.getExpression());
 
             // 현재 멤버의 Element
             if (e == null) return ownerType;

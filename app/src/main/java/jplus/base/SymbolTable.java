@@ -16,16 +16,19 @@
 
 package jplus.base;
 
+import jplus.analyzer.ResolvedChain;
 import jplus.generator.TextChangeRange;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class SymbolTable implements Iterable<SymbolInfo> {
     private SymbolTable parent;
@@ -33,6 +36,8 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     private final Map<String, SymbolInfo> symbolMap = new HashMap<>();
 
     private Map<String, SymbolTable> enclosing = new HashMap<>();
+
+    private List<ResolvedChain> resolvedChains = new ArrayList<>();
 
     public SymbolTable(SymbolTable parent) {
         this.parent = parent;
@@ -89,9 +94,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public List<String> findSymbolsByType(List<TypeInfo.Type> typeList) {
-//        return symbolMap.entrySet().stream().map(Map.Entry::getValue).filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().type)).sorted(
-//            Comparator.<SymbolInfo>comparingInt(value -> value.getRange().startLine()).thenComparingInt(value -> value.getRange().startIndex())).map(symbolInfo -> symbolInfo.getSymbol()).toList();
-//        return symbolMap.entrySet().stream().map(Map.Entry::getValue).filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().getType())).map(symbolInfo -> symbolInfo.getSymbol()).toList();
         return symbolMap.entrySet().stream()
                 .map(Map.Entry::getValue)
                 .filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().getType()))
@@ -117,6 +119,24 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     public SymbolTable getEnclosingSymbolTable(String name) {
         return enclosing.computeIfAbsent(name, s -> new SymbolTable((this)));
 //        return enclosing.getOrDefault(name, new SymbolTable(this));
+    }
+
+    public void addResolvedChain(ResolvedChain chain) {
+        resolvedChains.add(chain);
+    }
+
+    public List<ResolvedChain> getResolvedChains() {
+        return Collections.unmodifiableList(resolvedChains);
+    }
+
+    public Optional<ResolvedChain> findResolvedChain(TextChangeRange range) {
+        return resolvedChains.stream()
+                .filter(resolvedChain ->
+                    Optional.ofNullable(resolvedChain.last())
+                            .map(step -> step.range.equals(range))
+                            .orElse(false)
+                )
+                .findFirst();
     }
 
     public SymbolTable findLowContextSymbolTable(String name) {

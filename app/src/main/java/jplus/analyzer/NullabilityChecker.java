@@ -608,6 +608,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             }
         }*/
 
+        System.err.println("[MethodInvocation] chaining = " + currentSymbolTable.getResolvedChains());
+        System.err.println("[MethodInvocation] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
+
         return processMethodByUsingMethodInvocationInfo(ctx);
     }
 
@@ -664,8 +667,50 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
+        System.err.println("[PrimaryNoNewArray] chaining = " + currentSymbolTable.getResolvedChains());
+        System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
+
+
+        currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
 
         return super.visitPrimaryNoNewArray(ctx);
+    }
+
+    private void handlePrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
+
+        StepCursor cursor = chain.stepCursor();
+
+        if (ctx.THIS() != null) {
+            handleThisPrimary(ctx, cursor);
+            return;
+        }
+
+        if (ctx.expressionName() != null) {
+            handlExpressionName(ctx, chain);
+        }
+
+
+    }
+
+    private void handleThisPrimary(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
+        processThis(ctx, cursor);
+    }
+
+    private void processThis(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
+        if (!cursor.hasNext()) throw new IllegalStateException();
+
+        ResolvedChain.Step step = cursor.consume();
+        if (!step.symbol.equals(ctx.THIS().toString())) throw new IllegalStateException();
+
+        processPNNA(ctx.pNNA(), cursor);
+    }
+
+    private void processPNNA(JPlus25Parser.PNNAContext pnnaContext, StepCursor cursor) {
+
+    }
+
+    private void handlExpressionName(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
+
     }
 
     public boolean hasPassed() {
