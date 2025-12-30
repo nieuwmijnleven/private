@@ -163,7 +163,7 @@ Follow these steps to get started with JPlus and run example programs.
 
 ### 1. Prerequisites
 
-- **Java Development Kit (JDK) 17 or higher**
+- **Java Development Kit (JDK) 20 or higher**
   ```bash
   java -version
   ```
@@ -359,9 +359,9 @@ package jplus.example;
 
 public class Main {
     public static void main(String[] args) {
-        String s1 = null;
-        String s2 = (((s1) != null) ? (s1) : "jplus");
-        System.out.printf("s1 = %s\n", (((s1) != null) ? (s1) : "null-value"));
+        @org.jspecify.annotations.Nullable String s1 = null;
+        String s2 = java.util.Optional.ofNullable(s1).orElseGet(() -> "jplus");
+        System.out.printf("s1 = %s\n", java.util.Optional.ofNullable(s1).orElseGet(() -> "null-value"));
         System.out.printf("s2 = %s\n", s2);
     }
 }
@@ -411,9 +411,9 @@ package jplus.example;
 
 public class Main {
     public static void main(String[] args) {
-        String s1 = null;
+        @org.jspecify.annotations.Nullable String s1 = null;
         String s2 = "jplus";
-        System.out.printf("the length of s1 : %d\n", (s1 != null) ? s1.length() : null);
+        System.out.printf("the length of s1 : %d\n", java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElse(null));
         System.out.printf("the length of s2 : %d\n", s2.length());
     }
 }
@@ -469,20 +469,16 @@ package jplus.example;
 
 public class Main {
     public static void main(String[] args) {
-        String s1 = null;
-        String s2 = (((s1) != null) ? (s1) : "jplus");
-        System.out.printf(
-                "the length of s1 : %d\n",
-                (((((s1 != null) ? s1.length() : null)) != null)
-                        ? (((s1 != null) ? s1.length() : null))
-                        : 0));
+        @org.jspecify.annotations.Nullable String s1 = null;
+        String s2 = java.util.Optional.ofNullable(s1).orElseGet(() -> "jplus");
+        System.out.printf("the length of s1 : %d\n", java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0));
         System.out.printf("the length of s2 : %d\n", s2.length());
     }
 }
 ```
 
 > The expression `s1?.length() ?: 0` is translated into a nested conditional check in Java:  
-> `((s1 != null) ? s1.length() : null) != null ? ... : 0`, ensuring safe execution.
+> `java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
 
 ---
 <a name="example6"></a>
