@@ -226,12 +226,16 @@ public class FragmentedText {
         }
     }
 
-    private SourceMappingEntry buildSourceMapForPrior( SourceMappingEntry entry, Fragment prior, int skipOffset) {
+    private SourceMappingEntry buildSourceMapForPrior(SourceMappingEntry entry, Fragment prior, int skipOffset) {
         int currentLine = entry.getTransformedRange().startLine();
         int currentCol = entry.getTransformedRange().startIndex();
+        //System.err.println("[buildSourceMapForPrior] entry = " + entry);
+        //System.err.println("[buildSourceMapForPrior] source = " + entry.getSource());
+        //System.err.println("[buildSourceMapForPrior] prior = " + prior);
 
         char[] charArray = entry.getSource().toCharArray();
-        for (int offset = 0; offset < skipOffset; ++offset) {
+        int length = Math.min(skipOffset, charArray.length);
+        for (int offset = 0; offset < length; ++offset) {
             char c = charArray[offset];
             if (c == '\n') {
                 currentLine++;
@@ -247,6 +251,7 @@ public class FragmentedText {
         int endLine;
         int endCol;
 
+        //System.err.println("[buildSourceMapForPrior] prior text = " + getTextFromRef(prior.ref));
         for (int i = 0; i < prior.ref.length; i++) {
             char c = bufferManager.charAt(prior.ref.bufType, prior.ref.start + i);
             if (c == '\n') {
@@ -257,8 +262,10 @@ public class FragmentedText {
             }
         }
 
+        //endLine = Math.min(currentLine, entry.getTransformedRange().endLine());
+        //endCol = Math.min(currentCol, entry.getTransformedRange().inclusiveEndIndex());endLine = Math.min(currentLine, entry.getTransformedRange().endLine());
         endLine = currentLine;
-        endCol = currentCol;
+        endCol = (currentCol > 0) ? currentCol - 1 : currentCol;
 
         TextChangeRange newRange = new TextChangeRange(startLine, startCol, endLine, endCol);
         return new SourceMappingEntry(getTextFromRef(prior.ref), prior.range, newRange);
@@ -285,7 +292,7 @@ public class FragmentedText {
             }
 
             int transformedEndLine = currentLine;
-            int transformedEndCol = currentCol;
+            int transformedEndCol = (currentCol > 0) ? currentCol - 1 : currentCol;
 
             SourceMappingEntry entry = new SourceMappingEntry(
                     getTextFromRef(f.ref),

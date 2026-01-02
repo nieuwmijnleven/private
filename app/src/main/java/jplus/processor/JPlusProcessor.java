@@ -130,21 +130,31 @@ public class JPlusProcessor {
     // Java intermediate code generation (no boilerplate)
     // --------------------------------------------------------------
 
-    private String generateJavaCodeWithoutBoilerplate() {
+    private String generateJavaCodeForSemanticMode() {
         assertProcessed();
         CodeGenContext ctx = CodeGenContext.current();
         if (ctx != null) ctx.setFragmentedText(new FragmentedText(originalText));
-        return parseTree.getText();
+        ctx.setSemanticMode(true);
+
+        try {
+            return parseTree.getText();
+        } finally {
+            ctx.setSemanticMode(false);
+        }
     }
 
     private void runInitialJavaProcessing() throws Exception {
-        String javaCode = generateJavaCodeWithoutBoilerplate();
+        String javaCode = generateJavaCodeForSemanticMode();
         System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaCode = " + javaCode);
         CodeGenContext ctx = CodeGenContext.current();
         sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
 
         javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
         javaProcessor.process();
+    }
+
+    public String getProcessedJavaCode() {
+        return javaProcessor.getSource();
     }
 
     public String getParseTreeString() {
@@ -198,7 +208,8 @@ public class JPlusProcessor {
             for (var unresolved : unresolvedList) {
                 JPlusProcessor dependency = new JPlusProcessor(project, unresolved.packageName, unresolved.className);
                 dependency.process();
-                String javaCode = dependency.generateJavaCodeWithoutBoilerplate();
+                //String javaCode = dependency.generateJavaCodeForSemanticMode();
+                String javaCode = dependency.getProcessedJavaCode();
                 //System.err.println("[resolveAllUnresolvedReferences] javaCode = " + javaCode);
                 inMemoryJavaFiles.add(new InMemoryJavaFile(unresolved.getFullyQualifiedName(), javaCode));
             }
@@ -225,7 +236,18 @@ public class JPlusProcessor {
             throw new IllegalStateException("Must perform nullability check and symbol analysis first.");
         }
 
-        String generated = parseTree.getText();
+        CodeGenContext.push();
+        String generated = null;
+        try {
+            CodeGenContext.current().setSemanticMode(false);
+            CodeGenContext.current().setFragmentedText(new FragmentedText(originalText));
+            generated = parseTree.getText();
+        } finally {
+            CodeGenContext.pop();
+        }
+
+        System.err.println("[generateJavaCode] javaCode = " + generated);
+
         int startIndex = parseTree.start.getStartIndex();
         String startWhiteSpace = originalText.substring(0, startIndex);
         String fullyGenerated = startWhiteSpace + generated;

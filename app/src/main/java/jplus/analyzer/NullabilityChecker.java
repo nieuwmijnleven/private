@@ -26,15 +26,14 @@ import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.MethodUtils;
-import jplus.util.ParserUtils;
 import jplus.util.SymbolUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -262,7 +261,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 getIdentifierFromParent(ctx).ifPresent(id ->
                         reportIssue(
                                 ctx.start,
-                                symbol + " is a nullable variable. But it directly accesses "
+                                 symbol + " is a nullable variable. But it directly accesses "
                                         + id + ". Consider using null-safe operator(?.)."
                         )
                 );
@@ -666,18 +665,34 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitPostfixExpression(JPlus25Parser.PostfixExpressionContext ctx) {
+        if (ctx.expressionName() !=  null) {
+            System.err.println("[PostfixExpression] chaining = " + currentSymbolTable.getResolvedChains());
+            System.err.println("[PostfixExpression] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
+
+            //currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> processExpressionNameContext(getExpressionNameList(ctx.expressionName()), chain.stepCursor()));
+        }
+        return super.visitPostfixExpression(ctx);
+    }
+
+    @Override
     public Void visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
-        System.err.println("[PrimaryNoNewArray] chaining = " + currentSymbolTable.getResolvedChains());
+        System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") chaining = " + currentSymbolTable.getResolvedChains());
+        System.err.println("[PrimaryNoNewArray] original range = " + Utils.getTextChangeRange(originalText, ctx));
+
+        findTransformedRange(Utils.getTextChangeRange(originalText, ctx)).ifPresent(range -> {
+            System.err.println("[PrimaryNoNewArray] mapped range = " + range);
+        });
+
         System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
 
-        currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
+        //currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
 
         return super.visitPrimaryNoNewArray(ctx);
     }
 
     private void handlePrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
-
         StepCursor cursor = chain.stepCursor();
 
         if (ctx.THIS() != null) {
@@ -687,30 +702,112 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         if (ctx.expressionName() != null) {
             handlExpressionName(ctx, chain);
+            return;
         }
 
 
     }
 
     private void handleThisPrimary(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
+        System.err.println("[handleThisPrimary]");
         processThis(ctx, cursor);
     }
 
     private void processThis(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
-        if (!cursor.hasNext()) throw new IllegalStateException();
+        System.err.println("[processThis]");
+        cursor.peek().ifPresent(step -> {
+            if (!step.symbol.equals(ctx.THIS().toString())) throw new IllegalStateException();
 
-        ResolvedChain.Step step = cursor.consume();
-        if (!step.symbol.equals(ctx.THIS().toString())) throw new IllegalStateException();
-
-        processPNNA(ctx.pNNA(), cursor);
+            processPNNA(ctx.pNNA(), cursor);
+        });
     }
 
-    private void processPNNA(JPlus25Parser.PNNAContext pnnaContext, StepCursor cursor) {
+    private void processPNNA(JPlus25Parser.PNNAContext ctx, StepCursor cursor) {
+        if (ctx == null) return;
 
+        ResolvedChain.Step prevStep = cursor.consume();
+        System.err.println("[processPNNA] line(" + ctx.start.getLine() + "), prevStep = " + prevStep);
+
+        cursor.peek().ifPresent(step -> {
+
+            if (ctx.identifier() != null) {
+                String identifier = Utils.getTokenString(ctx.identifier());
+                if (!identifier.equals(step.symbol)) throw new IllegalStateException();
+
+                if (ctx.LPAREN() != null) {
+                    //('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
+                    if (prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
+                        reportIssue(
+                                ctx.start,
+                                "[processPNNA] " + prevStep.symbol + " is a nullable variable. But it directly accesses "
+                                        + identifier + ". Consider using null-safe operator(?.)."
+                        );
+                    }
+
+                } else if (ctx.COLONCOLON() != null) {
+                    //'::' typeArguments? identifier pNNA?
+
+                } else {
+                    //('.'|'?.') identifier pNNA?
+                    if (prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
+                        reportIssue(
+                                ctx.start,
+                                "[processPNNA] " + prevStep.symbol + " is a nullable variable. But it directly accesses "
+                                        + identifier + ". Consider using null-safe operator(?.)."
+                        );
+                    }
+                }
+            } else if (ctx.unqualifiedClassInstanceCreationExpression() != null) {
+                //('.'|'?.') unqualifiedClassInstanceCreationExpression pNNA?
+
+            } else if (ctx.expression() != null) {
+                //'[' expression ']' pNNA?
+
+            } else {
+                throw new IllegalStateException();
+            }
+
+            processPNNA(ctx.pNNA(), cursor);
+        });
     }
 
     private void handlExpressionName(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
+        var expressionNameList = getExpressionNameList(ctx.expressionName());
+        StepCursor cursor = chain.stepCursor();
 
+        processExpressionNameContext(expressionNameList, cursor);
+    }
+
+    private void processExpressionNameContext(List<JPlus25Parser.ExpressionNameContext> expressionNameList, StepCursor cursor) {
+        ResolvedChain.Step prevStep = null;
+        for (JPlus25Parser.ExpressionNameContext ctx : expressionNameList) {
+            var step = cursor.consume();
+
+            String identifier = Utils.getTokenString(ctx.identifier());
+            System.err.println("[processExpressionNameContext] identifier = " + identifier);
+            if (!identifier.equals(step.symbol)) throw new IllegalStateException();
+
+            if (prevStep != null && prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
+                reportIssue(
+                        ctx.start,
+                        prevStep.symbol + " is a nullable variable. But it directly accesses "
+                                + identifier + ". Consider using null-safe operator(?.)."
+                );
+            }
+
+            prevStep = step;
+        }
+    }
+
+    private List<JPlus25Parser.ExpressionNameContext> getExpressionNameList(JPlus25Parser.ExpressionNameContext ctx) {
+        Deque<JPlus25Parser.ExpressionNameContext> expressionNameContextDeque = new ArrayDeque<>();
+        JPlus25Parser.ExpressionNameContext current = ctx;
+        expressionNameContextDeque.addFirst(current);
+        while (current.expressionName() != null) {
+            current = current.expressionName();
+            expressionNameContextDeque.addFirst(current);
+        }
+        return expressionNameContextDeque.stream().toList();
     }
 
     public boolean hasPassed() {

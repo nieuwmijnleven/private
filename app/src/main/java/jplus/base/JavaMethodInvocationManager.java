@@ -46,7 +46,7 @@ public class JavaMethodInvocationManager {
                 .flatMap(methodInvocationInfoMap -> methodInvocationInfoMap.entrySet().stream())
                 .map(Map.Entry::getValue)
                 .filter(invocationInfo -> {
-                    TextChangeRange invocationCodeRange = Utils.computeTextChangeRange(source, invocationInfo.startPos, invocationInfo.endPos);
+                    TextChangeRange invocationCodeRange = Utils.computeTextChangeRange(source, invocationInfo.startPos, invocationInfo.endPos - 1);
                     return invocationCodeRange.equals(range);
                 })
                 .findFirst();

@@ -24,12 +24,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CodeGenContext {
-    private static final ThreadLocal<Deque<CodeGenContext>> stackLocal =
-            ThreadLocal.withInitial(ArrayDeque::new);
+    private static final ThreadLocal<Deque<CodeGenContext>> stackLocal = ThreadLocal.withInitial(ArrayDeque::new);
 
     private FragmentedText fragmentedText;
 
     private final Set<SourceMappingEntry> sourceMappingEntrySet = new HashSet<>();
+
+    private boolean semanticMode = false;
 
     private CodeGenContext() {}
 
@@ -52,6 +53,14 @@ public class CodeGenContext {
 
     public void setFragmentedText(FragmentedText fragmentedText) {
         this.fragmentedText = fragmentedText;
+    }
+
+    public boolean isSemanticMode() {
+        return semanticMode;
+    }
+
+    public void setSemanticMode(boolean semanticMode) {
+        this.semanticMode = semanticMode;
     }
 
     public void addSourceMappingEntry(SourceMappingEntry entry) {

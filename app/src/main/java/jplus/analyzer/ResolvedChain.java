@@ -72,7 +72,7 @@ public final class ResolvedChain {
     }
 
     public StepCursor stepCursor() {
-        return new StepCursor(Collections.unmodifiableList(steps));
+        return new StepCursor(steps);
     }
 
     @Override

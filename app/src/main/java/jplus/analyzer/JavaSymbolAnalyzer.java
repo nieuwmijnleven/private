@@ -228,7 +228,6 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     @Override
     public Void visitExpressionStatement(ExpressionStatementTree node, Void unused) {
         buildChain(node.getExpression());
-        buildChain(node.getExpression());
         return super.visitExpressionStatement(node, unused);
     }
 
@@ -416,11 +415,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
         SymbolInfo symbolInfo = resolver.resolveClass(qualifiedName);
-        System.err.println("[JavaSymbolResolver] symbolInfo = " + symbolInfo);
+        System.err.println("[NewClass] symbolInfo = " + symbolInfo);
 
         MethodInvocationInfo info = buildMethodInvocationInfo(node, qualifiedName, qualifiedName);
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
-        //System.err.println("[NewClass] methodInvocationInfo = " + info);
+        System.err.println("[NewClass] methodInvocationInfo = " + info);
         return super.visitNewClass(node, unused);
     }
 
