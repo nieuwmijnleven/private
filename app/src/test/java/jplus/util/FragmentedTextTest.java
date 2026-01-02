@@ -1,5 +1,6 @@
 package jplus.util;
 
+import jplus.editor.FragmentedText;
 import jplus.generator.TextChangeRange;
 import org.junit.jupiter.api.Test;
 

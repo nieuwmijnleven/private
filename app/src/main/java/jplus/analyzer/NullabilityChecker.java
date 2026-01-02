@@ -261,7 +261,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 getIdentifierFromParent(ctx).ifPresent(id ->
                         reportIssue(
                                 ctx.start,
-                                 symbol + " is a nullable variable. But it directly accesses "
+                                "[ExpressionName] " + symbol + " is a nullable variable. But it directly accesses "
                                         + id + ". Consider using null-safe operator(?.)."
                         )
                 );
@@ -670,7 +670,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             System.err.println("[PostfixExpression] chaining = " + currentSymbolTable.getResolvedChains());
             System.err.println("[PostfixExpression] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
-            //currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> processExpressionNameContext(getExpressionNameList(ctx.expressionName()), chain.stepCursor()));
+            currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> processExpressionNameContext(getExpressionNameList(ctx.expressionName()), chain.stepCursor()));
         }
         return super.visitPostfixExpression(ctx);
     }
@@ -687,7 +687,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
 
-        //currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
+        currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
 
         return super.visitPrimaryNoNewArray(ctx);
     }
@@ -790,7 +790,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             if (prevStep != null && prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
                 reportIssue(
                         ctx.start,
-                        prevStep.symbol + " is a nullable variable. But it directly accesses "
+                        "[processExpressionNameContext] " + prevStep.symbol + " is a nullable variable. But it directly accesses "
                                 + identifier + ". Consider using null-safe operator(?.)."
                 );
             }
