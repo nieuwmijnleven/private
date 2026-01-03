@@ -16,6 +16,7 @@
 
 package jplus.analyzer;
 
+import jplus.analyzer.nullability.ExpressionNameInvocationContext;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
@@ -26,7 +27,6 @@ import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
 import jplus.generator.TextChangeRange;
 import jplus.util.MethodUtils;
-import jplus.util.SymbolUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -35,6 +35,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -238,60 +239,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return nullsafetyInExprNameCtx || nullsafetyInPnnaCtx || nullsafetyInMiCtx;
     }
 
-    /**
-     * @return 현재 expressionName에서 계산된 symbolTable (부모 재귀에서 사용)
-     */
-    private SymbolTable processExpressionName(JPlus25Parser.ExpressionNameContext ctx) {
-        SymbolTable leftTable = currentSymbolTable; // 좌측 subtree에서 반환된 symbolTable
-
-        if (ctx.expressionName() != null) {
-            // 좌측 subtree 재귀 호출
-            leftTable = processExpressionName(ctx.expressionName());
-        }
-
-        // 현재 identifier 처리
-        String symbol = Utils.getTokenString(ctx.identifier());
-        System.err.println("[ExpressionName] symbol = " + symbol);
-        SymbolInfo symbolInfo = leftTable.resolve(symbol);
-        System.err.println("[ExpressionName] symbolInfo = " + symbolInfo);
-
-        if (symbolInfo != null) {
-            if (!usesNullSafety(ctx) && symbolInfo.getTypeInfo().isNullable()) {
-                System.err.println("[ExpressionName] nullability warning(" + ctx.start.getLine() + ") = " + symbolInfo);
-                getIdentifierFromParent(ctx).ifPresent(id ->
-                        reportIssue(
-                                ctx.start,
-                                "[ExpressionName] " + symbol + " is a nullable variable. But it directly accesses "
-                                        + id + ". Consider using null-safe operator(?.)."
-                        )
-                );
-            }
-
-            if (hasNextAccess(ctx)) {
-                TypeInfo typeInfo = symbolInfo.getTypeInfo();
-                if (typeInfo.getType() != TypeInfo.Type.Reference) {
-                    return leftTable;
-                }
-
-                String typeName = typeInfo.getName();
-                if (!SymbolUtils.isFQN(typeName)) {
-                    typeName = Optional.ofNullable(this.packageName).map(pkg -> pkg + "." + typeInfo.getName()).orElse(typeName);
-                }
-                System.err.println("[ExpressionName] typeName = " + typeName);
-
-                //System.err.println("[ExpressionName] globalSymbolTable = " + globalSymbolTable);
-                SymbolInfo classSymbolInfo = globalSymbolTable.resolveInCurrent(typeName);
-                SymbolTable topLevelTable = classSymbolInfo.getSymbolTable();
-                SymbolInfo topLevelClassInfo = topLevelTable.resolve("^TopLevelClass$");
-
-                // symbolTable을 부모 재귀 호출에 전달
-                return topLevelTable.getEnclosingSymbolTable(topLevelClassInfo.getSymbol());
-            }
-        }
-
-        return leftTable;
-    }
-
     private boolean hasNextAccess(JPlus25Parser.ExpressionNameContext ctx) {
         return ctx.getParent() instanceof JPlus25Parser.ExpressionNameContext;
     }
@@ -318,14 +265,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         return Optional.empty();
-    }
-
-    @Override
-    public Void visitExpressionName(JPlus25Parser.ExpressionNameContext ctx) {
-        System.err.println("[ExpressionName] code = " + Utils.getTokenString(ctx));
-        processExpressionName(ctx);
-//        return super.visitExpressionName(ctx);
-        return null;
     }
 
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
@@ -377,7 +316,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
-        String methodName = info.instanceName.equals(info.methodName) ? "constructor" : info.methodName;
+        String methodName = resolveMethodName(info);
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
         candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
 
@@ -393,12 +332,16 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return Optional.empty();
     }
 
+    private String resolveMethodName(MethodInvocationInfo info) {
+        return Objects.equals(info.instanceName, info.methodName) ? "constructor" : info.methodName;
+    }
+
     private void validateMethodArguments(
             ParserRuleContext ctx,
             MethodInvocationInfo info,
             SymbolInfo methodSymbolInfo
     ) {
-        String methodName = info.instanceName.equals(info.methodName) ? "constructor" : info.methodName;
+        String methodName = resolveMethodName(info);
         String raw = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
         String[] paramTypes = raw.isEmpty() ? new String[0] : raw.split("_");
 
@@ -495,20 +438,24 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     public Void visitLocalVariableDeclaration(JPlus25Parser.LocalVariableDeclarationContext ctx) {
         var variableDeclarator = ctx.variableDeclaratorList().variableDeclarator();
         for (JPlus25Parser.VariableDeclaratorContext variableDeclaratorContext : variableDeclarator) {
+
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
             System.err.println("[NullabilityChecker][LocalVariable] symbol = " + symbol);
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
             System.err.println("[NullabilityChecker][LocalVariable] symbolInfo = " + symbolInfo);
             System.err.println("[NullabilityChecker][LocalVariable] currentSymbolTable = " + currentSymbolTable);
+
             if (symbolInfo != null) {
                 TypeInfo typeInfo = symbolInfo.getTypeInfo();
                 if (variableDeclaratorContext.variableInitializer() != null) {
+
                     String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
                     if (!typeInfo.isNullable() && typeInfo.getType().equals(TypeInfo.Type.Reference) && "null".equals(expression)) {
                         String msg = symbol + " is a non-nullable variable. But null value is assigned to it.";
                         reportIssue(ctx.start, msg);
                     }
                 } else {
+
                     if (!typeInfo.isNullable() && typeInfo.getType().equals(TypeInfo.Type.Reference)) {
                         String msg = symbol + " is a non-nullable variable. But null value is assigned to it.";
                         reportIssue(ctx.start, msg);
@@ -610,10 +557,22 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         System.err.println("[MethodInvocation] chaining = " + currentSymbolTable.getResolvedChains());
         System.err.println("[MethodInvocation] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
-        return processMethodByUsingMethodInvocationInfo(ctx);
+        return processMethodInvocation(ctx);
     }
 
-    private Void processMethodByUsingMethodInvocationInfo(JPlus25Parser.MethodInvocationContext ctx) {
+    private Void processMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
+        System.err.println("[MethodInvocation] resolvedChains: " + currentSymbolTable.getResolvedChains());
+
+        System.err.println("[MethodInvocation] original range = " + Utils.getTextChangeRange(originalText, ctx));
+
+        findTransformedRange(Utils.getTextChangeRange(originalText, ctx)).ifPresent(range -> {
+            System.err.println("[MethodInvocation] mapped range = " + range);
+            System.err.println("[MethodInvocation] findResolvedChain = " + currentSymbolTable.findResolvedChain(range));
+
+            currentSymbolTable.findResolvedChain(range).ifPresent(chain -> handleMethodInvocation(ctx, chain));
+        });
+
+
         TextChangeRange invocationCodeRange = getCodeRange(ctx);
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
@@ -664,6 +623,19 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return super.visitMethodInvocation(ctx);
     }
 
+    private void handleMethodInvocation(JPlus25Parser.MethodInvocationContext ctx, ResolvedChain chain) {
+
+        if (ctx.expressionName() != null) {
+            handleExpressionName(ctx, chain);
+            return;
+        }
+
+        if (ctx.primary() != null) {
+            //handlePrimaryNoNewArray();
+        }
+
+    }
+
     @Override
     public Void visitPostfixExpression(JPlus25Parser.PostfixExpressionContext ctx) {
         if (ctx.expressionName() !=  null) {
@@ -682,12 +654,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         findTransformedRange(Utils.getTextChangeRange(originalText, ctx)).ifPresent(range -> {
             System.err.println("[PrimaryNoNewArray] mapped range = " + range);
+            System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(range));
+
+            currentSymbolTable.findResolvedChain(range).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
         });
 
-        System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
-
-
-        currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
 
         return super.visitPrimaryNoNewArray(ctx);
     }
@@ -701,11 +672,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         if (ctx.expressionName() != null) {
-            handlExpressionName(ctx, chain);
+            handleExpressionName(ctx, chain);
             return;
         }
-
-
     }
 
     private void handleThisPrimary(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
@@ -739,8 +708,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     if (prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
                         reportIssue(
                                 ctx.start,
-                                "[processPNNA] " + prevStep.symbol + " is a nullable variable. But it directly accesses "
-                                        + identifier + ". Consider using null-safe operator(?.)."
+                                prevStep.symbol + " is a nullable variable. But it directly accesses "
+                                        + identifier + "(). Consider using null-safe operator(?.)."
                         );
                     }
 
@@ -752,7 +721,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     if (prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
                         reportIssue(
                                 ctx.start,
-                                "[processPNNA] " + prevStep.symbol + " is a nullable variable. But it directly accesses "
+                                prevStep.symbol + " is a nullable variable. But it directly accesses "
                                         + identifier + ". Consider using null-safe operator(?.)."
                         );
                     }
@@ -771,11 +740,67 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         });
     }
 
-    private void handlExpressionName(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
+    private void handleExpressionName(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
+        handleExpressionNameInternal(ExpressionNameInvocationContext.from(ctx), chain);
+    }
+
+    private void handleExpressionName(JPlus25Parser.MethodInvocationContext ctx, ResolvedChain chain) {
+        handleExpressionNameInternal(ExpressionNameInvocationContext.from(ctx), chain);
+    }
+
+    private void handleExpressionNameInternal(ExpressionNameInvocationContext ctx, ResolvedChain chain) {
         var expressionNameList = getExpressionNameList(ctx.expressionName());
         StepCursor cursor = chain.stepCursor();
 
         processExpressionNameContext(expressionNameList, cursor);
+
+        if (ctx.LPAREN() != null) {
+            var prevStep = cursor.peekPrev().orElseThrow(() -> new IllegalStateException("A ExpressionName rule needed."));
+            var currentStep = cursor.consume();
+
+            String receiverName = prevStep.symbol;
+            String methodName = Utils.getTokenString(ctx.identifier());
+
+            if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
+
+            System.err.println("[handleExpressionName] methodInvocationInfo = " + currentStep.invocationInfo);
+
+            TypeInfo receiverTypeInfo = prevStep.typeInfo;
+            System.err.println("[handleExpressionName] receiverTypeInfo = " + receiverTypeInfo);
+
+            //check instance nullability
+            boolean useNullsafeOperator = (ctx.NULLSAFE() != null);
+            if (receiverTypeInfo.isNullable() && !useNullsafeOperator) {
+                reportIssue(
+                        ctx.getStart(),
+                        "%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.)."
+                        .formatted(receiverName, methodName)
+                );
+            }
+
+            Optional.ofNullable(globalSymbolTable.resolveInCurrent(receiverTypeInfo.getName())).ifPresent(receiverClassSymbolInfo -> {
+                System.err.println("[handleExpressionName] receiverClassSymbolInfo = " + receiverClassSymbolInfo);
+                //check method parameter nullability
+                SymbolTable classSymbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
+                if (!classSymbolTable.isEmpty()) { //must repair
+                    Optional<SymbolInfo> methodSymbol = resolveMethod(classSymbolTable, currentStep.invocationInfo);
+                    if (methodSymbol.isEmpty()) {
+                        throw new IllegalStateException("cannot find a mapping method.");
+                    }
+
+                    validateMethodArguments(ctx.originalContext(), currentStep.invocationInfo, methodSymbol.get());
+                }
+            });
+        }
+    }
+
+    private SymbolTable unwrapTopLevelClassSymbolTable(SymbolInfo receiverClassSymbolInfo) {
+        SymbolTable symbolTable = receiverClassSymbolInfo.getSymbolTable();
+        SymbolInfo topLevelClassSymbolInfo = symbolTable.resolveInCurrent("^TopLevelClass$");
+        if (topLevelClassSymbolInfo != null) {
+            return symbolTable.getEnclosingSymbolTable(topLevelClassSymbolInfo.getSymbol());
+        }
+        return symbolTable;
     }
 
     private void processExpressionNameContext(List<JPlus25Parser.ExpressionNameContext> expressionNameList, StepCursor cursor) {
@@ -790,7 +815,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             if (prevStep != null && prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
                 reportIssue(
                         ctx.start,
-                        "[processExpressionNameContext] " + prevStep.symbol + " is a nullable variable. But it directly accesses "
+                        prevStep.symbol + " is a nullable variable. But it directly accesses "
                                 + identifier + ". Consider using null-safe operator(?.)."
                 );
             }

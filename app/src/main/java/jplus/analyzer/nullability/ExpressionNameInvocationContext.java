@@ -1,0 +1,37 @@
+package jplus.analyzer.nullability;
+
+import jplus.base.JPlus25Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
+public interface ExpressionNameInvocationContext {
+    ParserRuleContext originalContext();
+    JPlus25Parser.ExpressionNameContext expressionName();
+    ParserRuleContext identifier();
+    TerminalNode LPAREN();
+    TerminalNode NULLSAFE();
+    Token getStart();
+
+    static ExpressionNameInvocationContext from(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
+        return new ExpressionNameInvocationContext() {
+            public ParserRuleContext originalContext() { return ctx; }
+            public JPlus25Parser.ExpressionNameContext expressionName() { return ctx.expressionName(); }
+            public ParserRuleContext identifier() { return ctx.identifier(); }
+            public TerminalNode LPAREN() { return ctx.LPAREN(); }
+            public TerminalNode NULLSAFE() { return ctx.NULLSAFE(); }
+            public Token getStart() { return ctx.start; }
+        };
+    }
+
+    static ExpressionNameInvocationContext from(JPlus25Parser.MethodInvocationContext ctx) {
+        return new ExpressionNameInvocationContext() {
+            public ParserRuleContext originalContext() { return ctx; }
+            public JPlus25Parser.ExpressionNameContext expressionName() { return ctx.expressionName(); }
+            public ParserRuleContext identifier() { return ctx.identifier(); }
+            public TerminalNode LPAREN() { return ctx.LPAREN(); }
+            public TerminalNode NULLSAFE() { return ctx.NULLSAFE(); }
+            public Token getStart() { return ctx.start; }
+        };
+    }
+}
