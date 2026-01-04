@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +60,16 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return symbolMap.get(name);
     }
 
+    private SymbolInfo resolveInCurrentInternal(String name, EnumSet<TypeInfo.Type> type) {
+        SymbolInfo symbolInfo = symbolMap.get(name);
+        if (symbolInfo == null) return null;
+        return type.contains(symbolInfo.getTypeInfo().getType()) ? symbolInfo : null;
+    }
+
+    public Optional<SymbolInfo> resolveInCurrent(String name, EnumSet<TypeInfo.Type> type) {
+        return Optional.ofNullable(resolveInCurrentInternal(name, type));
+    }
+
     @Override
     public Iterator<SymbolInfo> iterator() {
         return symbolMap.values().iterator();
@@ -85,12 +96,26 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return false;
     }
 
+    public boolean contains(String symbol, EnumSet<TypeInfo.Type> types) {
+        SymbolInfo symbolInfo = resolve(symbol);
+        if (symbolInfo == null) return false;
+
+        return types.contains(symbolInfo.getTypeInfo().getType());
+    }
+
     public boolean containsInCurrent(String symbol, TypeInfo.Type type) {
         SymbolInfo symbolInfo = resolveInCurrent(symbol);
         if (symbolInfo != null && symbolInfo.getTypeInfo().getType() == type) {
             return true;
         }
         return false;
+    }
+
+    public boolean containsInCurrent(String symbol, EnumSet<TypeInfo.Type> types) {
+        SymbolInfo symbolInfo = resolveInCurrent(symbol);
+        if (symbolInfo == null) return false;
+
+        return types.contains(symbolInfo.getTypeInfo().getType());
     }
 
     public List<String> findSymbolsByType(List<TypeInfo.Type> typeList) {
