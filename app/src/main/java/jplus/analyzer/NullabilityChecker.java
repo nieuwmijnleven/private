@@ -511,26 +511,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
-        /*if (ParserUtils.usesNullSafety(ctx)) {
-            if (ctx.expressionName() != null) {
-                return visitExpressionName(ctx.expressionName());
-            } else if (ctx.primary() != null) {
-                return visitPrimary(ctx.primary());
-            }
-        }*/
-
         TextChangeRange invocationCodeRange = getCodeRange(ctx);
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
-
-        System.err.println("[MethodInvocation] chaining = " + currentSymbolTable.getResolvedChains());
-        System.err.println("[MethodInvocation] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
         return processMethodInvocation(ctx);
     }
 
     private Void processMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
         System.err.println("[MethodInvocation] resolvedChains: " + currentSymbolTable.getResolvedChains());
-
         System.err.println("[MethodInvocation] original range = " + Utils.getTextChangeRange(originalText, ctx));
 
         findTransformedRange(Utils.getTextChangeRange(originalText, ctx)).ifPresent(range -> {
@@ -539,54 +527,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             currentSymbolTable.findResolvedChain(range).ifPresent(chain -> handleMethodInvocation(ctx, chain));
         });
-
-
-        /*TextChangeRange invocationCodeRange = getCodeRange(ctx);
-        System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
-
-        Optional<TextChangeRange> javaInvocationCodeRange = findTransformedRange(invocationCodeRange);
-        if (javaInvocationCodeRange.isEmpty()) {
-            throw new IllegalStateException("cannot find a mapping java code range.");
-        }
-
-        System.err.println("[MethodInvocation] javaInvocationCodeRange: " + javaInvocationCodeRange.get());
-
-        Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, javaInvocationCodeRange.get());
-        if (invocationInfo.isEmpty()) {
-            throw new IllegalStateException("cannot find a method invocation info.");
-        }
-
-        invocationInfo.ifPresent(info -> {
-            System.err.println("[MethodInvocation] info = " + info);
-
-            Optional<SymbolInfo> instanceSymbolInfo = resolveClassSymbol(info);
-            if (instanceSymbolInfo.isEmpty()) {
-                return;
-            }
-
-            //check instance nullability
-            System.err.println("[MethodInvocation] symbolInfo = " + instanceSymbolInfo.get());
-            TypeInfo instanceTypeInfo = instanceSymbolInfo.get().getTypeInfo();
-            boolean hasNullsafeOperator = (ctx.NULLSAFE() != null);
-
-            if (instanceTypeInfo.isNullable() && !hasNullsafeOperator) {
-                String msg = ("%s is a nullable variable. But it directly accesses %s(). "
-                        + "Consider using null-safe operator(?.).")
-                        .formatted(info.instanceName, info.methodName);
-                reportIssue(ctx.start, msg);
-            }
-
-            //check method parameter nullability
-            SymbolTable classSymbolTable = resolveClassSymbolTable(instanceSymbolInfo.get());
-            if (!classSymbolTable.isEmpty()) { //must repair
-                Optional<SymbolInfo> methodSymbol = resolveMethod(classSymbolTable, info);
-                if (methodSymbol.isEmpty()) {
-                    throw new IllegalStateException("cannot find a mapping method.");
-                }
-
-                validateMethodArguments(ctx, info, methodSymbol.get());
-            }
-        });*/
 
         return super.visitMethodInvocation(ctx);
     }
@@ -731,34 +671,33 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
 
-            System.err.println("[handleExpressionName] methodInvocationInfo = " + currentStep.invocationInfo);
+            System.err.println("[handleExpressionNameInternal] methodInvocationInfo = " + currentStep.invocationInfo);
 
             TypeInfo receiverTypeInfo = prevStep.typeInfo;
-            System.err.println("[handleExpressionName] receiverTypeInfo = " + receiverTypeInfo);
+            System.err.println("[handleExpressionNameInternal] receiverTypeInfo = " + receiverTypeInfo);
 
             //check instance nullability
             boolean useNullsafeOperator = (ctx.NULLSAFE() != null);
             if (receiverTypeInfo.isNullable() && !useNullsafeOperator) {
                 reportIssue(
                         ctx.getStart(),
-                        "%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.)."
-                        .formatted(receiverName, methodName)
+                        String.format("%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.).", receiverName, methodName)
                 );
             }
 
-            Optional.ofNullable(globalSymbolTable.resolveInCurrent(receiverTypeInfo.getName())).ifPresent(receiverClassSymbolInfo -> {
-                System.err.println("[handleExpressionName] receiverClassSymbolInfo = " + receiverClassSymbolInfo);
-                //check method parameter nullability
-                SymbolTable classSymbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
-                if (!classSymbolTable.isEmpty()) { //must repair
-                    Optional<SymbolInfo> methodSymbol = resolveMethod(classSymbolTable, currentStep.invocationInfo);
-                    if (methodSymbol.isEmpty()) {
-                        throw new IllegalStateException("cannot find a mapping method.");
-                    }
+            globalSymbolTable
+                .resolveInCurrent(receiverTypeInfo.getName(), EnumSet.of(TypeInfo.Type.Class))
+                .ifPresent(receiverClassSymbolInfo -> {
+                    System.err.println("[handleExpressionNameInternal] receiverClassSymbolInfo = " + receiverClassSymbolInfo);
 
-                    validateMethodArguments(ctx.originalContext(), currentStep.invocationInfo, methodSymbol.get());
-                }
-            });
+                    //check method parameter nullability
+                    SymbolTable classSymbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
+                    if (!classSymbolTable.isEmpty()) {
+                        SymbolInfo methodSymbolInfo = resolveMethod(classSymbolTable, currentStep.invocationInfo).orElseThrow(() -> new IllegalStateException("cannot find a mapping method."));
+
+                        validateMethodArguments(ctx.originalContext(), currentStep.invocationInfo, methodSymbolInfo);
+                    }
+                });
         }
     }
 

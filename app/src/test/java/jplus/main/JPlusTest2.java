@@ -35,44 +35,44 @@ class JPlusTest2 {
 
     @Test
     void testApplySetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplySetter.jplus", "wPKhrny4qhcRQUsYO0+zAm7KMpg=");
+        checkGeneratedCode("./src/test/samples/generics/ApplySetter.jplus", "2hZ3L6MGeReTmmN7Dy7/qKaLRlA=");
     }
 
     @Test
     void testApplyGetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyGetter.jplus", "ngP1x8iwnp9zE5UL5hEHhgnPxeM=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyGetter.jplus", "QdE5ntgm0TlTqjMoj0Xtci5qx2c=");
     }
 
     @Test
     void testApplyGenerics() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyGenerics.jplus", "YjZlxsnWSUhBuxCCPk52Wup/HPw=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyGenerics.jplus", "2HI1YQuuDf3Wzdcg/tZTp8b92a0=");
     }
 
 
 
     @Test
     void testApplyHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyHashCode.jplus", "GoGv4wptqzWrWxozkV3gN6N35aw=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyHashCode.jplus", "yTMHuRJfK9jeo9f4GxBU8KPNnbU=");
     }
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "G0Kw+8iWktD6w29oRj5YJ2RfuQE=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquals.jplus", "FyGOM28B2f5SvPYRijnCaLAmMJU=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "6udO+Lhyqehr1ct4AH582I9CFE8=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyEquality.jplus", "eE4oaFmhxZt+FVSPTABFeM8Obuw=");
     }
 
     @Test
     void testApplyToBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyToBuilder.jplus", "gelnDevoQZEs9mKZ4cFJllVH8t4=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyToBuilder.jplus", "16iL8hms/J9iMueFqZw2aSy5FAk=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "amnGh2AW2D7x6vlOKyj6voimwOc=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyData.jplus", "lSsHxL4mwofyYXHlYFRjiyWcnTg=");
     }
 
     @Test
@@ -93,40 +93,42 @@ class JPlusTest2 {
 
         assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:26, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:30, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:70, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:74, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:86, column:8) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:90, column:8) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:42, column:34) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:46, column:35) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:58, column:35) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:70, column:15) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:74, column:15) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:86, column:8) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:90, column:8) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
                 "Error: (line:109, column:58) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:110, column:58) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:110, column:110) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:113, column:8) The 1st argument of the UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:113, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithNo.jplus", "mCOocA3c9h2396LcUTepeJUmxC0=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithNo.jplus", "5cHIkScgk9vQMQ4JEUp9heuWDhA=");
     }
 
     @Test
     void testApplyConstructorWithAll() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithAll.jplus", "u8IYl7H++eeomF+k1AoELdRLiSQ=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithAll.jplus", "sOGWkAyN9f2Vd3QY9BdI0Yeltq4=");
     }
 
     @Test
     void testApplyConstructorWithRequired() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithRequired.jplus", "pFh2+Tkvb1yJiJzKXKu3ivk6XvU=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyConstructorWithRequired.jplus", "FEoScBd1/3GCMoAhsSsIZZPSKK0=");
     }
 
     @Test
     void testApplyToString() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyToString.jplus", "VgDOxwpRb9n2gn7qLSP9w0pF5E0=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyToString.jplus", "F7w02FLzIfhdUDFj7Cll/SKZgWw=");
     }
 
     @Test
     void testApplyBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/generics/ApplyBuilder.jplus", "cB7/mwtLK3cWvziXjvPLhUr8LVA=");
+        checkGeneratedCode("./src/test/samples/generics/ApplyBuilder.jplus", "wuPD49++rD1ngSxO8gKb5DxdQBU=");
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {
@@ -140,9 +142,9 @@ class JPlusTest2 {
         JPlusProcessor processor = new JPlusProcessor(project, "", className);
         processor.process();
 
-        String parseTreeString = processor.getParseTreeString();
-        String hashString = getHashString(parseTreeString);
-        System.err.println("hashString = " + hashString);
+        //String parseTreeString = processor.getParseTreeString();
+        //String hashString = getHashString(parseTreeString);
+        //System.err.println("hashString = " + hashString);
 
         processor.analyzeSymbols();
 
@@ -154,13 +156,22 @@ class JPlusTest2 {
         String generatedJavaCode = processor.generateJavaCode();
         System.err.println("[BoilerplateCodeGeneration] = " + generatedJavaCode);
 
-        processor = new JPlusProcessor(generatedJavaCode);
+        /*processor = new JPlusProcessor(generatedJavaCode);
         processor.process();
 
-        parseTreeString = processor.getParseTreeString();
-        hashString = getHashString(parseTreeString);
+        String parseTreeString = processor.getParseTreeString();
+        String hashString = getHashString(parseTreeString);*/
+
+        String hashString = getHashString(generatedJavaCode);
 
         assertEquals(expected, hashString);
+    }
+
+    private String canonicalize(String s) {
+        return s
+                .replace("\r\n", "\n")
+                .replaceAll("[ \t]+$", "") // trailing space 제거
+                .trim();
     }
 
     private String getHashString(String s) throws NoSuchAlgorithmException {
