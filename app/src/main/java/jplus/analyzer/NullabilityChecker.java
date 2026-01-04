@@ -17,6 +17,7 @@
 package jplus.analyzer;
 
 import jplus.analyzer.nullability.ExpressionNameInvocationContext;
+import jplus.analyzer.nullability.InvocationDeclarationContext;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
@@ -34,6 +35,7 @@ import org.antlr.v4.runtime.Token;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -143,50 +145,56 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitConstructorDeclaration(JPlus25Parser.ConstructorDeclarationContext ctx) {
-        List<String> typeNameList = getTypeNamesFromParameterList(ctx.constructorDeclarator().formalParameterList());
-        String constructorSymbol = "^constructor$_" + String.join("_", typeNameList);
-        //System.err.println("SymbolName = " + symbolName);
-        SymbolInfo constructorSymbolInfo = currentSymbolTable.resolveInCurrent(constructorSymbol);
-        if (constructorSymbolInfo == null) throw new IllegalStateException("cannot find the symbol(" + constructorSymbol + ")");
-        //System.err.println("constructorSymbolInfo = " + constructorSymbolInfo);
-        enterSymbolTable(constructorSymbolInfo.getSymbol());
-        //System.err.println("enclosingSymbolTable = " + currentSymbolTable);
-        try {
-            return super.visitConstructorDeclaration(ctx);
-        } finally {
-            exitSymbolTable();
-        }
+        return processInvocationDeclaration(InvocationDeclarationContext.from(ctx));
+    }
+
+    @Override
+    public Void visitMethodDeclaration(JPlus25Parser.MethodDeclarationContext ctx) {
+        return processInvocationDeclaration(InvocationDeclarationContext.from(ctx));
     }
 
     private List<String> extractParameterTypes(List<JPlus25Parser.FormalParameterContext> params) {
-        return params.stream().map(param -> {
-            boolean nullable = param.variableModifier() != null && param.variableModifier().stream()
-                    .anyMatch(vm -> "@Nullable".equals(Utils.getTokenString(vm.annotation())));
-            return Utils.getTokenString(param.unannType()) + (nullable ? "?" : "");
-        }).toList();
+        return params.stream()
+                .map(this::extractParameterType)
+                .toList();
     }
+
+    private String extractParameterType(JPlus25Parser.FormalParameterContext param) {
+        boolean nullable = isNullable(param);
+        String type = Utils.getTokenString(param.unannType());
+
+        return nullable ? type + "?" : type;
+    }
+
+    private boolean isNullable(JPlus25Parser.FormalParameterContext param) {
+        if (param.variableModifier() == null) {
+            return false;
+        }
+
+        return param.variableModifier().stream()
+                .anyMatch(vm ->
+                        "@Nullable".equals(Utils.getTokenString(vm.annotation()))
+                );
+    }
+
 
     private List<String> getTypeNamesFromParameterList(JPlus25Parser.FormalParameterListContext ctx) {
         if (ctx == null) return List.of();
         return extractParameterTypes(ctx.formalParameter());
     }
 
-    @Override
-    public Void visitMethodDeclaration(JPlus25Parser.MethodDeclarationContext ctx) {
-        List<String> typeNameList = getTypeNamesFromParameterList(ctx.methodHeader().methodDeclarator().formalParameterList());
-        String methodName = Utils.getTokenString(ctx.methodHeader().methodDeclarator().identifier());
-        //System.err.println("[MethodDecl] methodName = " + methodSymbol);
-        String methodSymbol = "^" + methodName + "$_" + String.join("_", typeNameList);
-        //System.err.println("[MethodDecl] currentSymbolTable = " + currentSymbolTable);
+    private Void processInvocationDeclaration(InvocationDeclarationContext ctx) {
+        List<String> typeNameList = getTypeNamesFromParameterList(ctx.formalParameterList());
+        String methodSymbol = "^" + ctx.methodName() + "$_" + String.join("_", typeNameList);
 
-        String fqnSymbolName = Optional.ofNullable(currentSymbolTable.resolveInCurrent(methodSymbol))
-                .orElseThrow(() -> new IllegalStateException("There is no method symbol(" + methodSymbol + ") in the current symbol table"))
-                .getSymbol();
-        //System.err.println("[MethodDecl] fqnSymbolName = " + fqnSymbolName);
+        SymbolInfo methodSymbolInfo = currentSymbolTable.resolveInCurrent(methodSymbol);
+        if (methodSymbolInfo == null) {
+            throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
+        }
 
-        enterSymbolTable(fqnSymbolName);
+        enterSymbolTable(methodSymbolInfo.getSymbol());
         try {
-            return super.visitMethodDeclaration(ctx);
+            return super.visitChildren(ctx.originalContext());
         } finally {
             exitSymbolTable();
         }
@@ -201,13 +209,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
             if (variableDeclaratorContext.variableInitializer() != null) {
-                String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
 
+                String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
                 if (!typeInfo.isNullable() && "null".equals(expression)) {
                     reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
             }
         }
+
         return super.visitFieldDeclaration(ctx);
     }
 
@@ -231,42 +240,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
     }
 
-    private boolean usesNullSafety(JPlus25Parser.ExpressionNameContext ctx) {
-        boolean nullsafetyInExprNameCtx = ctx.getParent() instanceof JPlus25Parser.ExpressionNameContext p && p.NULLSAFE() != null;
-        boolean nullsafetyInPnnaCtx = ctx.getParent() instanceof JPlus25Parser.PrimaryNoNewArrayContext p && p.NULLSAFE() != null;
-        boolean nullsafetyInMiCtx = ctx.getParent() instanceof JPlus25Parser.MethodInvocationContext p && p.NULLSAFE() != null;
-
-        return nullsafetyInExprNameCtx || nullsafetyInPnnaCtx || nullsafetyInMiCtx;
-    }
-
-    private boolean hasNextAccess(JPlus25Parser.ExpressionNameContext ctx) {
-        return ctx.getParent() instanceof JPlus25Parser.ExpressionNameContext;
-    }
-
-    private Optional<String> getIdentifierFromParent(JPlus25Parser.ExpressionNameContext ctx) {
-        var parent = ctx.getParent();
-
-        if (parent instanceof JPlus25Parser.ExpressionNameContext expressionNameCtx) {
-            return Optional.ofNullable(
-                    Utils.getTokenString(expressionNameCtx.identifier())
-            );
-        }
-
-        if (parent instanceof JPlus25Parser.PrimaryNoNewArrayContext pnnaCtx) {
-            return Optional.ofNullable(
-                    Utils.getTokenString(pnnaCtx.identifier())
-            );
-        }
-
-        if (parent instanceof JPlus25Parser.MethodInvocationContext miCtx) {
-            return Optional.ofNullable(
-                    Utils.getTokenString(miCtx.identifier())
-            );
-        }
-
-        return Optional.empty();
-    }
-
     private SymbolTable resolveClassSymbolTable(SymbolInfo symbolInfo) {
         SymbolTable symbolTable = symbolInfo.getSymbolTable();
         System.err.println("[resolveClassSymbolTable] symbolTable = " + symbolTable);
@@ -276,11 +249,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 symbolTable = classSymbolInfo.getSymbolTable();
                 symbolInfo = classSymbolInfo;
             }
-//        return symbolTable;
         }
 
         String classSymbol;
-        if(symbolTable.containsInCurrent("^TopLevelClass$", TypeInfo.Type.Class) ) {
+        if(symbolTable.containsInCurrent("^TopLevelClass$", EnumSet.of(TypeInfo.Type.Class)) ) {
             classSymbol = symbolTable.resolveInCurrent("^TopLevelClass$").getSymbol();
         } else {
             classSymbol = symbolInfo.getSymbol();
@@ -303,9 +275,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     private Optional<TextChangeRange> findTransformedRange(TextChangeRange instanceRange) {
         return sourceMappingEntrySet.stream()
-                //.peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange()))
-                .filter(entry -> instanceRange.equals(entry.getOriginalRange()))
-                .peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange() + ", transformedRange = " + entry.getTransformedRange()))
+                .filter(entry -> Objects.equals(instanceRange, entry.getOriginalRange()))
+                //.peek(entry -> log("[findTransformedRange] originalRange = " + entry.getOriginalRange() + ", transformedRange = " + entry.getTransformedRange()))
                 .map(SourceMappingEntry::getTransformedRange)
                 .findFirst();
     }
@@ -316,19 +287,17 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
+        //System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
+
         String methodName = resolveMethodName(info);
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
-        candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
-
-        System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
+        //candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
 
         for (String candidate : candidates) {
-            SymbolInfo methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
-            if (methodSymbolInfo != null) {
-                log("[resolveMethod] found method: " + methodSymbolInfo);
-                return Optional.of(methodSymbolInfo);
-            }
+            Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate, EnumSet.of(TypeInfo.Type.Constructor, TypeInfo.Type.Method));
+            if (methodSymbolInfo.isPresent()) return methodSymbolInfo;
         }
+
         return Optional.empty();
     }
 
@@ -342,8 +311,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             SymbolInfo methodSymbolInfo
     ) {
         String methodName = resolveMethodName(info);
-        String raw = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
-        String[] paramTypes = raw.isEmpty() ? new String[0] : raw.split("_");
+        String rawParamTypes = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
+        String[] paramTypes = rawParamTypes.isEmpty() ? new String[0] : rawParamTypes.split("_");
 
         for (int i = 0; i < paramTypes.length; i++) {
             String paramType = paramTypes[i];
@@ -357,7 +326,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private boolean isInvalidNullAssignment(String paramType, String argType) {
-        return !paramType.endsWith("?") && "<nulltype>".equals(argType);
+        if (paramType.endsWith("?")) return false;
+        return "<nulltype>".equals(argType);
+        //return !paramType.endsWith("?") && "<nulltype>".equals(argType);
     }
 
     private void reportInvalidNull(
@@ -366,18 +337,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             int argIndex
     ) {
         String suffix = getOrdinalSuffix(argIndex);
-        String msg;
-        if (info.instanceName.equals(info.methodName)) {
-            msg = "The " + argIndex + suffix +
-                " argument of the " + info.instanceName +
-                " constructor is a non-nullable variable, but a null value is assigned to it.";
-        } else {
-            msg = "The " + argIndex + suffix +
-                " argument of the " + info.instanceName + "." + info.methodName + "()" +
-                " is a non-nullable variable, but a null value is assigned to it.";
-        }
+        String msg = String.format("The %s argument of the %s is a non-nullable variable, but a null value is assigned to it.", argIndex + suffix, info.getInvocationInfoMessage());
+
         reportIssue(ctx.start, msg);
     }
+
+
 
     private void log(String msg) {
         System.err.println(msg);
@@ -554,6 +519,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             }
         }*/
 
+        TextChangeRange invocationCodeRange = getCodeRange(ctx);
+        System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
+
         System.err.println("[MethodInvocation] chaining = " + currentSymbolTable.getResolvedChains());
         System.err.println("[MethodInvocation] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
@@ -573,7 +541,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         });
 
 
-        TextChangeRange invocationCodeRange = getCodeRange(ctx);
+        /*TextChangeRange invocationCodeRange = getCodeRange(ctx);
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
         Optional<TextChangeRange> javaInvocationCodeRange = findTransformedRange(invocationCodeRange);
@@ -618,7 +586,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
                 validateMethodArguments(ctx, info, methodSymbol.get());
             }
-        });
+        });*/
 
         return super.visitMethodInvocation(ctx);
     }

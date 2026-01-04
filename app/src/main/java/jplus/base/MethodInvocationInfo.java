@@ -18,6 +18,7 @@
 package jplus.base;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MethodInvocationInfo {
     public final String instanceName;
@@ -113,6 +114,13 @@ public class MethodInvocationInfo {
     
     public static Builder builder() {
         return new Builder();
+    }
+
+    public String getInvocationInfoMessage() {
+        if (Objects.equals(instanceName, methodName)) {
+            return instanceName + " constructor";
+        }
+        return instanceName + "." + methodName + "()";
     }
 
     @Override

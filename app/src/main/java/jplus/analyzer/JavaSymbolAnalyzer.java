@@ -206,7 +206,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             if (!(e instanceof ExecutableElement method)) return;
 
             TypeMirror ret = method.getReturnType();
-            if (ret.getKind() == TypeKind.VOID) return;
+            //if (ret.getKind() == TypeKind.VOID) return;
 
             TypeInfo ti = TypeUtils.fromTypeMirror(ret, method);
             boolean nullSafe = ms.toString().contains("?.");
@@ -218,11 +218,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     ti.isNullable(),
                     nullSafe,
                     computeRange(mi),
-                    buildMethodInvocationInfo(mi, null, method.getSimpleName().toString())
+                    buildMethodInvocationInfo(mi, resolveReceiverType(chain), method.getSimpleName().toString())
             ));
         }
 
-
+        private String resolveReceiverType(ResolvedChain chain) {
+            return (chain.last() != null) ? chain.last().typeInfo.getName() : null;
+        }
     }
 
     @Override
