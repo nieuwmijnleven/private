@@ -27,7 +27,7 @@ class UserMethodParamAnnotationForCodeGenerator {
     }
 
     String getStreet_ExpressionName_AddressNullsafety() {
-        return address?.street.name;
+        return java.util.Optional.ofNullable(address).map(t0 -> t0.street.name).orElse(null);//return address?.street.name;
     }
 
     String getStreet_ExpressionName_StreetNullsafety() {
