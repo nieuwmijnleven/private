@@ -21,9 +21,7 @@ import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
 import jplus.util.CodeGenUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.EnumSet;
 
 public class ToBuilderFeatureProcessor implements ApplyFeatureProcessor {
     @Override
@@ -55,8 +53,8 @@ public class ToBuilderFeatureProcessor implements ApplyFeatureProcessor {
         for (String fieldName : context.getFieldList()) {
             SymbolInfo symbolInfo = context.getClassSymbolTable().resolve(fieldName);
 
-            List<Modifier> excludedModifiers = List.of(Modifier.STATIC);
-            if (symbolInfo.getModifierList().stream().anyMatch(modifier -> excludedModifiers.contains(modifier))) {
+            EnumSet<Modifier> excluded = EnumSet.of(Modifier.STATIC);
+            if (CodeGenUtils.hasAnyModifiers(symbolInfo, excluded)) {
                 continue;
             }
 

@@ -20,11 +20,9 @@ import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
 import jplus.util.CodeGenUtils;
-import jplus.util.CodeUtils;
 import jplus.util.Utils;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.EnumSet;
 
 public class GetterFeatureProcessor implements ApplyFeatureProcessor {
     @Override
@@ -43,8 +41,8 @@ public class GetterFeatureProcessor implements ApplyFeatureProcessor {
             System.err.println("[GetterFeatureProcessor] typeInfo = " + symbolInfo.getTypeInfo());
             String simpleTypeName = CodeGenUtils.getSimpleTypeName(symbolInfo.getTypeInfo());
 
-            List<Modifier> excludedModifiers = List.of(Modifier.STATIC);
-            if (symbolInfo.getModifierList().stream().anyMatch(modifier -> excludedModifiers.contains(modifier))) {
+            EnumSet<Modifier> excluded = EnumSet.of(Modifier.STATIC);
+            if (CodeGenUtils.hasAnyModifiers(symbolInfo, excluded)) {
                 continue;
             }
 
