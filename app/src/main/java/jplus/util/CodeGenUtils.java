@@ -1,7 +1,10 @@
 package jplus.util;
 
+import jplus.base.Modifier;
+import jplus.base.SymbolInfo;
 import jplus.base.TypeInfo;
 
+import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 public class CodeGenUtils {
@@ -33,5 +36,9 @@ public class CodeGenUtils {
             return base;
         }
         return base + "<?>";
+    }
+
+    public static boolean hasAnyModifiers(SymbolInfo symbolInfo, EnumSet<Modifier> modifiers) {
+        return symbolInfo.getModifierList().stream().anyMatch(modifiers::contains);
     }
 }
