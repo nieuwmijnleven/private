@@ -145,6 +145,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 handleMemberSelect(ms, chain);
             } else if (expr instanceof MethodInvocationTree mi) {
                 handleMethodInvocation(mi, chain);
+            } else if (expr instanceof NewClassTree nc) {
+                handleNewClass(nc, chain);
             }
         }
 
@@ -166,14 +168,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
 
         private void handleMemberSelect(MemberSelectTree ms, ResolvedChain chain) {
-            // 1️⃣ 왼쪽 먼저
-            //visit(ms.getExpression(), chain);
-
             Element e = trees.getElement(TreePath.getPath(ast, ms));
             if (e == null) return;
 
             TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
-            boolean nullSafe = ms.toString().contains("?."); // 네 문법에 맞게
+            boolean nullSafe = ms.toString().contains("?.");
 
             chain.addStep(new ResolvedChain.Step(
                     ResolvedChain.Kind.FIELD,
@@ -195,6 +194,27 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             } else {
                 visit(select, chain);
             }
+        }
+
+        private void handleNewClass(NewClassTree nc, ResolvedChain chain) {
+            TreePath path = trees.getPath(ast, nc);
+            Element element = trees.getElement(path);
+            TypeMirror typeMirror = trees.getTypeMirror(path);
+            TypeInfo ti = buildTypeInfo(typeMirror, element);
+
+            String qualifiedName = getQualifiedName(nc);
+            chain.addStep(new ResolvedChain.Step(
+                    ResolvedChain.Kind.IDENTIFIER,
+                    qualifiedName,
+                    ti,
+                    ti.isNullable(),
+                    false,
+                    computeRange(nc),
+                    buildMethodInvocationInfo(nc, qualifiedName, qualifiedName)));
+
+//            for (var arg: nc.getArguments()) {
+//                buildChain(arg);
+//            }
         }
 
         private void addMethodStep(
@@ -422,6 +442,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         MethodInvocationInfo info = buildMethodInvocationInfo(node, qualifiedName, qualifiedName);
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
         System.err.println("[NewClass] methodInvocationInfo = " + info);
+
+//        for (ExpressionTree arg : node.getArguments()) {
+//            buildChain(arg);
+//        }
+
         return super.visitNewClass(node, unused);
     }
 
@@ -625,9 +650,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                             methodName
                     );
 
-            /*for (ExpressionTree arg : node.getArguments()) {
-                buildChain(arg);
-            }*/
+//            for (ExpressionTree arg : node.getArguments()) {
+//                buildChain(arg);
+//            }
 
             javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
             System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);

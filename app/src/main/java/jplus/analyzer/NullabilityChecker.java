@@ -36,6 +36,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +49,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private final Set<SourceMappingEntry> sourceMappingEntrySet;
     private final JavaMethodInvocationManager methodInvocationManager;
     private SymbolTable currentSymbolTable;
+    private final Set<TextChangeRange> consumedExpressions = new HashSet<>();
+
     private String originalText;
     private String packageName;
     private boolean hasPassed = true;
@@ -287,11 +290,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
-        //System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
+        System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
 
         String methodName = resolveMethodName(info);
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
-        //candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
+        candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
 
         for (String candidate : candidates) {
             Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate, EnumSet.of(TypeInfo.Type.Constructor, TypeInfo.Type.Method));
@@ -322,6 +325,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             if (isInvalidNullAssignment(paramType, argType)) {
                 reportInvalidNull(ctx, info, i + 1);
             }
+
+
         }
     }
 
@@ -348,14 +353,39 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         System.err.println(msg);
     }
 
+    private boolean isInvocationArgument(ParserRuleContext ctx) {
+        ParserRuleContext parent = ctx.getParent();
+        while (parent != null) {
+            if (parent instanceof JPlus25Parser.ArgumentListContext) {
+                return true;
+            }
+            if (parent instanceof JPlus25Parser.PrimaryNoNewArrayContext) {
+                return false; // chaining 쪽에서 처리
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
     @Override
     public Void visitUnqualifiedClassInstanceCreationExpression(JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
+
         TextChangeRange codeRange = getCodeRange(ctx);
+        if (consumedExpressions.contains(codeRange)) {
+            return null;
+        }
 
         Optional<TextChangeRange> transformedRange = findTransformedRange(codeRange);
         if (transformedRange.isEmpty()) {
             throw new IllegalStateException("cannot find a mapping java code range.");
+            //return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
         }
+
+        /*Optional<ResolvedChain> chain = currentSymbolTable.findResolvedChain(transformedRange.get());
+        if (chain.isPresent()) {
+            // 이미 PrimaryNoNewArray에서 처리됨
+            return null;
+        }*/
 
         Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, transformedRange.get());
         if (invocationInfo.isEmpty()) {
@@ -540,8 +570,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         if (ctx.primary() != null) {
             //handlePrimaryNoNewArray();
+            return;
         }
-
     }
 
     @Override
@@ -557,6 +587,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
+        System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") contextString = " + Utils.getTokenString(ctx));
         System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") chaining = " + currentSymbolTable.getResolvedChains());
         System.err.println("[PrimaryNoNewArray] original range = " + Utils.getTextChangeRange(originalText, ctx));
 
@@ -566,7 +597,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             currentSymbolTable.findResolvedChain(range).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
         });
-
 
         return super.visitPrimaryNoNewArray(ctx);
     }
@@ -583,6 +613,26 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             handleExpressionName(ctx, chain);
             return;
         }
+
+        if (ctx.unqualifiedClassInstanceCreationExpression() != null) {
+            handleUnqualifiedClassInstanceCreationExpression(ctx.unqualifiedClassInstanceCreationExpression(), cursor);
+            consumedExpressions.add(Utils.getTextChangeRange(originalText, ctx.unqualifiedClassInstanceCreationExpression()));
+            log("[consumedExpressions] " + consumedExpressions);
+            return;
+        }
+    }
+
+    private void handleUnqualifiedClassInstanceCreationExpression(JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext ctx, StepCursor cursor) {
+        var currentStep = cursor.consume();
+        log("[unqualifiedClassInstanceCreationExpression] currentStep = " + currentStep);
+
+        String typeName = currentStep.typeInfo.getName();
+        //String typeName = currentStep.invocationInfo.typeInfo.getName();
+        log("[unqualifiedClassInstanceCreationExpression] typeName = " + typeName);
+
+        validateMethodArgumentNullability(ctx, typeName, currentStep);
+
+        super.visitChildren(ctx);
     }
 
     private void handleThisPrimary(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
@@ -685,20 +735,34 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 );
             }
 
-            globalSymbolTable
-                .resolveInCurrent(receiverTypeInfo.getName(), EnumSet.of(TypeInfo.Type.Class))
-                .ifPresent(receiverClassSymbolInfo -> {
-                    System.err.println("[handleExpressionNameInternal] receiverClassSymbolInfo = " + receiverClassSymbolInfo);
-
-                    //check method parameter nullability
-                    SymbolTable classSymbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
-                    if (!classSymbolTable.isEmpty()) {
-                        SymbolInfo methodSymbolInfo = resolveMethod(classSymbolTable, currentStep.invocationInfo).orElseThrow(() -> new IllegalStateException("cannot find a mapping method."));
-
-                        validateMethodArguments(ctx.originalContext(), currentStep.invocationInfo, methodSymbolInfo);
-                    }
-                });
+            validateMethodArgumentNullability(ctx.originalContext(), receiverTypeInfo.getName(), currentStep);
+            return;
         }
+    }
+
+    private void validateMethodArgumentNullability(ParserRuleContext ctx, String typeName, ResolvedChain.Step invocationStep) {
+        globalSymbolTable
+            .resolveInCurrent(typeName, EnumSet.of(TypeInfo.Type.Class))
+            .ifPresent(receiverClassSymbolInfo -> {
+                System.err.println("[handleExpressionNameInternal] receiverClassSymbolInfo = " + receiverClassSymbolInfo);
+
+                //check method parameter nullability
+                SymbolTable classSymbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
+                //SymbolTable classSymbolTable = resolveReceiverClassSymbolTable(receiverClassSymbolInfo);
+                if (!classSymbolTable.isEmpty()) {
+                    SymbolInfo methodSymbolInfo = resolveMethod(classSymbolTable, invocationStep.invocationInfo).orElseThrow(() -> new IllegalStateException("cannot find a mapping method."));
+
+                    validateMethodArguments(ctx, invocationStep.invocationInfo, methodSymbolInfo);
+                }
+            });
+    }
+
+    private SymbolTable resolveReceiverClassSymbolTable(SymbolInfo receiverClassSymbolInfo) {
+        SymbolTable symbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
+        if (symbolTable.isEmpty()) {
+            return resolveClassSymbolTable(receiverClassSymbolInfo);
+        }
+        return symbolTable;
     }
 
     private SymbolTable unwrapTopLevelClassSymbolTable(SymbolInfo receiverClassSymbolInfo) {
@@ -708,6 +772,17 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             return symbolTable.getEnclosingSymbolTable(topLevelClassSymbolInfo.getSymbol());
         }
         return symbolTable;
+    }
+
+    private SymbolTable resolveLowContextSymbolTable(SymbolInfo receiverClassSymbolInfo) {
+        SymbolTable symbolTable = receiverClassSymbolInfo
+                                        .getSymbolTable()
+                                        .findLowContextSymbolTable(receiverClassSymbolInfo.getSymbol());
+        SymbolTable receiverSymbolTable = symbolTable.getEnclosingSymbolTable(receiverClassSymbolInfo.getSymbol());
+        if (receiverSymbolTable.isEmpty()) {
+            receiverSymbolTable = symbolTable.getEnclosingSymbolTable(receiverClassSymbolInfo.getTypeInfo().getName());
+        }
+        return receiverSymbolTable;
     }
 
     private void processExpressionNameContext(List<JPlus25Parser.ExpressionNameContext> expressionNameList, StepCursor cursor) {
