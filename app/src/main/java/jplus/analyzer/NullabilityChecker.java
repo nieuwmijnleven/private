@@ -747,8 +747,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 System.err.println("[handleExpressionNameInternal] receiverClassSymbolInfo = " + receiverClassSymbolInfo);
 
                 //check method parameter nullability
-                SymbolTable classSymbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
-                //SymbolTable classSymbolTable = resolveReceiverClassSymbolTable(receiverClassSymbolInfo);
+                SymbolTable classSymbolTable = resolveReceiverClassContextSymbolTable(receiverClassSymbolInfo);
                 if (!classSymbolTable.isEmpty()) {
                     SymbolInfo methodSymbolInfo = resolveMethod(classSymbolTable, invocationStep.invocationInfo).orElseThrow(() -> new IllegalStateException("cannot find a mapping method."));
 
@@ -757,32 +756,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             });
     }
 
-    private SymbolTable resolveReceiverClassSymbolTable(SymbolInfo receiverClassSymbolInfo) {
-        SymbolTable symbolTable = unwrapTopLevelClassSymbolTable(receiverClassSymbolInfo);
-        if (symbolTable.isEmpty()) {
-            return resolveClassSymbolTable(receiverClassSymbolInfo);
-        }
-        return symbolTable;
-    }
-
-    private SymbolTable unwrapTopLevelClassSymbolTable(SymbolInfo receiverClassSymbolInfo) {
+    private SymbolTable resolveReceiverClassContextSymbolTable(SymbolInfo receiverClassSymbolInfo) {
         SymbolTable symbolTable = receiverClassSymbolInfo.getSymbolTable();
-        SymbolInfo topLevelClassSymbolInfo = symbolTable.resolveInCurrent("^TopLevelClass$");
-        if (topLevelClassSymbolInfo != null) {
-            return symbolTable.getEnclosingSymbolTable(topLevelClassSymbolInfo.getSymbol());
-        }
-        return symbolTable;
-    }
-
-    private SymbolTable resolveLowContextSymbolTable(SymbolInfo receiverClassSymbolInfo) {
-        SymbolTable symbolTable = receiverClassSymbolInfo
-                                        .getSymbolTable()
-                                        .findLowContextSymbolTable(receiverClassSymbolInfo.getSymbol());
-        SymbolTable receiverSymbolTable = symbolTable.getEnclosingSymbolTable(receiverClassSymbolInfo.getSymbol());
-        if (receiverSymbolTable.isEmpty()) {
-            receiverSymbolTable = symbolTable.getEnclosingSymbolTable(receiverClassSymbolInfo.getTypeInfo().getName());
-        }
-        return receiverSymbolTable;
+        return symbolTable.getEnclosingSymbolTable(receiverClassSymbolInfo.getSymbol());
     }
 
     private void processExpressionNameContext(List<JPlus25Parser.ExpressionNameContext> expressionNameList, StepCursor cursor) {

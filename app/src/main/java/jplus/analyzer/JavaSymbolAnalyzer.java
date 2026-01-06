@@ -212,9 +212,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     computeRange(nc),
                     buildMethodInvocationInfo(nc, qualifiedName, qualifiedName)));
 
-//            for (var arg: nc.getArguments()) {
-//                buildChain(arg);
-//            }
+            for (var arg: nc.getArguments()) {
+                buildChain(arg);
+            }
         }
 
         private void addMethodStep(
