@@ -93,6 +93,7 @@ class JPlusTest2 {
 
         assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:26, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:30, column:64) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:42, column:34) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:46, column:35) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:58, column:35) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +

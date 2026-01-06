@@ -16,25 +16,7 @@
 
 package jplus.analyzer;
 
-import com.sun.source.tree.ArrayAccessTree;
-import com.sun.source.tree.BlockTree;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ConditionalExpressionTree;
-import com.sun.source.tree.ExpressionStatementTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.PackageTree;
-import com.sun.source.tree.ParenthesizedTree;
-import com.sun.source.tree.ReturnTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.TypeCastTree;
-import com.sun.source.tree.UnaryTree;
-import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.*;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
@@ -448,6 +430,46 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 //        }
 
         return super.visitNewClass(node, unused);
+    }
+
+    @Override
+    public Void visitLambdaExpression(LambdaExpressionTree node, Void unused) {
+
+        SymbolTable lambdaSymbolTable = new SymbolTable(currentSymbolTable);
+
+        String lamdaSymbol = "^lambda$" + getSourceStartPosition(node);
+        enterSymbolTable(lamdaSymbol, lambdaSymbolTable);
+        try {
+            for (VariableTree param : node.getParameters()) {
+                TreePath paramPath = new TreePath(getCurrentPath(), param);
+                Element e = trees.getElement(paramPath);
+                TypeMirror tm = trees.getTypeMirror(paramPath);
+
+                TypeInfo ti = TypeUtils.fromTypeMirror(tm, e);
+                SymbolInfo si = SymbolInfo.builder()
+                        .symbol(param.getName().toString())
+                        .typeInfo(ti)
+                        .symbolTable(lambdaSymbolTable)
+                        .range(computeRange(param))
+                        .originalText(param.toString())
+                        .build();
+
+                lambdaSymbolTable.declare(si.getSymbol(), si);
+            }
+
+            // 3. body 처리
+            Tree body = node.getBody();
+            if (body instanceof ExpressionTree et) {
+                buildChain(et);
+            } else if (body instanceof BlockTree bt) {
+                scan(bt, unused);
+            }
+
+            return null;
+
+        } finally {
+            exitSymbolTable();
+        }
     }
 
     private MethodInvocationInfo buildMethodInvocationInfo(Tree node, String instanceName, String methodName) {

@@ -36,6 +36,7 @@ public class UnresolvedReferenceScanner {
 
     public static class UnresolvedReferenceInfo {
         public String className;
+
         public String packageName;
 
         public String getFullyQualifiedName() {
@@ -51,6 +52,14 @@ public class UnresolvedReferenceScanner {
         @Override
         public int hashCode() {
             return Objects.hash(className, packageName);
+        }
+
+        @Override
+        public String toString() {
+            return "UnresolvedReferenceInfo{" +
+                    "className='" + className + '\'' +
+                    ", packageName='" + packageName + '\'' +
+                    '}';
         }
     }
 
@@ -68,6 +77,7 @@ public class UnresolvedReferenceScanner {
             info.packageName = this.packageName;
             unresolvedReferenceInfoList.add(info);
         }
+        System.err.println("[UnresolvedReferenceScanner] unresolvedReferenceInfoList = " + unresolvedReferenceInfoList);
         return unresolvedReferenceInfoList.stream().toList();
     }
 
@@ -79,6 +89,7 @@ public class UnresolvedReferenceScanner {
             SymbolTable table = deque.removeFirst();
             for (SymbolInfo symbolInfo : table) {
                 if (checkUnresolvedSymbol(symbolInfo)) {
+                    System.err.println("[UnresolvedReferenceScanner] symbolInfo = " + symbolInfo);
                     unresolved.add(symbolInfo);
                 }
             }
@@ -88,6 +99,8 @@ public class UnresolvedReferenceScanner {
     }
 
     private boolean checkUnresolvedSymbol(@NonNull SymbolInfo symbolInfo) {
-        return !"<error>".equals(symbolInfo.getSymbol()) && symbolInfo.getTypeInfo().getType() == TypeInfo.Type.Unknown;
+        if ("<error>".equals(symbolInfo.getSymbol())) return false;
+        if ("<any>".equals(symbolInfo.getTypeInfo().getName())) return false;
+        return symbolInfo.getTypeInfo().getType() == TypeInfo.Type.Unknown;
     }
 }

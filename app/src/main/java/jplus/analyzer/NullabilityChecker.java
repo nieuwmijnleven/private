@@ -204,6 +204,21 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitLambdaExpression(JPlus25Parser.LambdaExpressionContext ctx) {
+        log("[LambdaExpression] contextString = " + Utils.getTokenString(ctx));
+        log("[LambdaExpression] startOffset = " + ctx.start.getStartIndex());
+
+        String lambdaSymbol = "^lambda$" + ctx.start.getStartIndex();
+        enterSymbolTable(lambdaSymbol);
+        try {
+            log("[LambdaExpression] lambdaSymboTable = " + currentSymbolTable);
+            return super.visitLambdaExpression(ctx);
+        } finally {
+            exitSymbolTable();
+        }
+    }
+
+    @Override
     public Void visitFieldDeclaration(JPlus25Parser.FieldDeclarationContext ctx) {
         for (var variableDeclaratorContext : ctx.variableDeclaratorList().variableDeclarator()) {
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
@@ -632,7 +647,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         validateMethodArgumentNullability(ctx, typeName, currentStep);
 
-        super.visitChildren(ctx);
+        super.visitUnqualifiedClassInstanceCreationExpression(ctx);
     }
 
     private void handleThisPrimary(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
