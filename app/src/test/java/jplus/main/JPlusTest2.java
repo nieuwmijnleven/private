@@ -168,13 +168,6 @@ class JPlusTest2 {
         assertEquals(expected, hashString);
     }
 
-    private String canonicalize(String s) {
-        return s
-                .replace("\r\n", "\n")
-                .replaceAll("[ \t]+$", "") // trailing space 제거
-                .trim();
-    }
-
     private String getHashString(String s) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("sha-1");
         byte[] hash = messageDigest.digest(s.getBytes(StandardCharsets.UTF_8));

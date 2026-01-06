@@ -9,7 +9,8 @@ public interface ExpressionNameInvocationContext {
     ParserRuleContext originalContext();
     JPlus25Parser.ExpressionNameContext expressionName();
     ParserRuleContext identifier();
-    ParserRuleContext unqualifiedClassInstanceCreationExpression();
+    JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression();
+    JPlus25Parser.PNNAContext pNNA();
     TerminalNode LPAREN();
     TerminalNode NULLSAFE();
     Token getStart();
@@ -19,7 +20,8 @@ public interface ExpressionNameInvocationContext {
             public ParserRuleContext originalContext() { return ctx; }
             public JPlus25Parser.ExpressionNameContext expressionName() { return ctx.expressionName(); }
             public ParserRuleContext identifier() { return ctx.identifier(); }
-            public ParserRuleContext unqualifiedClassInstanceCreationExpression() { return ctx.unqualifiedClassInstanceCreationExpression(); }
+            public JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() { return ctx.unqualifiedClassInstanceCreationExpression(); }
+            public JPlus25Parser.PNNAContext pNNA() { return ctx.pNNA(); }
             public TerminalNode LPAREN() { return ctx.LPAREN(); }
             public TerminalNode NULLSAFE() { return ctx.NULLSAFE(); }
             public Token getStart() { return ctx.start; }
@@ -31,7 +33,8 @@ public interface ExpressionNameInvocationContext {
             public ParserRuleContext originalContext() { return ctx; }
             public JPlus25Parser.ExpressionNameContext expressionName() { return ctx.expressionName(); }
             public ParserRuleContext identifier() { return ctx.identifier(); }
-            public ParserRuleContext unqualifiedClassInstanceCreationExpression() { return null; }
+            public JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() { return null; }
+            public JPlus25Parser.PNNAContext pNNA() { return null; }
             public TerminalNode LPAREN() { return ctx.LPAREN(); }
             public TerminalNode NULLSAFE() { return ctx.NULLSAFE(); }
             public Token getStart() { return ctx.start; }

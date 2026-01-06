@@ -16,7 +16,7 @@
 
 package jplus.processor;
 
-import jplus.analyzer.NullabilityChecker;
+import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.analyzer.UnresolvedReferenceScanner;
 import jplus.base.JPlus25Lexer;
 import jplus.base.JPlus25Parser;
