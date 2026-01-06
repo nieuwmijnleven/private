@@ -6,7 +6,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import jplus.analyzer.NullabilityChecker;
+import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.processor.JPlusProcessor;
 import org.jetbrains.annotations.NotNull;
 

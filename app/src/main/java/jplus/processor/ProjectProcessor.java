@@ -16,7 +16,7 @@
 
 package jplus.processor;
 
-import jplus.analyzer.NullabilityChecker;
+import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.base.SymbolTable;
 
 import java.io.IOException;
