@@ -586,6 +586,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         if (ctx.primary() != null) {
             //handlePrimaryNoNewArray();
             return;
+
+
         }
     }
 
@@ -612,7 +614,16 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             System.err.println("[PrimaryNoNewArray] mapped range = " + range);
             System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(range));
 
-            currentSymbolTable.findResolvedChain(range).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
+            currentSymbolTable.findResolvedChain(range).ifPresentOrElse(chain -> handlePrimaryNoNewArray(ctx, chain), () -> {
+                if (ctx.expression() != null) {
+                    findTransformedRange(Utils.getTextChangeRange(originalText, ctx.expression())).ifPresent(exprRange -> {
+                        System.err.println("[PrimaryNoNewArray] mapped range = " + exprRange);
+                        System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(exprRange));
+
+                        currentSymbolTable.findResolvedChain(exprRange).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
+                    });
+                }
+            });
         });
 
         //return super.visitPrimaryNoNewArray(ctx);
@@ -623,6 +634,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         StepCursor cursor = chain.stepCursor();
 
         if (ctx.THIS() != null) {
+            if (ctx.typeName() != null) {
+                processTypeName(ctx.typeName(), cursor);
+            }
+
             handleThisPrimary(ctx, cursor);
             return;
         }
@@ -636,6 +651,54 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             handleUnqualifiedClassInstanceCreationExpression(ctx, cursor);
             return;
         }
+
+        if (ctx.LPAREN() != null && ctx.expression() != null) {
+            handleExpressionWithParenthesis(ctx, cursor);
+            return;
+        }
+    }
+
+    private void handleExpressionWithParenthesis(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
+        log("[handleExpressionWithParenthesis] expression = " + Utils.getTokenString(ctx.expression()));
+        log("[handleExpressionWithParenthesis] step = " + cursor.peek());
+
+        super.visitExpression(ctx.expression());
+
+        if (ctx.pNNA() != null) {
+
+            String stepSymbol = Utils.getTokenString(ctx.pNNA()).replaceAll("^\\.", "");
+            log("[handleExpressionWithParenthesis] stepSymbol = " + stepSymbol);
+
+            while(cursor.hasNext()) {
+                if (Objects.equals(stepSymbol, cursor.peek().get().symbol)) break;
+                log("[handleExpressionWithParenthesis] cursor.peek() = " + cursor.peek().get().symbol);
+                cursor.consume();
+            }
+
+            processPNNA(ctx.pNNA(), cursor);
+        }
+    }
+
+    private void processTypeName(JPlus25Parser.TypeNameContext ctx, StepCursor cursor) {
+        processPackageName(ctx.packageName(), cursor);
+
+        processTypeIdentifier(ctx.typeIdentifier(), cursor);
+    }
+
+    private void processTypeIdentifier(JPlus25Parser.TypeIdentifierContext ctx, StepCursor cursor) {
+        if (ctx == null) return;
+
+        var step = cursor.consume();
+        if (!Objects.equals(step.symbol, Utils.getTokenString(ctx))) throw new IllegalStateException();
+    }
+
+    private void processPackageName(JPlus25Parser.PackageNameContext ctx, StepCursor cursor) {
+        if (ctx == null) return;
+
+        var step = cursor.consume();
+        if (!Objects.equals(step.symbol, Utils.getTokenString(ctx.identifier()))) throw new IllegalStateException();
+
+        processPackageName(ctx.packageName(), cursor);
     }
 
     private void handleUnqualifiedClassInstanceCreationExpression(JPlus25Parser.PrimaryNoNewArrayContext ctx, StepCursor cursor) {
@@ -682,14 +745,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         if (ctx == null) return;
 
         ResolvedChain.Step prevStep = cursor.peekPrev().orElse(null);
+        System.err.println("[processPNNA] prevStep = " + prevStep);
         if (prevStep != null) {
             System.err.println("[processPNNA] line(" + ctx.start.getLine() + "), prevStep = " + prevStep);
         }
-
-        boolean unsafeNullableAccess =
-                prevStep != null
-                && prevStep.typeInfo.isNullable()
-                && ctx.NULLSAFE() == null;
 
         ResolvedChain.Step step = cursor.consume();
 
@@ -701,7 +760,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             if (ctx.LPAREN() != null) {
                 //('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
-                if (unsafeNullableAccess) {
+                if (isUnsafeNullableAccess(ctx, prevStep)) {
                     reportIssue(
                             ctx.start,
                             prevStep.symbol + " is a nullable variable. But it directly accesses "
@@ -714,9 +773,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             } else if (ctx.COLONCOLON() != null) {
                 //'::' typeArguments? identifier pNNA?
 
+
+
             } else {
                 //('.'|'?.') identifier pNNA?
-                if (unsafeNullableAccess) {
+                if (isUnsafeNullableAccess(ctx, prevStep)) {
                     reportIssue(
                             ctx.start,
                             prevStep.symbol + " is a nullable variable. But it directly accesses "
@@ -734,9 +795,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             throw new IllegalStateException();
         }
 
-        //super.visitPNNA(ctx);
-
         processPNNA(ctx.pNNA(), cursor);
+    }
+
+    private boolean isUnsafeNullableAccess(JPlus25Parser.PNNAContext ctx, ResolvedChain.Step prevStep) {
+        return prevStep != null
+                && prevStep.typeInfo.isNullable()
+                && ctx.NULLSAFE() == null;
     }
 
     private void handleExpressionName(JPlus25Parser.PrimaryNoNewArrayContext ctx, ResolvedChain chain) {
@@ -757,8 +822,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             var prevStep = cursor.peekPrev().orElseThrow(() -> new IllegalStateException("A ExpressionName rule needed."));
             var currentStep = cursor.consume();
 
+            System.err.println("[handleExpressionNameInternal] prevStep = " + prevStep);
+            System.err.println("[handleExpressionNameInternal] currentStep = " + currentStep);
+
+
             String receiverName = prevStep.symbol;
             String methodName = Utils.getTokenString(ctx.identifier());
+            System.err.println("[handleExpressionNameInternal] methodName = " + methodName);
 
             if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
 

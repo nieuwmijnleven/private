@@ -14,7 +14,8 @@ public final class ResolvedChain {
     public enum Kind {
         IDENTIFIER,
         FIELD,
-        METHOD
+        METHOD,
+        CHAIN
     }
 
     public static final class Step {
@@ -26,6 +27,7 @@ public final class ResolvedChain {
         public final boolean nullSafe;      // ?. 사용 여부
         public final TextChangeRange range; // 소스 위치
         public final MethodInvocationInfo invocationInfo;
+        public final ResolvedChain childChain;
 
         public Step(Kind kind,
                     String symbol,
@@ -33,7 +35,8 @@ public final class ResolvedChain {
                     boolean nullable,
                     boolean nullSafe,
                     TextChangeRange range,
-                    MethodInvocationInfo invocationInfo) {
+                    MethodInvocationInfo invocationInfo,
+                    ResolvedChain childChain) {
             this.kind = kind;
             this.symbol = symbol;
             this.typeInfo = typeInfo;
@@ -41,6 +44,7 @@ public final class ResolvedChain {
             this.nullSafe = nullSafe;
             this.range = range;
             this.invocationInfo = invocationInfo;
+            this.childChain = childChain;
         }
 
         @Override
@@ -53,6 +57,7 @@ public final class ResolvedChain {
                     ", nullSafe=" + nullSafe +
                     ", range=" + range +
                     ", invocationInfo=" + invocationInfo +
+                    ", childChain=" + childChain +
                     '}';
         }
     }
