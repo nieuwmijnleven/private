@@ -154,14 +154,34 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return Collections.unmodifiableList(resolvedChains);
     }
 
+    private boolean compareResolvedChainRange(ResolvedChain chain, TextChangeRange range) {
+        return Optional.ofNullable(chain.last())
+                .map(step -> step.range.equals(range))
+                .orElse(false);
+    }
+
+    private Optional<ResolvedChain> findResolvedChildChain(ResolvedChain chain, TextChangeRange range) {
+        if (compareResolvedChainRange(chain, range)) {
+            return Optional.of(chain);
+        }
+
+        for (ResolvedChain.Step step : chain.getSteps()) {
+            if (step.kind == ResolvedChain.Kind.CHAIN) {
+                var result = findResolvedChildChain(step.childChain, range);
+                if (result.isPresent()) return result;
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public Optional<ResolvedChain> findResolvedChain(TextChangeRange range) {
-        return resolvedChains.stream()
-                .filter(resolvedChain ->
-                    Optional.ofNullable(resolvedChain.last())
-                            .map(step -> step.range.equals(range))
-                            .orElse(false)
-                )
-                .findFirst();
+        for (ResolvedChain resolvedChain : resolvedChains) {
+            var result = findResolvedChildChain(resolvedChain, range);
+            if (result.isPresent()) return result;
+        }
+
+        return Optional.empty();
     }
 
     public SymbolTable findLowContextSymbolTable(String name) {
