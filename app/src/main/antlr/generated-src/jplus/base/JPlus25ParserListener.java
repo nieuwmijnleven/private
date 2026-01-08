@@ -2178,25 +2178,377 @@ public interface JPlus25ParserListener extends ParseTreeListener {
 	 */
 	void exitPrimary(JPlus25Parser.PrimaryContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link JPlus25Parser#primaryNoNewArray}.
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayLiteral}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
 	 * @param ctx the parse tree
 	 */
-	void enterPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx);
+	void enterPrimaryNoNewArrayLiteral(JPlus25Parser.PrimaryNoNewArrayLiteralContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link JPlus25Parser#primaryNoNewArray}.
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayLiteral}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
 	 * @param ctx the parse tree
 	 */
-	void exitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx);
+	void exitPrimaryNoNewArrayLiteral(JPlus25Parser.PrimaryNoNewArrayLiteralContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link JPlus25Parser#pNNA}.
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayClassLiteral}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
 	 * @param ctx the parse tree
 	 */
-	void enterPNNA(JPlus25Parser.PNNAContext ctx);
+	void enterPrimaryNoNewArrayClassLiteral(JPlus25Parser.PrimaryNoNewArrayClassLiteralContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link JPlus25Parser#pNNA}.
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayClassLiteral}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
 	 * @param ctx the parse tree
 	 */
-	void exitPNNA(JPlus25Parser.PNNAContext ctx);
+	void exitPrimaryNoNewArrayClassLiteral(JPlus25Parser.PrimaryNoNewArrayClassLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayThis}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayThis(JPlus25Parser.PrimaryNoNewArrayThisContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayThis}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayThis(JPlus25Parser.PrimaryNoNewArrayThisContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayQualifiedThis}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayQualifiedThis(JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayQualifiedThis}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayQualifiedThis(JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayParenExpression}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayParenExpression}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayClassInstanceCreationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayClassInstanceCreationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayExprQualifiedClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayExprQualifiedClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayQualifiedClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayQualifiedClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArraySuperFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArraySuperFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayCreationWithInitAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayCreationWithInitAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayExprMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayExprMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayTypeMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayTypeMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArraySuperMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArraySuperMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayExprMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayExprMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayMethodReference(JPlus25Parser.PrimaryNoNewArrayArrayMethodReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayMethodReference(JPlus25Parser.PrimaryNoNewArrayArrayMethodReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayTypeMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayTypeMethodReference(JPlus25Parser.PrimaryNoNewArrayTypeMethodReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayTypeMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayTypeMethodReference(JPlus25Parser.PrimaryNoNewArrayTypeMethodReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArraySuperMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArraySuperMethodReference(JPlus25Parser.PrimaryNoNewArraySuperMethodReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArraySuperMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArraySuperMethodReference(JPlus25Parser.PrimaryNoNewArraySuperMethodReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayQualifiedSuperMethodReference(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayQualifiedSuperMethodReference(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayConstructorReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayConstructorReference(JPlus25Parser.PrimaryNoNewArrayConstructorReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayConstructorReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayConstructorReference(JPlus25Parser.PrimaryNoNewArrayConstructorReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code primaryNoNewArrayArrayConstructorReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimaryNoNewArrayArrayConstructorReference(JPlus25Parser.PrimaryNoNewArrayArrayConstructorReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code primaryNoNewArrayArrayConstructorReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimaryNoNewArrayArrayConstructorReference(JPlus25Parser.PrimaryNoNewArrayArrayConstructorReferenceContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code pNNAClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void enterPNNAClassInstanceCreation(JPlus25Parser.PNNAClassInstanceCreationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code pNNAClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void exitPNNAClassInstanceCreation(JPlus25Parser.PNNAClassInstanceCreationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code pNNAFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void enterPNNAFieldAccess(JPlus25Parser.PNNAFieldAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code pNNAFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void exitPNNAFieldAccess(JPlus25Parser.PNNAFieldAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code pNNAArrayAccess}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void enterPNNAArrayAccess(JPlus25Parser.PNNAArrayAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code pNNAArrayAccess}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void exitPNNAArrayAccess(JPlus25Parser.PNNAArrayAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code pNNAMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void enterPNNAMethodInvocation(JPlus25Parser.PNNAMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code pNNAMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void exitPNNAMethodInvocation(JPlus25Parser.PNNAMethodInvocationContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code pNNAMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void enterPNNAMethodReference(JPlus25Parser.PNNAMethodReferenceContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code pNNAMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 */
+	void exitPNNAMethodReference(JPlus25Parser.PNNAMethodReferenceContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link JPlus25Parser#classLiteral}.
 	 * @param ctx the parse tree

@@ -1,5 +1,7 @@
 package jplus.generator;
 
+import jplus.analyzer.nullability.PNNAContextAdapter;
+import jplus.analyzer.nullability.PrimaryNoNewArrayContextAdapter;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25Parser.ApplyDeclarationContext;
 import jplus.base.JPlus25Parser.ExpressionNameContext;
@@ -93,9 +95,9 @@ public class SemanticCodeGenDelegate implements CodeGenDelegate {
         return updateContextString(ctx, replaced);
     }
 
-    private String getBase(PrimaryNoNewArrayContext ctx) {
+    private String getBase(PrimaryNoNewArrayContextAdapter ctx) {
         ensureChildTextInitialized();
-        String contextString = Utils.getTokenString(ctx);
+        String contextString = Utils.getTokenString(ctx.originalContext());
 //        String contextString = ctx.getText();
         int pnnaPartIndex = contextString.length();
         if (ctx.pNNA() != null) {
@@ -106,9 +108,9 @@ public class SemanticCodeGenDelegate implements CodeGenDelegate {
         return contextString.substring(0, pnnaPartIndex);
     }
 
-    private String getBase(PNNAContext ctx) {
+    private String getBase(PNNAContextAdapter ctx) {
         ensureChildTextInitialized();
-        String contextString = Utils.getTokenString(ctx);
+        String contextString = Utils.getTokenString(ctx.originalContext());
 //        String contextString = ctx.getText();
         int pnnaPartIndex = contextString.length();
         if (ctx.pNNA() != null) {
@@ -158,7 +160,8 @@ public class SemanticCodeGenDelegate implements CodeGenDelegate {
             String remainderPart = contextString.substring(Utils.getTokenString(ctx).length()).replaceAll("^(\\.|\\?\\.)", "");
             System.err.println("[processNullsafety] remainderPart = " + remainderPart);
             String curTVar = "t" + i;
-            if (pnnaCtx.NULLSAFE() != null) {
+            var pnnaCtxAdapter = PrimaryNoNewArrayContextAdapter.from(pnnaCtx);
+            if (pnnaCtxAdapter.NULLSAFE() != null) {
                 replaced += ").map(" + curTVar + " -> " + curTVar + "." + remainderPart;
                 ++i;
             } else {
@@ -254,7 +257,7 @@ public class SemanticCodeGenDelegate implements CodeGenDelegate {
         return fragmentedText;
     }
 
-    private String replaceBaseWithOptional(PrimaryNoNewArrayContext ctx, ParserRuleContext ruleCtx) {
+    private String replaceBaseWithOptional(PrimaryNoNewArrayContextAdapter ctx, ParserRuleContext ruleCtx) {
         if (ctx.expressionName() != null && ParserUtils.usesNullSafety(ctx.expressionName())) {
             return ctx.expressionName().getText();
         }
@@ -271,13 +274,13 @@ public class SemanticCodeGenDelegate implements CodeGenDelegate {
             System.err.println("[replaceBaseWithOptional] instance = " + instance);
             System.err.println("[replaceBaseWithOptional] member = " + member);
 
-            return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(ctx.pNNA(), 1, ruleCtx);
+            return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
         }
 
-        return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptional(ctx.pNNA(), 0, ruleCtx);
+        return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 0, ruleCtx);
     }
 
-    private String replacePNNAWithOptional(PNNAContext ctx, int index, ParserRuleContext ruleCtx) {
+    private String replacePNNAWithOptional(PNNAContextAdapter ctx, int index, ParserRuleContext ruleCtx) {
         if (ctx == null) {
             String replaced = "";
 
@@ -306,9 +309,9 @@ public class SemanticCodeGenDelegate implements CodeGenDelegate {
 
         String curTVar = "t" + index;
         if (ctx.NULLSAFE() != null) {
-            return ").map(" + curTVar + " -> " + curTVar + "." + member + replacePNNAWithOptional(ctx.pNNA(), index + 1, ruleCtx);
+            return ").map(" + curTVar + " -> " + curTVar + "." + member + replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), index + 1, ruleCtx);
         } else {
-            return "." + member + replacePNNAWithOptional(ctx.pNNA(), index, ruleCtx);
+            return "." + member + replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), index, ruleCtx);
         }
     }
 

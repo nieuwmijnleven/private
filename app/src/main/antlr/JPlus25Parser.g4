@@ -1388,41 +1388,40 @@ primaryNoNewArray
 */
 
 primaryNoNewArray
-    : literal pNNA?
-    | classLiteral pNNA?
-    | 'this' pNNA?
-    | typeName '.' 'this' pNNA?
-    | '(' expression ')' pNNA?
-    | unqualifiedClassInstanceCreationExpression pNNA?
-    | expressionName ('.' | '?.') unqualifiedClassInstanceCreationExpression pNNA?
-    | arrayCreationExpression '.' unqualifiedClassInstanceCreationExpression pNNA?
-    | arrayCreationExpression '.' identifier pNNA?
-    | 'super' '.' identifier pNNA?
-    | typeName '.' 'super' '.' identifier pNNA?
-    | expressionName '[' expression ']' pNNA?
-    | arrayCreationExpressionWithInitializer '[' expression ']' pNNA?
-    | methodName '(' argumentList? ')' pNNA?
-    | expressionName ('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
-    | typeName '.' typeArguments? identifier '(' argumentList? ')' pNNA?
-    | arrayCreationExpression '.' typeArguments? identifier '(' argumentList? ')' pNNA?
-    | 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
-    | typeName '.' 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
-    | expressionName '::' typeArguments? identifier pNNA?
-    | arrayCreationExpression '::' typeArguments? identifier pNNA?
-    | referenceType '::' typeArguments? identifier pNNA?
-    | 'super' '::' typeArguments? identifier pNNA?
-    | typeName '.' 'super' '::' typeArguments? identifier pNNA?
-    | classType '::' typeArguments? 'new' pNNA?
-    | arrayType '::' 'new' pNNA?
+    : literal pNNA? #primaryNoNewArrayLiteral
+    | classLiteral pNNA? #primaryNoNewArrayClassLiteral
+    | 'this' pNNA? #primaryNoNewArrayThis
+    | typeName '.' 'this' pNNA? #primaryNoNewArrayQualifiedThis
+    | '(' expression ')' pNNA? #primaryNoNewArrayParenExpression
+    | unqualifiedClassInstanceCreationExpression pNNA? #primaryNoNewArrayClassInstanceCreation
+    | expressionName ('.' | '?.') unqualifiedClassInstanceCreationExpression pNNA? #primaryNoNewArrayExprQualifiedClassInstanceCreation
+    | arrayCreationExpression '.' unqualifiedClassInstanceCreationExpression pNNA? #primaryNoNewArrayArrayQualifiedClassInstanceCreation
+    | arrayCreationExpression '.' identifier pNNA? #primaryNoNewArrayArrayFieldAccess
+    | 'super' '.' identifier pNNA? #primaryNoNewArraySuperFieldAccess
+    | typeName '.' 'super' '.' identifier pNNA? #primaryNoNewArrayQualifiedSuperFieldAccess
+    | expressionName '[' expression ']' pNNA? #primaryNoNewArrayArrayAccess
+    | arrayCreationExpressionWithInitializer '[' expression ']' pNNA? #primaryNoNewArrayArrayCreationWithInitAccess
+    | methodName '(' argumentList? ')' pNNA? #primaryNoNewArrayMethodInvocation
+    | expressionName ('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA? #primaryNoNewArrayExprMethodInvocation
+    | typeName '.' typeArguments? identifier '(' argumentList? ')' pNNA? #primaryNoNewArrayTypeMethodInvocation
+    | arrayCreationExpression '.' typeArguments? identifier '(' argumentList? ')' pNNA? #primaryNoNewArrayArrayMethodInvocation
+    | 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA? #primaryNoNewArraySuperMethodInvocation
+    | typeName '.' 'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA? #primaryNoNewArrayQualifiedSuperMethodInvocation
+    | expressionName '::' typeArguments? identifier pNNA? #primaryNoNewArrayExprMethodReference
+    | arrayCreationExpression '::' typeArguments? identifier pNNA? #primaryNoNewArrayArrayMethodReference
+    | referenceType '::' typeArguments? identifier pNNA? #primaryNoNewArrayTypeMethodReference
+    | 'super' '::' typeArguments? identifier pNNA? #primaryNoNewArraySuperMethodReference
+    | typeName '.' 'super' '::' typeArguments? identifier pNNA? #primaryNoNewArrayQualifiedSuperMethodReference
+    | classType '::' typeArguments? 'new' pNNA? #primaryNoNewArrayConstructorReference
+    | arrayType '::' 'new' pNNA? #primaryNoNewArrayArrayConstructorReference
     ;
 
-
 pNNA
-    : ('.'|'?.') unqualifiedClassInstanceCreationExpression pNNA?
-    | ('.'|'?.') identifier pNNA?
-    | '[' expression ']' pNNA?
-    | ('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
-    | '::' typeArguments? identifier pNNA?
+    : ('.'|'?.') unqualifiedClassInstanceCreationExpression pNNA? #pNNAClassInstanceCreation
+    | ('.'|'?.') identifier pNNA? #pNNAFieldAccess
+    | '[' expression ']' pNNA? #pNNAArrayAccess
+    | ('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA? #pNNAMethodInvocation
+    | '::' typeArguments? identifier pNNA? #pNNAMethodReference
     ;
 
 classLiteral

@@ -16336,16 +16336,564 @@ public class JPlus25Parser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class PrimaryNoNewArrayContext extends JPlusParserRuleContext {
-		public LiteralContext literal() {
-			return getRuleContext(LiteralContext.class,0);
+		public PrimaryNoNewArrayContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_primaryNoNewArray; }
+	 
+		public PrimaryNoNewArrayContext() { }
+		public void copyFrom(PrimaryNoNewArrayContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayConstructorReferenceContext extends PrimaryNoNewArrayContext {
+		public ArrayTypeContext arrayType() {
+			return getRuleContext(ArrayTypeContext.class,0);
+		}
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public TerminalNode NEW() { return getToken(JPlus25Parser.NEW, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayConstructorReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayConstructorReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayConstructorReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayConstructorReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayCreationWithInitAccessContext extends PrimaryNoNewArrayContext {
+		public ArrayCreationExpressionWithInitializerContext arrayCreationExpressionWithInitializer() {
+			return getRuleContext(ArrayCreationExpressionWithInitializerContext.class,0);
+		}
+		public TerminalNode LBRACK() { return getToken(JPlus25Parser.LBRACK, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode RBRACK() { return getToken(JPlus25Parser.RBRACK, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayCreationWithInitAccessContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayCreationWithInitAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayCreationWithInitAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayCreationWithInitAccess(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayExprMethodInvocationContext extends PrimaryNoNewArrayContext {
+		public ExpressionNameContext expressionName() {
+			return getRuleContext(ExpressionNameContext.class,0);
+		}
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public TerminalNode NULLSAFE() { return getToken(JPlus25Parser.NULLSAFE, 0); }
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public ArgumentListContext argumentList() {
+			return getRuleContext(ArgumentListContext.class,0);
 		}
 		public PNNAContext pNNA() {
 			return getRuleContext(PNNAContext.class,0);
 		}
+		public PrimaryNoNewArrayExprMethodInvocationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayExprMethodInvocation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayExprMethodInvocation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayExprMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArraySuperMethodInvocationContext extends PrimaryNoNewArrayContext {
+		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public ArgumentListContext argumentList() {
+			return getRuleContext(ArgumentListContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArraySuperMethodInvocationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArraySuperMethodInvocation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArraySuperMethodInvocation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArraySuperMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayAccessContext extends PrimaryNoNewArrayContext {
+		public ExpressionNameContext expressionName() {
+			return getRuleContext(ExpressionNameContext.class,0);
+		}
+		public TerminalNode LBRACK() { return getToken(JPlus25Parser.LBRACK, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode RBRACK() { return getToken(JPlus25Parser.RBRACK, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayAccessContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayAccess(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayExprMethodReferenceContext extends PrimaryNoNewArrayContext {
+		public ExpressionNameContext expressionName() {
+			return getRuleContext(ExpressionNameContext.class,0);
+		}
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayExprMethodReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayExprMethodReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayExprMethodReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayExprMethodReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayQualifiedThisContext extends PrimaryNoNewArrayContext {
+		public TypeNameContext typeName() {
+			return getRuleContext(TypeNameContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public TerminalNode THIS() { return getToken(JPlus25Parser.THIS, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayQualifiedThisContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayQualifiedThis(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayQualifiedThis(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayQualifiedThis(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayTypeMethodInvocationContext extends PrimaryNoNewArrayContext {
+		public TypeNameContext typeName() {
+			return getRuleContext(TypeNameContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public ArgumentListContext argumentList() {
+			return getRuleContext(ArgumentListContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayTypeMethodInvocationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayTypeMethodInvocation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayTypeMethodInvocation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayTypeMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayMethodInvocationContext extends PrimaryNoNewArrayContext {
+		public ArrayCreationExpressionContext arrayCreationExpression() {
+			return getRuleContext(ArrayCreationExpressionContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public ArgumentListContext argumentList() {
+			return getRuleContext(ArgumentListContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayMethodInvocationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayMethodInvocation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayMethodInvocation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayParenExpressionContext extends PrimaryNoNewArrayContext {
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayParenExpressionContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayParenExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayParenExpression(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayParenExpression(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayConstructorReferenceContext extends PrimaryNoNewArrayContext {
+		public ClassTypeContext classType() {
+			return getRuleContext(ClassTypeContext.class,0);
+		}
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public TerminalNode NEW() { return getToken(JPlus25Parser.NEW, 0); }
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayConstructorReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayConstructorReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayConstructorReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayConstructorReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArraySuperMethodReferenceContext extends PrimaryNoNewArrayContext {
+		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArraySuperMethodReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArraySuperMethodReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArraySuperMethodReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArraySuperMethodReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayFieldAccessContext extends PrimaryNoNewArrayContext {
+		public ArrayCreationExpressionContext arrayCreationExpression() {
+			return getRuleContext(ArrayCreationExpressionContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayFieldAccessContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayFieldAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayFieldAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayFieldAccess(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext extends PrimaryNoNewArrayContext {
+		public ArrayCreationExpressionContext arrayCreationExpression() {
+			return getRuleContext(ArrayCreationExpressionContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
+			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext extends PrimaryNoNewArrayContext {
+		public ExpressionNameContext expressionName() {
+			return getRuleContext(ExpressionNameContext.class,0);
+		}
+		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
+			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public TerminalNode NULLSAFE() { return getToken(JPlus25Parser.NULLSAFE, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayExprQualifiedClassInstanceCreation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayExprQualifiedClassInstanceCreation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayExprQualifiedClassInstanceCreation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayArrayMethodReferenceContext extends PrimaryNoNewArrayContext {
+		public ArrayCreationExpressionContext arrayCreationExpression() {
+			return getRuleContext(ArrayCreationExpressionContext.class,0);
+		}
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayArrayMethodReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayArrayMethodReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayArrayMethodReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayArrayMethodReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayClassLiteralContext extends PrimaryNoNewArrayContext {
 		public ClassLiteralContext classLiteral() {
 			return getRuleContext(ClassLiteralContext.class,0);
 		}
-		public TerminalNode THIS() { return getToken(JPlus25Parser.THIS, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayClassLiteralContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayClassLiteral(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayClassLiteral(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayClassLiteral(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayClassInstanceCreationContext extends PrimaryNoNewArrayContext {
+		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
+			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayClassInstanceCreationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayClassInstanceCreation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayClassInstanceCreation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayClassInstanceCreation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayQualifiedSuperMethodReferenceContext extends PrimaryNoNewArrayContext {
+		public TypeNameContext typeName() {
+			return getRuleContext(TypeNameContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayQualifiedSuperMethodReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayQualifiedSuperMethodReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayQualifiedSuperMethodReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayQualifiedSuperMethodReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayQualifiedSuperFieldAccessContext extends PrimaryNoNewArrayContext {
 		public TypeNameContext typeName() {
 			return getRuleContext(TypeNameContext.class,0);
 		}
@@ -16353,65 +16901,191 @@ public class JPlus25Parser extends Parser {
 		public TerminalNode DOT(int i) {
 			return getToken(JPlus25Parser.DOT, i);
 		}
-		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
-		public ExpressionContext expression() {
-			return getRuleContext(ExpressionContext.class,0);
-		}
-		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
-		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
-			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
-		}
-		public ExpressionNameContext expressionName() {
-			return getRuleContext(ExpressionNameContext.class,0);
-		}
-		public TerminalNode NULLSAFE() { return getToken(JPlus25Parser.NULLSAFE, 0); }
-		public ArrayCreationExpressionContext arrayCreationExpression() {
-			return getRuleContext(ArrayCreationExpressionContext.class,0);
-		}
+		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
-		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
-		public TerminalNode LBRACK() { return getToken(JPlus25Parser.LBRACK, 0); }
-		public TerminalNode RBRACK() { return getToken(JPlus25Parser.RBRACK, 0); }
-		public ArrayCreationExpressionWithInitializerContext arrayCreationExpressionWithInitializer() {
-			return getRuleContext(ArrayCreationExpressionWithInitializerContext.class,0);
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
 		}
-		public MethodNameContext methodName() {
-			return getRuleContext(MethodNameContext.class,0);
+		public PrimaryNoNewArrayQualifiedSuperFieldAccessContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayQualifiedSuperFieldAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayQualifiedSuperFieldAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayQualifiedSuperFieldAccess(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayThisContext extends PrimaryNoNewArrayContext {
+		public TerminalNode THIS() { return getToken(JPlus25Parser.THIS, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayThisContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayThis(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayThis(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayThis(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayQualifiedSuperMethodInvocationContext extends PrimaryNoNewArrayContext {
+		public TypeNameContext typeName() {
+			return getRuleContext(TypeNameContext.class,0);
+		}
+		public List<TerminalNode> DOT() { return getTokens(JPlus25Parser.DOT); }
+		public TerminalNode DOT(int i) {
+			return getToken(JPlus25Parser.DOT, i);
+		}
+		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
 		}
 		public ArgumentListContext argumentList() {
 			return getRuleContext(ArgumentListContext.class,0);
 		}
-		public TypeArgumentsContext typeArguments() {
-			return getRuleContext(TypeArgumentsContext.class,0);
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
 		}
-		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
-		public ReferenceTypeContext referenceType() {
-			return getRuleContext(ReferenceTypeContext.class,0);
-		}
-		public ClassTypeContext classType() {
-			return getRuleContext(ClassTypeContext.class,0);
-		}
-		public TerminalNode NEW() { return getToken(JPlus25Parser.NEW, 0); }
-		public ArrayTypeContext arrayType() {
-			return getRuleContext(ArrayTypeContext.class,0);
-		}
-		public PrimaryNoNewArrayContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_primaryNoNewArray; }
+		public PrimaryNoNewArrayQualifiedSuperMethodInvocationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArray(this);
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayQualifiedSuperMethodInvocation(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArray(this);
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayQualifiedSuperMethodInvocation(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArray(this);
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayQualifiedSuperMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArraySuperFieldAccessContext extends PrimaryNoNewArrayContext {
+		public TerminalNode SUPER() { return getToken(JPlus25Parser.SUPER, 0); }
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArraySuperFieldAccessContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArraySuperFieldAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArraySuperFieldAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArraySuperFieldAccess(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayLiteralContext extends PrimaryNoNewArrayContext {
+		public LiteralContext literal() {
+			return getRuleContext(LiteralContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayLiteralContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayLiteral(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayLiteral(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayLiteral(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayMethodInvocationContext extends PrimaryNoNewArrayContext {
+		public MethodNameContext methodName() {
+			return getRuleContext(MethodNameContext.class,0);
+		}
+		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public ArgumentListContext argumentList() {
+			return getRuleContext(ArgumentListContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayMethodInvocationContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayMethodInvocation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayMethodInvocation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrimaryNoNewArrayTypeMethodReferenceContext extends PrimaryNoNewArrayContext {
+		public ReferenceTypeContext referenceType() {
+			return getRuleContext(ReferenceTypeContext.class,0);
+		}
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PrimaryNoNewArrayTypeMethodReferenceContext(PrimaryNoNewArrayContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPrimaryNoNewArrayTypeMethodReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPrimaryNoNewArrayTypeMethodReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPrimaryNoNewArrayTypeMethodReference(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -16425,6 +17099,7 @@ public class JPlus25Parser extends Parser {
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,294,_ctx) ) {
 			case 1:
+				_localctx = new PrimaryNoNewArrayLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(2292);
@@ -16442,6 +17117,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 2:
+				_localctx = new PrimaryNoNewArrayClassLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(2296);
@@ -16459,6 +17135,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 3:
+				_localctx = new PrimaryNoNewArrayThisContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(2300);
@@ -16476,6 +17153,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 4:
+				_localctx = new PrimaryNoNewArrayQualifiedThisContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(2304);
@@ -16497,6 +17175,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 5:
+				_localctx = new PrimaryNoNewArrayParenExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(2310);
@@ -16518,6 +17197,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 6:
+				_localctx = new PrimaryNoNewArrayClassInstanceCreationContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
 				setState(2316);
@@ -16535,6 +17215,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 7:
+				_localctx = new PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext(_localctx);
 				enterOuterAlt(_localctx, 7);
 				{
 				setState(2320);
@@ -16564,6 +17245,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 8:
+				_localctx = new PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext(_localctx);
 				enterOuterAlt(_localctx, 8);
 				{
 				setState(2326);
@@ -16585,6 +17267,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 9:
+				_localctx = new PrimaryNoNewArrayArrayFieldAccessContext(_localctx);
 				enterOuterAlt(_localctx, 9);
 				{
 				setState(2332);
@@ -16606,6 +17289,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 10:
+				_localctx = new PrimaryNoNewArraySuperFieldAccessContext(_localctx);
 				enterOuterAlt(_localctx, 10);
 				{
 				setState(2338);
@@ -16627,6 +17311,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 11:
+				_localctx = new PrimaryNoNewArrayQualifiedSuperFieldAccessContext(_localctx);
 				enterOuterAlt(_localctx, 11);
 				{
 				setState(2344);
@@ -16652,6 +17337,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 12:
+				_localctx = new PrimaryNoNewArrayArrayAccessContext(_localctx);
 				enterOuterAlt(_localctx, 12);
 				{
 				setState(2352);
@@ -16675,6 +17361,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 13:
+				_localctx = new PrimaryNoNewArrayArrayCreationWithInitAccessContext(_localctx);
 				enterOuterAlt(_localctx, 13);
 				{
 				setState(2359);
@@ -16698,6 +17385,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 14:
+				_localctx = new PrimaryNoNewArrayMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 14);
 				{
 				setState(2366);
@@ -16729,6 +17417,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 15:
+				_localctx = new PrimaryNoNewArrayExprMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 15);
 				{
 				setState(2375);
@@ -16782,6 +17471,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 16:
+				_localctx = new PrimaryNoNewArrayTypeMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 16);
 				{
 				setState(2389);
@@ -16827,6 +17517,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 17:
+				_localctx = new PrimaryNoNewArrayArrayMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 17);
 				{
 				setState(2403);
@@ -16872,6 +17563,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 18:
+				_localctx = new PrimaryNoNewArraySuperMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 18);
 				{
 				setState(2417);
@@ -16917,6 +17609,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 19:
+				_localctx = new PrimaryNoNewArrayQualifiedSuperMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 19);
 				{
 				setState(2431);
@@ -16966,6 +17659,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 20:
+				_localctx = new PrimaryNoNewArrayExprMethodReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 20);
 				{
 				setState(2447);
@@ -16997,6 +17691,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 21:
+				_localctx = new PrimaryNoNewArrayArrayMethodReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 21);
 				{
 				setState(2456);
@@ -17028,6 +17723,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 22:
+				_localctx = new PrimaryNoNewArrayTypeMethodReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 22);
 				{
 				setState(2465);
@@ -17059,6 +17755,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 23:
+				_localctx = new PrimaryNoNewArraySuperMethodReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 23);
 				{
 				setState(2474);
@@ -17090,6 +17787,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 24:
+				_localctx = new PrimaryNoNewArrayQualifiedSuperMethodReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 24);
 				{
 				setState(2483);
@@ -17125,6 +17823,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 25:
+				_localctx = new PrimaryNoNewArrayConstructorReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 25);
 				{
 				setState(2494);
@@ -17156,6 +17855,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 26:
+				_localctx = new PrimaryNoNewArrayArrayConstructorReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 26);
 				{
 				setState(2503);
@@ -17191,6 +17891,45 @@ public class JPlus25Parser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class PNNAContext extends JPlusParserRuleContext {
+		public PNNAContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_pNNA; }
+	 
+		public PNNAContext() { }
+		public void copyFrom(PNNAContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PNNAMethodReferenceContext extends PNNAContext {
+		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TypeArgumentsContext typeArguments() {
+			return getRuleContext(TypeArgumentsContext.class,0);
+		}
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PNNAMethodReferenceContext(PNNAContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPNNAMethodReference(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPNNAMethodReference(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPNNAMethodReference(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PNNAClassInstanceCreationContext extends PNNAContext {
 		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
 			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
 		}
@@ -17199,38 +17938,101 @@ public class JPlus25Parser extends Parser {
 		public PNNAContext pNNA() {
 			return getRuleContext(PNNAContext.class,0);
 		}
-		public IdentifierContext identifier() {
-			return getRuleContext(IdentifierContext.class,0);
+		public PNNAClassInstanceCreationContext(PNNAContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPNNAClassInstanceCreation(this);
 		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPNNAClassInstanceCreation(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPNNAClassInstanceCreation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PNNAArrayAccessContext extends PNNAContext {
 		public TerminalNode LBRACK() { return getToken(JPlus25Parser.LBRACK, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
 		public TerminalNode RBRACK() { return getToken(JPlus25Parser.RBRACK, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PNNAArrayAccessContext(PNNAContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPNNAArrayAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPNNAArrayAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPNNAArrayAccess(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PNNAMethodInvocationContext extends PNNAContext {
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
 		public TerminalNode LPAREN() { return getToken(JPlus25Parser.LPAREN, 0); }
 		public TerminalNode RPAREN() { return getToken(JPlus25Parser.RPAREN, 0); }
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public TerminalNode NULLSAFE() { return getToken(JPlus25Parser.NULLSAFE, 0); }
 		public TypeArgumentsContext typeArguments() {
 			return getRuleContext(TypeArgumentsContext.class,0);
 		}
 		public ArgumentListContext argumentList() {
 			return getRuleContext(ArgumentListContext.class,0);
 		}
-		public TerminalNode COLONCOLON() { return getToken(JPlus25Parser.COLONCOLON, 0); }
-		public PNNAContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
 		}
-		@Override public int getRuleIndex() { return RULE_pNNA; }
+		public PNNAMethodInvocationContext(PNNAContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPNNA(this);
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPNNAMethodInvocation(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPNNA(this);
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPNNAMethodInvocation(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPNNA(this);
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPNNAMethodInvocation(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PNNAFieldAccessContext extends PNNAContext {
+		public IdentifierContext identifier() {
+			return getRuleContext(IdentifierContext.class,0);
+		}
+		public TerminalNode DOT() { return getToken(JPlus25Parser.DOT, 0); }
+		public TerminalNode NULLSAFE() { return getToken(JPlus25Parser.NULLSAFE, 0); }
+		public PNNAContext pNNA() {
+			return getRuleContext(PNNAContext.class,0);
+		}
+		public PNNAFieldAccessContext(PNNAContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).enterPNNAFieldAccess(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JPlus25ParserListener ) ((JPlus25ParserListener)listener).exitPNNAFieldAccess(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof JPlus25ParserVisitor ) return ((JPlus25ParserVisitor<? extends T>)visitor).visitPNNAFieldAccess(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -17244,6 +18046,7 @@ public class JPlus25Parser extends Parser {
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,303,_ctx) ) {
 			case 1:
+				_localctx = new PNNAClassInstanceCreationContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(2511);
@@ -17271,6 +18074,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 2:
+				_localctx = new PNNAFieldAccessContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(2516);
@@ -17298,6 +18102,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 3:
+				_localctx = new PNNAArrayAccessContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(2521);
@@ -17319,6 +18124,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 4:
+				_localctx = new PNNAMethodInvocationContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(2527);
@@ -17370,6 +18176,7 @@ public class JPlus25Parser extends Parser {
 				}
 				break;
 			case 5:
+				_localctx = new PNNAMethodReferenceContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(2540);

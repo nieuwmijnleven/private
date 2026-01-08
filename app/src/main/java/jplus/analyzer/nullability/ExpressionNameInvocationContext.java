@@ -15,14 +15,14 @@ public interface ExpressionNameInvocationContext {
     TerminalNode NULLSAFE();
     Token getStart();
 
-    static ExpressionNameInvocationContext from(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
+    static ExpressionNameInvocationContext from(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx) {
         return new ExpressionNameInvocationContext() {
             public ParserRuleContext originalContext() { return ctx; }
             public JPlus25Parser.ExpressionNameContext expressionName() { return ctx.expressionName(); }
-            public ParserRuleContext identifier() { return ctx.identifier(); }
+            public ParserRuleContext identifier() { return null; }
             public JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() { return ctx.unqualifiedClassInstanceCreationExpression(); }
             public JPlus25Parser.PNNAContext pNNA() { return ctx.pNNA(); }
-            public TerminalNode LPAREN() { return ctx.LPAREN(); }
+            public TerminalNode LPAREN() { return null; }
             public TerminalNode NULLSAFE() { return ctx.NULLSAFE(); }
             public Token getStart() { return ctx.start; }
         };

@@ -1313,17 +1313,222 @@ public interface JPlus25ParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrimary(JPlus25Parser.PrimaryContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link JPlus25Parser#primaryNoNewArray}.
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayLiteral}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx);
+	T visitPrimaryNoNewArrayLiteral(JPlus25Parser.PrimaryNoNewArrayLiteralContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link JPlus25Parser#pNNA}.
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayClassLiteral}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitPNNA(JPlus25Parser.PNNAContext ctx);
+	T visitPrimaryNoNewArrayClassLiteral(JPlus25Parser.PrimaryNoNewArrayClassLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayThis}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayThis(JPlus25Parser.PrimaryNoNewArrayThisContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayQualifiedThis}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayQualifiedThis(JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayParenExpression}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayClassInstanceCreationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayExprQualifiedClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayQualifiedClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArraySuperFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayCreationWithInitAccess}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayExprMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayTypeMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArraySuperMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayExprMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayMethodReference(JPlus25Parser.PrimaryNoNewArrayArrayMethodReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayTypeMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayTypeMethodReference(JPlus25Parser.PrimaryNoNewArrayTypeMethodReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArraySuperMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArraySuperMethodReference(JPlus25Parser.PrimaryNoNewArraySuperMethodReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayQualifiedSuperMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayQualifiedSuperMethodReference(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayConstructorReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayConstructorReference(JPlus25Parser.PrimaryNoNewArrayConstructorReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code primaryNoNewArrayArrayConstructorReference}
+	 * labeled alternative in {@link JPlus25Parser#primaryNoNewArray}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryNoNewArrayArrayConstructorReference(JPlus25Parser.PrimaryNoNewArrayArrayConstructorReferenceContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pNNAClassInstanceCreation}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPNNAClassInstanceCreation(JPlus25Parser.PNNAClassInstanceCreationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pNNAFieldAccess}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPNNAFieldAccess(JPlus25Parser.PNNAFieldAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pNNAArrayAccess}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPNNAArrayAccess(JPlus25Parser.PNNAArrayAccessContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pNNAMethodInvocation}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPNNAMethodInvocation(JPlus25Parser.PNNAMethodInvocationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pNNAMethodReference}
+	 * labeled alternative in {@link JPlus25Parser#pNNA}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPNNAMethodReference(JPlus25Parser.PNNAMethodReferenceContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link JPlus25Parser#classLiteral}.
 	 * @param ctx the parse tree

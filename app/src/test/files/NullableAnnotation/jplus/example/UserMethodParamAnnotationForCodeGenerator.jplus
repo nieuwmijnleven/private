@@ -98,9 +98,48 @@ class UserMethodParamAnnotationForCodeGenerator {
         address?.street?.name();
     }
 
+    String getStreet_TypeNameFieldAccess() {
+        return UserMethodParamAnnotationForCodeGenerator.this.address.street.name;
+    }
+
+    String getStreet_TypeNameFieldAccess_AddressNullsafety() {
+        return jplus.example.UserMethodParamAnnotationForCodeGenerator.this.address?.street.name;
+    }
+
+    String getStreet_TypeNameFieldAccess_StreetNullsafety() {
+        return UserMethodParamAnnotationForCodeGenerator.this.address.street?.name;
+    }
+
+    String getStreet_TypeNameFieldAccess_AddressStreetNullsatey() {
+        return UserMethodParamAnnotationForCodeGenerator.this.address?.street?.name;
+    }
+
+    String getStreet_MethodInvocation_TypeNamePrimary() {
+        return jplus.example.UserMethodParamAnnotationForCodeGenerator.this.address.street.name();
+    }
+
+    String getStreet_MethodInvocation_TypeNamePrimary_AddressNullsafety() {
+        return this.address?.street.name();
+    }
+
+    String getStreet_MethodInvocation_TypeNamePrimary_StreetNullsafety() {
+        return UserMethodParamAnnotationForCodeGenerator.this.address.street?.name();
+    }
+
+    String getStreet_MethodInvocation_TypeNamePrimary_AddressStreetNullsafety() {
+        return UserMethodParamAnnotationForCodeGenerator.this.address?.street?.name();
+    }
+
     // Get the display name of the user
     String getDisplayName() {
         return name;
+    }
+
+    String getStreet_FieldAccess_WithParenthesis() {
+        return (this.address.street.name);
+    }
+    String getStreet_FieldAccess_WithParenthesis_UtilStreet() {
+        return (this.address.street).name;
     }
 
     public static void main(String[] args) {
