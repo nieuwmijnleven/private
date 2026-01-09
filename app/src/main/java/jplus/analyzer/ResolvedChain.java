@@ -24,7 +24,6 @@ public final class ResolvedChain {
         public final String symbol;
         public final TypeInfo typeInfo;     // 이 step의 결과 타입
         public final boolean nullable;      // 선언상 nullable
-        public final boolean nullSafe;      // ?. 사용 여부
         public final TextChangeRange range; // 소스 위치
         public final MethodInvocationInfo invocationInfo;
         public final ResolvedChain childChain;
@@ -33,7 +32,6 @@ public final class ResolvedChain {
                     String symbol,
                     TypeInfo typeInfo,
                     boolean nullable,
-                    boolean nullSafe,
                     TextChangeRange range,
                     MethodInvocationInfo invocationInfo,
                     ResolvedChain childChain) {
@@ -41,7 +39,6 @@ public final class ResolvedChain {
             this.symbol = symbol;
             this.typeInfo = typeInfo;
             this.nullable = nullable;
-            this.nullSafe = nullSafe;
             this.range = range;
             this.invocationInfo = invocationInfo;
             this.childChain = childChain;
@@ -54,7 +51,6 @@ public final class ResolvedChain {
                     ", symbol=" + symbol +
                     ", typeInfo=" + typeInfo +
                     ", nullable=" + nullable +
-                    ", nullSafe=" + nullSafe +
                     ", range=" + range +
                     ", invocationInfo=" + invocationInfo +
                     ", childChain=" + childChain +

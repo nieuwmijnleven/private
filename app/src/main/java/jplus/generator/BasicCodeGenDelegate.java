@@ -8,7 +8,6 @@ import jplus.base.JPlus25Parser.ExpressionNameContext;
 import jplus.base.JPlus25Parser.FieldAccessContext;
 import jplus.base.JPlus25Parser.MethodInvocationContext;
 import jplus.base.JPlus25Parser.NullCoalescingExpressionContext;
-import jplus.base.JPlus25Parser.PNNAContext;
 import jplus.base.JPlus25Parser.PrimaryNoNewArrayContext;
 import jplus.base.JPlus25Parser.UnannTypeContext;
 import jplus.editor.FragmentedText;
@@ -20,13 +19,13 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 
-public final class BasicCodeGenDelegate implements CodeGenDelegate {
+public class BasicCodeGenDelegate implements CodeGenDelegate {
 
-    private boolean processed = false;
+    protected boolean processed = false;
 
-    private String updatedContextString = "";
+    protected String updatedContextString = "";
 
-    private final JPlusParserRuleContext ctx;
+    protected final JPlusParserRuleContext ctx;
 
     public BasicCodeGenDelegate(JPlusParserRuleContext ctx) {
         this.ctx = ctx;
@@ -120,7 +119,7 @@ public final class BasicCodeGenDelegate implements CodeGenDelegate {
         return updateContextString(expressionNameCtx, replaced);
     }
 
-    private void ensureChildTextInitialized() {
+    protected void ensureChildTextInitialized() {
         for (int i = 0; i < ctx.getChildCount(); i++) {
             ctx.getChild(i).getText();
         }
@@ -216,7 +215,7 @@ public final class BasicCodeGenDelegate implements CodeGenDelegate {
         return replaced;
     }
 
-    private String updateContextString(ParserRuleContext ctx, String replaced) {
+    protected String updateContextString(ParserRuleContext ctx, String replaced) {
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
         //System.err.println("[updateContextString] before debugString = " + getDebugString());
@@ -236,7 +235,7 @@ public final class BasicCodeGenDelegate implements CodeGenDelegate {
         return updateContextString(ctx, replaced);
     }
 
-    private String replaceApplyStatementWithComment(ApplyDeclarationContext ApplyDeclarationCtx) {
+    protected String replaceApplyStatementWithComment(ApplyDeclarationContext ApplyDeclarationCtx) {
         String originalText = getOriginalText();
         TextChangeRange range = Utils.getTextChangeRange(originalText, ApplyDeclarationCtx);
         String replaced = Utils.getTokenString(ApplyDeclarationCtx).replaceFirst("^", "//").replaceAll("\n", "\n//");
@@ -245,7 +244,7 @@ public final class BasicCodeGenDelegate implements CodeGenDelegate {
         return null;
     }
 
-    private String replaceNullType(UnannTypeContext ctx) {
+    protected String replaceNullType(UnannTypeContext ctx) {
         String unannTypeText = Utils.getTokenString(ctx);
         if (ctx.QUESTION() != null) {
             String replaced = "@org.jspecify.annotations.Nullable " + unannTypeText.substring(0, unannTypeText.length()-1);
@@ -254,7 +253,7 @@ public final class BasicCodeGenDelegate implements CodeGenDelegate {
         return null;
     }
 
-    private String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
+    protected String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
         System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
         ensureChildTextInitialized();
 
@@ -398,7 +397,7 @@ public final class BasicCodeGenDelegate implements CodeGenDelegate {
         return fragmentedText.debugString();
     }
 
-    private String processDefaultText() {
+    protected String processDefaultText() {
         ensureChildTextInitialized();
 
         if (ctx instanceof JPlus25Parser.Start_Context) {

@@ -605,23 +605,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return super.visitPostfixExpression(ctx);
     }
 
-    /*@Override
-    public Void visitPrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
-        System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") contextString = " + Utils.getTokenString(ctx));
-        System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") chaining = " + currentSymbolTable.getResolvedChains());
-        System.err.println("[PrimaryNoNewArray] original range = " + Utils.getTextChangeRange(originalText, ctx));
-
-        findTransformedRange(Utils.getTextChangeRange(originalText, ctx)).ifPresent(range -> {
-            System.err.println("[PrimaryNoNewArray] mapped range = " + range);
-            System.err.println("[PrimaryNoNewArray] findResolvedChain = " + currentSymbolTable.findResolvedChain(range));
-
-            currentSymbolTable.findResolvedChain(range).ifPresent(chain -> handlePrimaryNoNewArray(ctx, chain));
-        });
-
-        //return super.visitPrimaryNoNewArray(ctx);
-        return null;
-    }*/
-
     private Optional<ResolvedChain> findPrimaryNoNewArrayChain(JPlus25Parser.PrimaryNoNewArrayContext ctx) {
         System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") contextString = " + Utils.getTokenString(ctx));
         System.err.println("[PrimaryNoNewArray] line(" + ctx.start.getLine() + ") chaining = " + currentSymbolTable.getResolvedChains());
@@ -676,6 +659,38 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayQualifiedClassInstanceCreation(ctx, resolvedChain.stepCursor()));
+        //return super.visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(ctx);
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx, StepCursor cursor) {
+        ResolvedChain.Step step = cursor.consume();
+        //if (!step.symbol.equals(Utils.getTokenString(ctx.arrayCreationExpression()))) throw new IllegalStateException();
+
+        handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(ctx), cursor);
+
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayFieldAccess(ctx, resolvedChain.stepCursor()));
+        //return super.visitPrimaryNoNewArrayArrayFieldAccess(ctx);
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx, StepCursor cursor) {
+        ResolvedChain.Step step = cursor.consume();
+        //if (!step.symbol.equals(Utils.getTokenString(ctx.arrayCreationExpression()))) throw new IllegalStateException();
+
+        step = cursor.consume();
+        if (!step.symbol.equals(Utils.getTokenString(ctx.identifier()))) throw new IllegalStateException();
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+    }
+
+    @Override
     public Void visitPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayExprMethodInvocation(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayExprMethodInvocation(ctx);
@@ -686,6 +701,92 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private void handlePrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx, StepCursor cursor) {
         handleExpressionName(ctx.expressionName(), cursor);
         handlePrimaryNoNewArrayMethodInvocation(ctx, cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArraySuperFieldAccess(ctx, resolvedChain.stepCursor()));
+        //return super.visitPrimaryNoNewArrayExprMethodInvocation(ctx);
+        return null;
+    }
+
+    private void handlePrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx, StepCursor cursor) {
+        ResolvedChain.Step step = cursor.consume();
+        if (!step.symbol.equals(ctx.SUPER().toString())) throw new IllegalStateException();
+
+        step = cursor.consume();
+        if (!step.symbol.equals(Utils.getTokenString(ctx.identifier()))) throw new IllegalStateException();
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayQualifiedSuperFieldAccess(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx, StepCursor cursor) {
+        processTypeName(ctx.typeName(), cursor);
+
+        ResolvedChain.Step step = cursor.consume();
+        if (!step.symbol.equals(ctx.SUPER().toString())) throw new IllegalStateException();
+
+        step = cursor.consume();
+        if (!step.symbol.equals(Utils.getTokenString(ctx.identifier()))) throw new IllegalStateException();
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayAccess(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx, StepCursor cursor) {
+        //expressionName '[' expression ']' pNNA?
+        //must handle the front part of `expressionName '[' expression ']'`
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayCreationWithInitAccess(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx, StepCursor cursor) {
+        //expressionName '[' expression ']' pNNA?
+        //must handle the front part of `arrayCreationExpressionWithInitializer '[' expression ']'`
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayMethodInvocation(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx, StepCursor cursor) {
+        var currentStep = cursor.consume();
+        System.err.println("[handlePrimaryNoNewArrayMethodInvocation] currentStep = " + currentStep);
+
+        String methodName = Utils.getTokenString(ctx.methodName());
+        System.err.println("[handlePrimaryNoNewArrayMethodInvocation] methodName = " + methodName);
+
+        if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
+
+        System.err.println("[handlePrimaryNoNewArrayMethodInvocation] methodInvocationInfo = " + currentStep.invocationInfo);
+        
+        TypeInfo receiverTypeInfo = currentSymbolTable.resolve("^TopLevelClass$").getTypeInfo();
+        System.err.println("[handlePrimaryNoNewArrayMethodInvocation] receiverTypeInfo = " + receiverTypeInfo);
+
+        validateMethodArgumentNullability(ctx, receiverTypeInfo.getName(), currentStep);
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
 
     private void handlePrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx, StepCursor cursor) {
@@ -720,9 +821,68 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
 
+    @Override
+    public Void visitPrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayTypeMethodInvocation(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx, StepCursor cursor) {
+        processTypeName(ctx.typeName(), cursor);
+        processPrimaryNoNewArrayMethodInvocation(PrimaryNoNewArrayMethodInvocationContextAdapter.from(ctx), cursor);
+    }
+
+    private void processPrimaryNoNewArrayMethodInvocation(PrimaryNoNewArrayMethodInvocationContextAdapter ctx, StepCursor cursor) {
+        var prevStep = cursor.peekPrev().orElseThrow(() -> new IllegalStateException("A TypeName rule needed."));
+        var currentStep = cursor.consume();
+
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] prevStep = " + prevStep);
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] currentStep = " + currentStep);
+
+        String methodName = Utils.getTokenString(ctx.identifier());
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] methodName = " + methodName);
+
+        if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
+
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] methodInvocationInfo = " + currentStep.invocationInfo);
+
+        TypeInfo receiverTypeInfo = prevStep.typeInfo;
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] receiverTypeInfo = " + receiverTypeInfo);
+
+        validateMethodArgumentNullability(ctx.originalContext(), receiverTypeInfo.getName(), currentStep);
+
+        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayMethodInvocation(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx, StepCursor cursor) {
+        //skip: arrayCreationExpression
+        cursor.consume();
+
+        processPrimaryNoNewArrayMethodInvocation(PrimaryNoNewArrayMethodInvocationContextAdapter.from(ctx), cursor);
+    }
+
     private void handleExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx, StepCursor cursor) {
         handleExpressionName(ctx.expressionName(), cursor);
         handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(ctx), cursor);
+    }
+
+    @Override
+    public Void visitPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayQualifiedSuperMethodInvocation(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx, StepCursor cursor) {
+        processTypeName(ctx.typeName(), cursor);
+        //skip: super
+        cursor.consume();
+        processPrimaryNoNewArrayMethodInvocation(PrimaryNoNewArrayMethodInvocationContextAdapter.from(ctx), cursor);
     }
 
     @Override
@@ -735,34 +895,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private void handlePrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx, StepCursor cursor) {
         handleExpressionWithParenthesis(ctx, cursor);
     }
-
-    /*private void handlePrimaryNoNewArray(JPlus25Parser.PrimaryNoNewArrayThisContext ctx, ResolvedChain chain) {
-        StepCursor cursor = chain.stepCursor();
-
-        if (ctx.THIS() != null) {
-            if (ctx.typeName() != null) {
-                processTypeName(ctx.typeName(), cursor);
-            }
-
-            PrimaryNoNewArrayThis(ctx, cursor);
-            return;
-        }
-
-        if (ctx.expressionName() != null) {
-            handleExpressionName(ctx, chain);
-            return;
-        }
-
-        if (ctx.unqualifiedClassInstanceCreationExpression() != null) {
-            handleUnqualifiedClassInstanceCreationExpression(ctx, cursor);
-            return;
-        }
-
-        if (ctx.LPAREN() != null && ctx.expression() != null) {
-            handleExpressionWithParenthesis(ctx, cursor);
-            return;
-        }
-    }*/
 
     private void handleExpressionWithParenthesis(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx, StepCursor cursor) {
         log("[handleExpressionWithParenthesis] expression = " + Utils.getTokenString(ctx.expression()));
@@ -907,64 +1039,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private void processPNNAClassInstanceCreation(JPlus25Parser.PNNAClassInstanceCreationContext instanceCreationContext, StepCursor cursor) {
         handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(instanceCreationContext), cursor);
     }
-
-
-    /*private void processPNNA(PNNAContextAdapter ctx, StepCursor cursor) {
-        if (ctx == null) return;
-
-        ResolvedChain.Step prevStep = cursor.peekPrev().orElse(null);
-        System.err.println("[processPNNA] prevStep = " + prevStep);
-        if (prevStep != null) {
-            System.err.println("[processPNNA] line(" + ctx.start.getLine() + "), prevStep = " + prevStep);
-        }
-
-        ResolvedChain.Step step = cursor.consume();
-
-        if (ctx.identifier() != null) {
-            String identifier = Utils.getTokenString(ctx.identifier());
-            System.err.println("[processPNNA] identifier = " + identifier);
-            System.err.println("[processPNNA] step.symbol = " + step.symbol);
-            if (!identifier.equals(step.symbol)) throw new IllegalStateException();
-
-            if (ctx.LPAREN() != null) {
-                //('.'|'?.') typeArguments? identifier '(' argumentList? ')' pNNA?
-                if (isUnsafeNullableAccess(ctx, prevStep)) {
-                    reportIssue(
-                            ctx.getStart(),
-                            prevStep.symbol + " is a nullable variable. But it directly accesses "
-                                    + identifier + "(). Consider using null-safe operator(?.)."
-                    );
-                }
-
-                if (ctx.argumentList() != null) super.visitChildren(ctx.argumentList());
-
-            } else if (ctx.COLONCOLON() != null) {
-                //'::' typeArguments? identifier pNNA?
-
-
-
-            } else {
-                //('.'|'?.') identifier pNNA?
-                if (isUnsafeNullableAccess(ctx, prevStep)) {
-                    reportIssue(
-                            ctx.start,
-                            prevStep.symbol + " is a nullable variable. But it directly accesses "
-                                    + identifier + ". Consider using null-safe operator(?.)."
-                    );
-                }
-            }
-        } else if (ctx.unqualifiedClassInstanceCreationExpression() != null) {
-            //('.'|'?.') unqualifiedClassInstanceCreationExpression pNNA?
-            handleUnqualifiedClassInstanceCreationExpression(JPlus25Parser.PrimaryNoNewArrayContext.class.cast(ctx.getParent()), cursor);
-        } else if (ctx.expression() != null) {
-            //'[' expression ']' pNNA?
-
-        } else {
-            throw new IllegalStateException();
-        }
-
-        processPNNA(ctx.pNNA(), cursor);
-    }*/
 
     private boolean isUnsafeNullableAccess(PNNAContextAdapter ctx, ResolvedChain.Step prevStep) {
         return prevStep != null
