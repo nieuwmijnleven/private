@@ -105,12 +105,14 @@ class JPlusTest2 {
                 "Error: (line:106, column:91) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:118, column:90) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
                 "Error: (line:122, column:35) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
-                "Error: (line:139, column:35) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:138, column:35) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:142, column:36) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:148, column:58) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:149, column:58) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:149, column:110) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:152, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:152, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:154, column:8) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:154, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
     @Test

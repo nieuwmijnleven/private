@@ -68,12 +68,27 @@ public final class ResolvedChain {
         return steps;
     }
 
+    public boolean hasQualifier() {
+        return steps.size() >= 2;
+    }
+
+    public Step qualifierLast() {
+        return hasQualifier() ? steps.get(steps.size() - 2) : null;
+    }
+
     public Step last() {
-        return steps.isEmpty() ? null : steps.get(steps.size() - 1);
+        return !steps.isEmpty() ? steps.get(steps.size() - 1) : null;
     }
 
     public StepCursor stepCursor() {
         return new StepCursor(steps);
+    }
+
+    public StepCursor qualifierCursor() {
+        if (steps.size() < 2) {
+            return StepCursor.empty();
+        }
+        return new StepCursor(steps.subList(0, steps.size() - 1));
     }
 
     @Override
