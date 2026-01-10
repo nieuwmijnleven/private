@@ -1,8 +1,15 @@
 package jplus.analyzer;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class StepCursor {
+
+    private static final StepCursor EMPTY = new StepCursor(Collections.emptyList());
 
     private final Deque<CursorState> stack = new ArrayDeque<>();
     private ResolvedChain.Step lastConsumed = null;
@@ -31,6 +38,10 @@ public final class StepCursor {
     public StepCursor(List<ResolvedChain.Step> steps) {
         Objects.requireNonNull(steps);
         stack.push(new CursorState(steps));
+    }
+
+    public static StepCursor empty() {
+        return EMPTY;
     }
 
     public boolean hasNext() {
