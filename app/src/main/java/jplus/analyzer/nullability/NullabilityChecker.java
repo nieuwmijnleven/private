@@ -884,7 +884,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         validateMethodArgumentNullability(ctx.originalContext(), receiverTypeInfo.getName(), currentStep);
 
-        handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+        //handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
 
     @Override
@@ -1035,20 +1035,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private void processPNNAMethodInvocationContext(JPlus25Parser.PNNAMethodInvocationContext ctx, StepCursor cursor) {
-        /*ResolvedChain.Step prevStep = cursor.peekPrev().orElse(null);
-        System.err.println("[processPNNAMethodInvocationContext] prevStep = " + prevStep);
-
-        if (isUnsafeNullableAccess(PNNAContextAdapter.from(ctx), prevStep)) {
-            reportIssue(
-                    ctx.start,
-                    prevStep.symbol + " is a nullable variable. But it directly accesses "
-                            + Utils.getTokenString(ctx.identifier()) + "(). Consider using null-safe operator(?.)."
-            );
-        }*/
-
         processExplicitReceiverMethodInvocationSignature(MethodInvocationSignatureContextAdapter.from(ctx), cursor);
-
-        //if (ctx.argumentList() != null) super.visitChildren(ctx.argumentList());
+        if (ctx.argumentList() != null) super.visitChildren(ctx.argumentList());
     }
 
     private void processPNNAArrayAccessContext(JPlus25Parser.PNNAArrayAccessContext arrayAccessContext) {
@@ -1079,61 +1067,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 && ctx.NULLSAFE() == null;
     }
 
-//    private void handleExpressionName(JPlus25Parser.MethodInvocationContext ctx, StepCursor cursor) {
-//        //handleExpressionNameInternal(ExpressionNameInvocationContext.from(ctx), cursor);
-//        var expressionNameList = getExpressionNameList(ctx.expressionName());
-//        processExpressionNameContext(expressionNameList, cursor);
-//    }
-
     private void handleExpressionName(JPlus25Parser.ExpressionNameContext ctx, StepCursor cursor) {
         var expressionNameList = getExpressionNameList(ctx);
         processExpressionNameContext(expressionNameList, cursor);
     }
-
-    /*private void handleExpressionNameInternal(ExpressionNameInvocationContext ctx, StepCursor cursor) {
-        var expressionNameList = getExpressionNameList(ctx.expressionName());
-        processExpressionNameContext(expressionNameList, cursor);
-
-        if (ctx.LPAREN() != null) {
-            var prevStep = cursor.peekPrev().orElseThrow(() -> new IllegalStateException("A ExpressionName rule needed."));
-            var currentStep = cursor.consume();
-
-            System.err.println("[handleExpressionNameInternal] prevStep = " + prevStep);
-            System.err.println("[handleExpressionNameInternal] currentStep = " + currentStep);
-
-
-            String receiverName = prevStep.symbol;
-            String methodName = Utils.getTokenString(ctx.identifier());
-            System.err.println("[handleExpressionNameInternal] methodName = " + methodName);
-
-            if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
-
-            System.err.println("[handleExpressionNameInternal] methodInvocationInfo = " + currentStep.invocationInfo);
-
-            TypeInfo receiverTypeInfo = prevStep.typeInfo;
-            System.err.println("[handleExpressionNameInternal] receiverTypeInfo = " + receiverTypeInfo);
-
-            //check instance nullability
-            boolean useNullsafeOperator = (ctx.NULLSAFE() != null);
-            if (receiverTypeInfo.isNullable() && !useNullsafeOperator) {
-                reportIssue(
-                        ctx.getStart(),
-                        String.format("%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.).", receiverName, methodName)
-                );
-            }
-
-            validateMethodArgumentNullability(ctx.originalContext(), receiverTypeInfo.getName(), currentStep);
-
-            handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
-
-            return;
-        }
-
-        if (ctx.unqualifiedClassInstanceCreationExpression() != null) {
-            handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(ctx), cursor);
-        }
-
-    }*/
 
     private void validateMethodArgumentNullability(ParserRuleContext ctx, String typeName, ResolvedChain.Step invocationStep) {
         globalSymbolTable

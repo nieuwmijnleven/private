@@ -130,7 +130,6 @@ class UserMethodParamAnnotationForCodeGenerator {
         return UserMethodParamAnnotationForCodeGenerator.this.address?.street?.name();
     }
 
-    // Get the display name of the user
     String getDisplayName() {
         return name;
     }
@@ -138,6 +137,7 @@ class UserMethodParamAnnotationForCodeGenerator {
     String getStreet_FieldAccess_WithParenthesis() {
         return (this.address.street.name);
     }
+
     String getStreet_FieldAccess_WithParenthesis_UtilStreet() {
         return (this.address.street).name;
     }
@@ -150,6 +150,8 @@ class UserMethodParamAnnotationForCodeGenerator {
 
 //        user2.updateAddress(new AddressAnnotation("Boston"));
         user2.updateAddress(null);
+
+        new UserMethodParamAnnotationForCodeGenerator("Jane Smith", null).updateAddress(null);
 
         // Null-safe access
         System.out.println(user1.getDisplayName() + "'s city: " + user1.getStreet()); // Jeroen's city: New Amsterdam
