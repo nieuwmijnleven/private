@@ -77,7 +77,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private void enterSymbolTable(String symbol) {
+        log("[enterSymbolTable] currentSymbolTable = " + currentSymbolTable);
         currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbol);
+        log("[enterSymbolTable] symbol = " + symbol);
+        log("[enterSymbolTable] enclosing symboltable = " + currentSymbolTable);
     }
 
     private void exitSymbolTable() {
@@ -98,7 +101,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     @Override
     public Void visitPackageDeclaration(JPlus25Parser.PackageDeclarationContext ctx) {
         this.packageName = ctx.identifier().stream().map(Utils::getTokenString).collect(Collectors.joining("."));
-        //System.err.println("[NullabilityChecker] packageName = " + packageName);
+        System.err.println("[NullabilityChecker] packageName = " + packageName);
         return super.visitPackageDeclaration(ctx);
     }
 
@@ -109,6 +112,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         SymbolInfo classSymbolInfo = getClassSymbolInfo(className);
         currentSymbolTable = classSymbolInfo.getSymbolTable();
+        System.err.println("currentSymbolTable = " + currentSymbolTable);
         return super.visitTopLevelClassOrInterfaceDeclaration(ctx);
     }
 
@@ -132,13 +136,17 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     public Void visitClassDeclaration(JPlus25Parser.ClassDeclarationContext ctx) {
         if (ctx.normalClassDeclaration() != null) {
             String className = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
-            //System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
+            System.err.println("[NullabilityChecker][ClassDecl] className = " + className);
             enterSymbolTable(className);
-        }/* else if (ctx.enumDeclaration() != null) {
-
+        } else if (ctx.enumDeclaration() != null) {
+            String enumName = Utils.getTokenString(ctx.enumDeclaration().typeIdentifier());
+            System.err.println("[NullabilityChecker][ClassDecl] enumName = " + enumName);
+            enterSymbolTable(enumName);
         } else if (ctx.recordDeclaration() != null) {
-
-        }*/
+            String recordName = Utils.getTokenString(ctx.recordDeclaration().typeIdentifier());
+            System.err.println("[NullabilityChecker][ClassDecl] recordName = " + recordName);
+            enterSymbolTable(recordName);
+        }
 
         try {
             return super.visitClassDeclaration(ctx);
@@ -224,6 +232,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         for (var variableDeclaratorContext : ctx.variableDeclaratorList().variableDeclarator()) {
             String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
+            System.err.println("[NullabilityChecker][FieldDecl] symbol = " + symbol);
             System.err.println("[NullabilityChecker][FieldDecl] currentSymbolTable = " + currentSymbolTable);
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
@@ -650,15 +659,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitPrimaryNoNewArrayThis(JPlus25Parser.PrimaryNoNewArrayThisContext ctx) {
+        //'this' pNNA? #primaryNoNewArrayThis
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> PrimaryNoNewArrayThis(PrimaryNoNewArrayContextAdapter.from(ctx), resolvedChain.stepCursor()));
-        //return super.visitPrimaryNoNewArrayThis(ctx);
         return null;
     }
 
     @Override
     public Void visitPrimaryNoNewArrayQualifiedThis(JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext ctx) {
+        //typeName '.' 'this' pNNA?
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayQualifiedThis(ctx, resolvedChain.stepCursor()));
-        //return super.visitPrimaryNoNewArrayQualifiedThis(ctx);
         return null;
     }
 
@@ -681,7 +690,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return null;
     }
 
-    @Override
+    /*@Override
     public Void visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayQualifiedClassInstanceCreation(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(ctx);
@@ -696,9 +705,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(ctx), cursor);
 
-    }
+    }*/
 
-    @Override
+    /*@Override
     public Void visitPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayFieldAccess(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayArrayFieldAccess(ctx);
@@ -712,7 +721,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         if (!step.symbol.equals(Utils.getTokenString(ctx.identifier()))) throw new IllegalStateException();
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
-    }
+    }*/
 
     @Override
     public Void visitPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx) {
@@ -769,8 +778,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private void handlePrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx, StepCursor cursor) {
+        //need dataflow
         //expressionName '[' expression ']' pNNA?
         //must handle the front part of `expressionName '[' expression ']'`
+        ResolvedChain.Step step = cursor.consume();
+        log("[handlePrimaryNoNewArrayArrayAccess] step.symbol = " + step.symbol);
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
@@ -920,8 +932,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx) {
+        //'(' expression ')' pNNA?
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayParenExpression(ctx, resolvedChain.stepCursor()));
-        //return super.visitPrimaryNoNewArrayParenExpression(ctx);
         return null;
     }
 

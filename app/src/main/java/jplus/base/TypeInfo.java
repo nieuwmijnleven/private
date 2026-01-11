@@ -16,9 +16,9 @@
 
 package jplus.base;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TypeInfo {
     private final String name;
@@ -27,6 +27,7 @@ public class TypeInfo {
     private final Type type;
     private final List<String> typeParameters;
     private final List<TypeInfo> typeArguments;
+    private final TypeInfo elementType;
 
     public enum Type {
         Class,
@@ -40,17 +41,22 @@ public class TypeInfo {
         TypeArgument
     }
 
-    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, List<String> typeParameters, List<TypeInfo> typeArguments) {
+    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, List<String> typeParameters, List<TypeInfo> typeArguments, TypeInfo elementType) {
         this.name = name;
         this.isNullable = isNullable;
         this.isGeneric = isGeneric;
         this.type = type;
         this.typeParameters = typeParameters;
         this.typeArguments = typeArguments;
+        this.elementType = elementType;
+    }
+
+    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, List<String> typeParameters, List<TypeInfo> typeArguments) {
+        this(name, isNullable, isGeneric, type, typeParameters, typeArguments, null);
     }
 
     public TypeInfo(String name, boolean isNullable, Type type) {
-        this(name, isNullable, false, type, List.of(), List.of());
+        this(name, isNullable, false, type, List.of(), List.of(), null);
     }
 
     public TypeInfo(TypeInfo other) {
@@ -60,6 +66,7 @@ public class TypeInfo {
         this.type = other.type;
         this.typeParameters = other.typeParameters;
         this.typeArguments = other.typeArguments;
+        this.elementType = other.elementType;
     }
 
     public static TypeInfo from(TypeInfo other) {
@@ -73,11 +80,16 @@ public class TypeInfo {
                 .isGeneric(this.isGeneric)
                 .type(this.type)
                 .typeParameters(this.typeParameters)
-                .typeArguments(this.typeArguments);
+                .typeArguments(this.typeArguments)
+                .elementType(this.elementType);
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getFullname() {
+        return isGeneric() ? name + "<" + getTypeArguments().stream().map(TypeInfo::getFullname).collect(Collectors.joining(",")) + ">" : name;
     }
 
     public boolean isNullable() {
@@ -94,6 +106,10 @@ public class TypeInfo {
 
     public List<TypeInfo> getTypeArguments() {
         return Collections.unmodifiableList(typeArguments);
+    }
+
+    public TypeInfo getElementType() {
+        return elementType;
     }
 
     public Type getType() {
@@ -119,6 +135,7 @@ public class TypeInfo {
         private Type type;
         private List<String> typeParameters = List.of();
         private List<TypeInfo> typeArguments = List.of();
+        private TypeInfo elementType;
 
         public Builder name(String name) {
             this.name = name;
@@ -150,8 +167,13 @@ public class TypeInfo {
             return this;
         }
 
+        public Builder elementType(TypeInfo elementType) {
+            this.elementType = elementType;
+            return this;
+        }
+
         public TypeInfo build() {
-            return new TypeInfo(name, isNullable, isGeneric, type, typeParameters, typeArguments);
+            return new TypeInfo(name, isNullable, isGeneric, type, typeParameters, typeArguments, elementType);
         }
     }
 

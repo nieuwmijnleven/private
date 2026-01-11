@@ -21,8 +21,6 @@ public class TypeUtils {
                     // 클래스/인터페이스 선언 그 자체를 나타냄
                     String className = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
 
-
-
                     // ✔ 선언부의 타입 파라미터 추출 (T, K, V 등)
                     List<String> typeParams = ((TypeElement) declaration)
                             .getTypeParameters()
@@ -59,7 +57,12 @@ public class TypeUtils {
             case ARRAY:
                 ArrayType arrayType = (ArrayType) typeMirror;
                 TypeInfo component = fromTypeMirror(arrayType.getComponentType(), originalElement);
-                return new TypeInfo(component.getName() + "[]", false, TypeInfo.Type.Array);
+                return //new TypeInfo(component.getName() + "[]", false, TypeInfo.Type.Array);
+            TypeInfo.builder().name(component.getName() + "[]")
+                    .isNullable(false)
+                    .type(TypeInfo.Type.Array)
+                    .elementType(component)
+                    .build();
 
             case BOOLEAN: case INT: case LONG: case FLOAT: case DOUBLE: case CHAR: case BYTE: case SHORT:
                 return new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Primitive);

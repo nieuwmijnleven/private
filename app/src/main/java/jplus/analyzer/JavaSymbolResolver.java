@@ -122,7 +122,7 @@ public class JavaSymbolResolver {
                     TypeMirror typeMirror = parameter.asType();
                     TypeInfo typeInfo = TypeUtils.fromTypeMirror(typeMirror, parameter);
 
-                    String typeNameWithNullability = typeInfo.getName() + (typeInfo.isNullable() ? "?" : "");
+                    String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
                     typeNameList.add(typeNameWithNullability);
 
                     // 심볼 정보 생성

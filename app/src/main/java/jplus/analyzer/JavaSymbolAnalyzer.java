@@ -128,7 +128,31 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             }
 
             if (expr instanceof ArrayAccessTree aa) {
+                // 1. 배열 변수를 먼저 방문
                 visit(aa.getExpression(), chain);
+
+                // 2. 마지막 Step이 배열이어야 elementType 사용
+                ResolvedChain.Step lastStep = chain.last();
+                if (lastStep != null && lastStep.typeInfo.getType() == TypeInfo.Type.Array) {
+                    TypeInfo elementType = lastStep.typeInfo.getElementType();
+
+                    // 3. 인덱스를 symbol에 반영
+                    String indexedSymbol = lastStep.symbol + "[" + aa.getIndex().toString() + "]";
+
+                    //lastStep.kind = ResolvedChain.Kind.ARRAY_ACCESS;
+
+
+                    // 4. 새로운 Step 추가 (배열 요소)
+                    chain.addStep(new ResolvedChain.Step(
+                            ResolvedChain.Kind.ARRAY_ACCESS,
+                            indexedSymbol,
+                            elementType,
+                            elementType.isNullable(),
+                            computeRange(aa),
+                            null,
+                            null
+                    ));
+                }
                 return;
             }
 
@@ -574,13 +598,16 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         for (VariableTree param : node.getParameters()) {
             // TypeMirror 기반 TypeInfo 생성
-            TypeMirror typeMirror = trees.getTypeMirror(TreePath.getPath(ast, param.getType()));
             Element element = trees.getElement(TreePath.getPath(ast, param));
+            //TypeMirror typeMirror = trees.getTypeMirror(TreePath.getPath(ast, param.getType()));
+            TypeMirror typeMirror = element.asType();
             TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
+            System.err.println("[method] typeInfo = " + typeInfo);
+
 
             // 이름 리스트 생성 (FQN / simple)
-            String typeNameWithNullability = typeInfo.getName() + (typeInfo.isNullable() ? "?" : "");
-            //System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
+            String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
+            System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
             String simpleTypeNameWithNullability = param.getType().toString() + (typeInfo.isNullable() ? "?" : "");
             //System.err.println("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
