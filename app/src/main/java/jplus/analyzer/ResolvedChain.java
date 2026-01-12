@@ -4,10 +4,9 @@ import jplus.base.MethodInvocationInfo;
 import jplus.base.TypeInfo;
 import jplus.generator.TextChangeRange;
 
-import javax.lang.model.element.Element;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public final class ResolvedChain {
 
@@ -15,6 +14,7 @@ public final class ResolvedChain {
         IDENTIFIER,
         FIELD,
         METHOD,
+        ARRAY_ACCESS,
         CHAIN
     }
 
@@ -56,6 +56,70 @@ public final class ResolvedChain {
                     ", childChain=" + childChain +
                     '}';
         }
+
+        public static class Builder {
+            private Kind kind;
+            private String symbol;
+            private TypeInfo typeInfo;
+            private boolean nullable;
+            private TextChangeRange range;
+            private MethodInvocationInfo invocationInfo;
+            private ResolvedChain childChain;
+
+            public Builder kind(Kind kind) {
+                this.kind = kind;
+                return this;
+            }
+
+            public Builder symbol(String symbol) {
+                this.symbol = symbol;
+                return this;
+            }
+
+            public Builder typeInfo(TypeInfo typeInfo) {
+                this.typeInfo = typeInfo;
+                return this;
+            }
+
+            public Builder nullable(boolean nullable) {
+                this.nullable = nullable;
+                return this;
+            }
+
+            public Builder range(TextChangeRange range) {
+                this.range = range;
+                return this;
+            }
+
+            public Builder invocationInfo(MethodInvocationInfo invocationInfo) {
+                this.invocationInfo = invocationInfo;
+                return this;
+            }
+
+            public Builder childChain(ResolvedChain childChain) {
+                this.childChain = childChain;
+                return this;
+            }
+
+            public Step build() {
+                return new Step(kind, symbol, typeInfo, nullable, range, invocationInfo, childChain);
+            }
+        }
+
+        public static  Builder builder() {
+            return new Builder();
+        }
+
+        public Builder toBuilder() {
+            return new Builder()
+                    .kind(this.kind)
+                    .symbol(this.symbol)
+                    .typeInfo(this.typeInfo)
+                    .nullable(this.nullable)
+                    .range(this.range)
+                    .invocationInfo(this.invocationInfo)
+                    .childChain(this.childChain);
+        }
     }
 
     private final List<Step> steps = new ArrayList<>();
@@ -65,7 +129,7 @@ public final class ResolvedChain {
     }
 
     public List<Step> getSteps() {
-        return steps;
+        return List.copyOf(steps);
     }
 
     public boolean hasQualifier() {
@@ -78,6 +142,15 @@ public final class ResolvedChain {
 
     public Step last() {
         return !steps.isEmpty() ? steps.get(steps.size() - 1) : null;
+    }
+
+    public void updateLastStep(UnaryOperator<Step> updater) {
+        if (steps.isEmpty()) {
+            throw new IllegalStateException("No step to update");
+        }
+
+        int last = steps.size() - 1;
+        steps.set(last, updater.apply(steps.get(last)));
     }
 
     public StepCursor stepCursor() {

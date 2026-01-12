@@ -794,8 +794,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private void handlePrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx, StepCursor cursor) {
-        //expressionName '[' expression ']' pNNA?
-        //must handle the front part of `arrayCreationExpressionWithInitializer '[' expression ']'`
+        //arrayCreationExpressionWithInitializer '[' expression ']' pNNA?
+        //must handle `arrayCreationExpressionWithInitializer '[' expression ']'`
+        //so must add the support for `arrayCreationExpressionWithInitializer '[' expression ']'`in symbol analyzer.
+
+        //ResolvedChain.Step step = cursor.consume();
+        //log("[PrimaryNoNewArrayArrayCreationWithInitAccess] step.symbol = " + step.symbol);
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
@@ -899,7 +903,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         //handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
 
-    @Override
+    /*@Override
     public Void visitPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayMethodInvocation(ctx, resolvedChain.stepCursor()));
         return null;
@@ -910,12 +914,26 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         cursor.consume();
 
         processExplicitReceiverMethodInvocationSignature(MethodInvocationSignatureContextAdapter.from(ctx), cursor);
-    }
+    }*/
 
     private void handleExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx, StepCursor cursor) {
         handleExpressionName(ctx.expressionName(), cursor);
         handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(ctx), cursor);
     }
+
+    @Override
+    public Void visitPrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArraySuperMethodInvocation(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx, StepCursor cursor) {
+        //'super' '.' typeArguments? identifier '(' argumentList? ')' pNNA?
+        //skip: super
+        cursor.consume();
+        processExplicitReceiverMethodInvocationSignature(MethodInvocationSignatureContextAdapter.from(ctx), cursor);
+    }
+
 
     @Override
     public Void visitPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx) {
@@ -929,6 +947,18 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         cursor.consume();
         processExplicitReceiverMethodInvocationSignature(MethodInvocationSignatureContextAdapter.from(ctx), cursor);
     }
+
+    @Override
+    public Void visitPrimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx) {
+        withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayprimaryNoNewArrayExprMethodReference(ctx, resolvedChain.stepCursor()));
+        return null;
+    }
+
+    private void handlePrimaryNoNewArrayprimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx, StepCursor cursor) {
+        //expressionName '::' typeArguments? identifier pNNA?
+        handleExpressionName(ctx.expressionName(), cursor);
+    }
+
 
     @Override
     public Void visitPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx) {

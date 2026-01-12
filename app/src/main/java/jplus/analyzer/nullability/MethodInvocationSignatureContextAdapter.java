@@ -183,6 +183,40 @@ public interface MethodInvocationSignatureContextAdapter {
         };
     }
 
+    static MethodInvocationSignatureContextAdapter from(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx) {
+        return new MethodInvocationSignatureContextAdapter() {
+            @Override
+            public ParserRuleContext originalContext() {
+                return ctx;
+            }
+
+            @Override
+            public JPlus25Parser.IdentifierContext identifier() {
+                return ctx.identifier();
+            }
+
+            @Override
+            public JPlus25Parser.MethodNameContext methodName() {
+                return null;
+            }
+
+            @Override
+            public JPlus25Parser.PNNAContext pNNA() {
+                return ctx.pNNA();
+            }
+
+            @Override
+            public TerminalNode NULLSAFE() {
+                return null;
+            }
+
+            @Override
+            public Token getStart() {
+                return ctx.start;
+            }
+        };
+    }
+
     static MethodInvocationSignatureContextAdapter from(JPlus25Parser.PNNAMethodInvocationContext ctx) {
         return new MethodInvocationSignatureContextAdapter() {
             @Override

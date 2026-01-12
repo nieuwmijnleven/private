@@ -87,12 +87,16 @@ public class BuilderFeatureProcessor implements ApplyFeatureProcessor {
         builder += indentation + "}\n";
         builder += "}\n";
 
-        builder += "\npublic static " + typeArgumentString + " " + builderTypeName + " builder() {\n";
+        builder += "\npublic static " + getTypeArgumentString(typeArgumentString) + builderTypeName + " builder() {\n";
         builder += indentation + "return new " + builderTypeName + "();\n";
         builder += "}\n";
 
         context.appendMethodPartText(builder);
 //        ApplyFeatureProcessor.super.process(context);
         context.addProcessedAction("builder");
+    }
+
+    private String getTypeArgumentString(String typeArgumentString) {
+        return typeArgumentString + (!typeArgumentString.isEmpty() ? " " : "");
     }
 }

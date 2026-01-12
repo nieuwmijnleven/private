@@ -135,23 +135,15 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 ResolvedChain.Step lastStep = chain.last();
                 if (lastStep != null && lastStep.typeInfo.getType() == TypeInfo.Type.Array) {
                     TypeInfo elementType = lastStep.typeInfo.getElementType();
-
-                    // 3. 인덱스를 symbol에 반영
                     String indexedSymbol = lastStep.symbol + "[" + aa.getIndex().toString() + "]";
 
-                    //lastStep.kind = ResolvedChain.Kind.ARRAY_ACCESS;
-
-
-                    // 4. 새로운 Step 추가 (배열 요소)
-                    chain.addStep(new ResolvedChain.Step(
-                            ResolvedChain.Kind.ARRAY_ACCESS,
-                            indexedSymbol,
-                            elementType,
-                            elementType.isNullable(),
-                            computeRange(aa),
-                            null,
-                            null
-                    ));
+                    chain.updateLastStep(step -> step.toBuilder()
+                            .kind(ResolvedChain.Kind.ARRAY_ACCESS)
+                            .symbol(indexedSymbol)
+                            .typeInfo(elementType)
+                            .nullable(elementType.isNullable())
+                            .range(computeRange(aa))
+                            .build());
                 }
                 return;
             }
@@ -171,7 +163,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 handleMethodInvocation(mi, chain);
             } else if (expr instanceof NewClassTree nc) {
                 handleNewClass(nc, chain);
-            }
+            }/* else if (expr instanceof NewArrayTree na) {
+                handleNewArray(na, chain);
+            }*/
         }
 
         private void handleIdentifier(IdentifierTree id, ResolvedChain chain) {
@@ -270,6 +264,31 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 buildChain(arg);
             }
         }
+
+        /*private void handleNewArray(NewArrayTree na, ResolvedChain chain) {
+            // 배열 타입 정보 가져오기
+            TreePath path = trees.getPath(ast, na);
+            Element element = trees.getElement(path);
+            TypeMirror typeMirror = trees.getTypeMirror(path);
+
+            TypeInfo arrayType = buildTypeInfo(typeMirror, element);
+
+            // 배열 literal 자체를 Step으로 추가
+            chain.addStep(new ResolvedChain.Step(
+                    ResolvedChain.Kind.IDENTIFIER,
+                    na.toString(),    // "new T[]{ ... }"
+                    arrayType,
+                    arrayType.isNullable(),
+                    computeRange(na),
+                    null,
+                    null
+            ));
+
+            // 배열 요소 체인 생성 (NewClassTree 등)
+            for (var initializer : na.getInitializers()) {
+                build(initializer); // visit()를 재귀적으로 호출해서 Step 생성
+            }
+        }*/
 
         private void addMethodStep(
                 MemberSelectTree ms,
