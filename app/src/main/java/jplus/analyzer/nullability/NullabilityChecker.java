@@ -18,6 +18,8 @@ package jplus.analyzer.nullability;
 
 import jplus.analyzer.ResolvedChain;
 import jplus.analyzer.StepCursor;
+import jplus.analyzer.nullability.dataflow.NullState;
+import jplus.analyzer.nullability.dataflow.NullabilityDataflow;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
@@ -51,6 +53,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private final JavaMethodInvocationManager methodInvocationManager;
     private SymbolTable currentSymbolTable;
     private final Set<TextChangeRange> consumedExpressions = new HashSet<>();
+
+    //private final NullabilityDataflow dataflow = new NullabilityDataflow();
 
     private String originalText;
     private String packageName;
@@ -229,23 +233,45 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitFieldDeclaration(JPlus25Parser.FieldDeclarationContext ctx) {
-        for (var variableDeclaratorContext : ctx.variableDeclaratorList().variableDeclarator()) {
-            String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
-            SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
+        for (var decl : ctx.variableDeclaratorList().variableDeclarator()) {
+            String symbol = Utils.getTokenString(decl.variableDeclaratorId());
             System.err.println("[NullabilityChecker][FieldDecl] symbol = " + symbol);
-            System.err.println("[NullabilityChecker][FieldDecl] currentSymbolTable = " + currentSymbolTable);
+
+            SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
+            System.err.println("[NullabilityChecker][FieldDecl] symbolInfo = " + symbolInfo);
+
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
 
-            if (variableDeclaratorContext.variableInitializer() != null) {
+            if (decl.variableInitializer() != null) {
 
-                String expression = Utils.getTokenString(variableDeclaratorContext.variableInitializer());
-                if (!typeInfo.isNullable() && "null".equals(expression)) {
+                NullState rhsState = evalInitializer(decl.variableInitializer());
+                if (!typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
                     reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
+
+                SymbolInfo updated = symbolInfo.toBuilder()
+                        .nullState(rhsState)
+                        .build();
+
+                currentSymbolTable.declare(symbol, updated);
+                System.err.println("[NullabilityChecker][FieldDecl] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
             }
         }
 
         return super.visitFieldDeclaration(ctx);
+    }
+
+    private NullState evalInitializer(ParserRuleContext init) {
+        if (init == null) return NullState.UNKNOWN;
+
+        String text = Utils.getTokenString(init);
+
+        if ("null".equals(text)) return NullState.NULL;
+        if (init instanceof JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext)
+            return NullState.NON_NULL;
+
+        // 변수 참조, 메서드 호출 등
+        return NullState.UNKNOWN;
     }
 
     @Override
@@ -443,15 +469,48 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     @Override
     public Void visitLocalVariableDeclaration(JPlus25Parser.LocalVariableDeclarationContext ctx) {
         var variableDeclarator = ctx.variableDeclaratorList().variableDeclarator();
-        for (JPlus25Parser.VariableDeclaratorContext variableDeclaratorContext : variableDeclarator) {
+        for (var decl : variableDeclarator) {
 
-            String symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
+            String symbol = Utils.getTokenString(decl.variableDeclaratorId());
             System.err.println("[NullabilityChecker][LocalVariable] symbol = " + symbol);
+
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
             System.err.println("[NullabilityChecker][LocalVariable] symbolInfo = " + symbolInfo);
+
+            TypeInfo typeInfo = symbolInfo.getTypeInfo();
             System.err.println("[NullabilityChecker][LocalVariable] currentSymbolTable = " + currentSymbolTable);
 
-            if (symbolInfo != null) {
+            if (decl.variableInitializer() != null) {
+
+                NullState rhsState = evalInitializer(decl.variableInitializer());
+                if (!typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
+                    reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
+                }
+
+                SymbolInfo updated = symbolInfo.toBuilder()
+                        .nullState(rhsState)
+                        .build();
+
+                currentSymbolTable.declare(symbol, updated);
+                System.err.println("[NullabilityChecker][LocalVariable] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
+            } else {
+
+                /*if (!typeInfo.isNullable() && typeInfo.getType().equals(TypeInfo.Type.Reference)) {
+                    //String msg = symbol + " is a non-nullable variable. But null value is assigned to it.";
+                    //reportIssue(ctx.start, msg);
+                }*/
+
+                if (!typeInfo.isNullable() && typeInfo.getType() == TypeInfo.Type.Reference) {
+                    SymbolInfo updated = symbolInfo.toBuilder()
+                            .nullState(NullState.UNKNOWN)
+                            .build();
+
+                    currentSymbolTable.declare(symbol, updated);
+                    System.err.println("[NullabilityChecker][LocalVariable] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
+                }
+            }
+
+            /*if (symbolInfo != null) {
                 TypeInfo typeInfo = symbolInfo.getTypeInfo();
                 if (variableDeclaratorContext.variableInitializer() != null) {
 
@@ -467,7 +526,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                         reportIssue(ctx.start, msg);
                     }
                 }
-            }
+            }*/
         }
 
         return super.visitLocalVariableDeclaration(ctx);
@@ -820,7 +879,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
 
         System.err.println("[handlePrimaryNoNewArrayMethodInvocation] methodInvocationInfo = " + currentStep.invocationInfo);
-        
+
         TypeInfo receiverTypeInfo = currentSymbolTable.resolve("^TopLevelClass$").getTypeInfo();
         System.err.println("[handlePrimaryNoNewArrayMethodInvocation] receiverTypeInfo = " + receiverTypeInfo);
 
