@@ -154,6 +154,26 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 return;
             }
 
+            if (expr instanceof LiteralTree lt) {
+                Object value = lt.getValue();
+
+                TreePath path = TreePath.getPath(ast, lt);
+                Element element = trees.getElement(path);
+                TypeMirror tm = trees.getTypeMirror(path);
+                TypeInfo ti = TypeUtils.fromTypeMirror(tm, element);
+
+                chain.addStep(new ResolvedChain.Step(
+                        ResolvedChain.Kind.LITERAL,
+                        String.valueOf(value),
+                        ti,
+                        false,
+                        computeRange(lt),
+                        null,
+                        null
+                ));
+                return;
+            }
+
             if (expr instanceof IdentifierTree id) {
                 handleIdentifier(id, chain);
             } else if (expr instanceof MemberSelectTree ms) {
@@ -503,6 +523,17 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 //        }
 
         return super.visitNewClass(node, unused);
+    }
+
+    @Override
+    public Void visitAssignment(AssignmentTree node, Void unused) {
+        ExpressionTree lhs = node.getVariable();
+        buildChain(lhs);
+
+        ExpressionTree rhs = node.getExpression();
+        buildChain(rhs);
+
+        return super.visitAssignment(node, unused);
     }
 
     @Override

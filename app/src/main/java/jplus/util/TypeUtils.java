@@ -10,12 +10,16 @@ import java.util.stream.Collectors;
 public class TypeUtils {
 
     public static TypeInfo fromTypeMirror(TypeMirror typeMirror, Element originalElement) {
+        if (typeMirror == null) {
+            return new TypeInfo("unknown", false, TypeInfo.Type.Unknown);
+        }
+
         switch (typeMirror.getKind()) {
             case DECLARED:
                 DeclaredType declaredType = (DeclaredType) typeMirror;
                 Element declaration = declaredType.asElement();
                 // originElement가 클래스/인터페이스 자체인지 확인
-                boolean isClassDecl = originalElement.getKind().isClass() || originalElement.getKind().isInterface();
+                boolean isClassDecl = originalElement != null && (originalElement.getKind().isClass() || originalElement.getKind().isInterface());
 
                 if (isClassDecl) {
                     // 클래스/인터페이스 선언 그 자체를 나타냄
@@ -57,15 +61,21 @@ public class TypeUtils {
             case ARRAY:
                 ArrayType arrayType = (ArrayType) typeMirror;
                 TypeInfo component = fromTypeMirror(arrayType.getComponentType(), originalElement);
-                return //new TypeInfo(component.getName() + "[]", false, TypeInfo.Type.Array);
-            TypeInfo.builder().name(component.getName() + "[]")
-                    .isNullable(false)
-                    .type(TypeInfo.Type.Array)
-                    .elementType(component)
-                    .build();
+                return TypeInfo.builder().name(component.getName() + "[]")
+                            .isNullable(false)
+                            .type(TypeInfo.Type.Array)
+                            .elementType(component)
+                            .build();
 
             case BOOLEAN: case INT: case LONG: case FLOAT: case DOUBLE: case CHAR: case BYTE: case SHORT:
                 return new TypeInfo(typeMirror.toString(), false, TypeInfo.Type.Primitive);
+
+            case NULL:
+                return new TypeInfo(
+                        "null",
+                        true,
+                        TypeInfo.Type.Null
+                );
 
             default:
                 return new TypeInfo((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString(), false, TypeInfo.Type.Unknown);

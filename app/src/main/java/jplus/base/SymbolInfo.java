@@ -16,6 +16,7 @@
 
 package jplus.base;
 
+import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.generator.TextChangeRange;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 public class SymbolInfo {
     private final String symbol;
     private final TypeInfo typeInfo;
+    private final NullState nullState;
     private final TextChangeRange range;
     private final String originalText;
     private final List<Modifier> modifierList;
@@ -38,22 +40,28 @@ public class SymbolInfo {
         UNRESOLVED
     }
 
-    public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
+    public SymbolInfo(String symbol, TypeInfo typeInfo, NullState nullState, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
         this.symbol = symbol;
         this.typeInfo = typeInfo;
+        this.nullState = nullState;
         this.range = range;
         this.originalText = originalText;
         this.modifierList = modifierList;
         this.symbolTable = symbolTable;
     }
 
+    public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
+        this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, symbolTable);
+    }
+
     public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList) {
-        this(symbol, typeInfo, range, originalText, modifierList, null);
+        this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, null);
     }
 
     public SymbolInfo(SymbolInfo other) {
         this.symbol = other.symbol;
         this.typeInfo = other.typeInfo;
+        this.nullState = other.nullState;
         this.range = other.range;
         this.originalText = other.originalText;
         this.modifierList = other.modifierList;
@@ -68,6 +76,7 @@ public class SymbolInfo {
         return new Builder()
                 .symbol(this.symbol)
                 .typeInfo(this.typeInfo)
+                .nullState(this.nullState)
                 .originalText(this.originalText)
                 .range(this.range)
                 .modifierList(this.modifierList)
@@ -80,6 +89,10 @@ public class SymbolInfo {
 
     public TypeInfo getTypeInfo() {
         return typeInfo;
+    }
+
+    public NullState getNullState() {
+        return nullState;
     }
 
     public TextChangeRange getRange() {
@@ -115,13 +128,16 @@ public class SymbolInfo {
         return "SymbolInfo{" +
                 "symbol=" + symbol +
                 ", typeInfo=" + typeInfo +
+                ", nullState=" + nullState +
 //                ", range=" + range +
 //                ", originalText='" + originalText + '\'' +
                 '}';
     }
+
     public static class Builder {
         private String symbol;
         private TypeInfo typeInfo;
+        private NullState nullState;
         private TextChangeRange range;
         private String originalText;
         private List modifierList;
@@ -135,6 +151,11 @@ public class SymbolInfo {
 
         public Builder typeInfo(TypeInfo typeInfo) {
             this.typeInfo = typeInfo;
+            return this;
+        }
+
+        public Builder nullState(NullState nullState) {
+            this.nullState = nullState;
             return this;
         }
 
@@ -158,7 +179,7 @@ public class SymbolInfo {
             return this;
         }
         public SymbolInfo build() {
-            return new SymbolInfo(symbol, typeInfo, range, originalText, modifierList, symbolTable);
+            return new SymbolInfo(symbol, typeInfo, nullState, range, originalText, modifierList, symbolTable);
         }
 
     }

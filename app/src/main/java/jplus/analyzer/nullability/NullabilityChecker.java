@@ -19,7 +19,6 @@ package jplus.analyzer.nullability;
 import jplus.analyzer.ResolvedChain;
 import jplus.analyzer.StepCursor;
 import jplus.analyzer.nullability.dataflow.NullState;
-import jplus.analyzer.nullability.dataflow.NullabilityDataflow;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
@@ -244,7 +243,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             if (decl.variableInitializer() != null) {
 
-                NullState rhsState = evalInitializer(decl.variableInitializer());
+                NullState rhsState = evalRHS(decl.variableInitializer());
                 if (!typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
                     reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
@@ -261,17 +260,108 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return super.visitFieldDeclaration(ctx);
     }
 
-    private NullState evalInitializer(ParserRuleContext init) {
-        if (init == null) return NullState.UNKNOWN;
+    private NullState evalRHS(ParserRuleContext ctx) {
+        if (ctx == null) return NullState.UNKNOWN;
 
-        String text = Utils.getTokenString(init);
+        System.err.println("[evalInitializer] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
+        System.err.println("[evalInitializer] resolvedChains: " + currentSymbolTable.getResolvedChains());
 
-        if ("null".equals(text)) return NullState.NULL;
-        if (init instanceof JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext)
+        var ctxRange = Utils.getTextChangeRange(originalText, ctx);
+        System.err.println("[evalInitializer] original range = " + ctxRange);
+
+        var mappedRangeOpt = findTransformedRange(ctxRange);
+        if (mappedRangeOpt.isEmpty()) {
+            return NullState.UNKNOWN;
+        }
+
+        System.err.println("[evalInitializer] mapped range = " + mappedRangeOpt.get());
+
+        var resolvedChainOpt = currentSymbolTable.findResolvedChain(mappedRangeOpt.get());
+        if (resolvedChainOpt.isEmpty()) {
+            return NullState.UNKNOWN;
+        }
+
+        System.err.println("[evalInitializer] findResolvedChain = " + resolvedChainOpt.get());
+
+        var cursor = resolvedChainOpt.get().stepCursor();
+        if (!cursor.hasNext()) {
+            return NullState.UNKNOWN;
+        }
+
+        return computeChainNullability(ctx, cursor);
+
+        /*var lastStep = computeChainNullability(ctx, cursor);
+        if (lastStep == null) {
+            return NullState.UNKNOWN;
+        }
+
+        var typeInfo = lastStep.typeInfo;
+        if (typeInfo.getType() == TypeInfo.Type.Null) {
+            return NullState.NULL;
+        }
+
+        if (typeInfo.getType() == TypeInfo.Type.Unknown) {
+            return NullState.UNKNOWN;
+        }
+
+        if (typeInfo.isNullable()) {
+            return NullState.UNKNOWN;
+        }
+
+        return NullState.NON_NULL;*/
+    }
+
+    private NullState computeChainNullability(ParserRuleContext ctx, StepCursor cursor) {
+        ResolvedChain.Step root = cursor.consume();
+
+        if (root.typeInfo.getType() == TypeInfo.Type.Null) {
+            return NullState.NULL;
+        }
+
+        if (root.kind == ResolvedChain.Kind.LITERAL) {
             return NullState.NON_NULL;
+        }
 
-        // 변수 참조, 메서드 호출 등
-        return NullState.UNKNOWN;
+        NullState nullState;
+        boolean rootReported = false;
+        if (root.invocationInfo != null) {
+            nullState = NullState.NON_NULL;
+        } else {
+            SymbolInfo rootInfo = currentSymbolTable.resolve(root.symbol);
+            nullState = rootInfo.getNullState();
+
+            if (!rootInfo.getTypeInfo().isNullable() && nullState == NullState.UNKNOWN) {
+                reportIssue(ctx.start, root.symbol + " is not initialized.");
+                rootReported = true;
+            }
+        }
+
+        var prevStep = root;
+        while (cursor.hasNext()) {
+            var step = cursor.consume();
+
+            if (nullState == NullState.NULL) {
+                reportIssue(ctx.start, String.format(
+                        "%s is null. Accessing %s may cause NPE.",
+                        prevStep.symbol,
+                        step.symbol + ((step.kind == ResolvedChain.Kind.METHOD) ? "()" : "")
+                ));
+            } else if (nullState == NullState.UNKNOWN && !rootReported) {
+                reportIssue(ctx.start, String.format(
+                        "%s is a nullable variable. Accessing %s may cause NPE. Consider using null-safe operator(?.).",
+                        prevStep.symbol,
+                        step.symbol + ((step.kind == ResolvedChain.Kind.METHOD) ? "()" : "")
+                ));
+            }
+
+            if (step.typeInfo.isNullable()) {
+                nullState = NullState.UNKNOWN;
+            }
+
+            prevStep = step;
+        }
+
+        return nullState;
     }
 
     @Override
@@ -482,7 +572,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             if (decl.variableInitializer() != null) {
 
-                NullState rhsState = evalInitializer(decl.variableInitializer());
+                NullState rhsState = evalRHS(decl.variableInitializer());
                 if (!typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
                     reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
@@ -534,6 +624,32 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitAssignment(JPlus25Parser.AssignmentContext ctx) {
+        String symbol = Utils.getTokenString(ctx.leftHandSide());
+
+        System.err.println("[NullabilityChecker][Assignment]symbol = " + symbol);
+        System.err.println("[NullabilityChecker][Assignment]currentSymbolTable = " + currentSymbolTable);
+
+        SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
+        TypeInfo typeInfo = symbolInfo.getTypeInfo();
+
+        NullState rhsState = evalRHS(ctx.expression());
+
+        if (!typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
+            reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
+        }
+
+        SymbolInfo updated = symbolInfo.toBuilder()
+                .nullState(rhsState)
+                .build();
+
+        currentSymbolTable.declare(symbol, updated);
+        System.err.println("[NullabilityChecker][Assignment] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
+
+        return super.visitAssignment(ctx);
+    }
+
+    /*@Override
+    public Void visitAssignment(JPlus25Parser.AssignmentContext ctx) {
         String fullVariableName = Utils.getTokenString(ctx.leftHandSide());
         if (ctx.leftHandSide().expressionName() != null) {
             fullVariableName = Utils.getTokenString(ctx.leftHandSide().expressionName());
@@ -580,7 +696,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         return super.visitAssignment(ctx);
-    }
+    }*/
 
     @Override
     public Void visitEqualityExpression(JPlus25Parser.EqualityExpressionContext ctx) {

@@ -33,10 +33,11 @@ public class TypeInfo {
         Class,
         Method,
         Reference,
+        Null,
         Primitive,
         Constructor,
-        Array,
         Unknown,
+        Array,
         TypeParameter,
         TypeArgument
     }
