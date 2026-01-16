@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -692,9 +693,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         SymbolTable before = currentSymbolTable;
 
         // then 전용 상태
-        //SymbolTable thenTable = before.copy();
-        SymbolTable thenTable = before;
+        SymbolTable thenTable = before.copy();
         currentSymbolTable = thenTable;
+
+        SymbolTable elseTable = before.copy();
 
         var equalityExpressionList = getDereferenceLeaves(ctx);
         if (!equalityExpressionList.isEmpty()) {
@@ -704,26 +706,31 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 var rhsExpr = equalityExpressionContext.relationalExpression();
                 var rhsState = evalRHS(rhsExpr);
                 if (rhsState == NullState.NULL) {
-                    updateNullState(lhsExpr, NullState.NON_NULL);
+                    updateNullState(lhsExpr, thenTable, NullState.NON_NULL);
+                    updateNullState(lhsExpr, elseTable, NullState.NULL);
                 }
             }
         }
 
         visit(ctx.statement());
 
-        currentSymbolTable = join(before, thenTable);
+        //UnaryOperator<NullState> elseFunc = (NullState thenState) -> thenState == NullState.NON_NULL ? NullState.NULL : NullState.UNKNOWN;
+
+        //currentSymbolTable = join(before, joinThenAndImplicitElse(thenTable, elseFunc));
+        currentSymbolTable = join(before, join(thenTable, elseTable));
 
         return null;
     }
 
-    /*@Override
+    @Override
     public Void visitIfThenElseStatement(JPlus25Parser.IfThenElseStatementContext ctx) {
         SymbolTable before = currentSymbolTable;
 
         // then 전용 상태
-        //SymbolTable thenTable = before.copy();
-        SymbolTable thenTable = before;
+        SymbolTable thenTable = before.copy();
         currentSymbolTable = thenTable;
+
+        SymbolTable elseTable = before.copy();
 
         var equalityExpressionList = getDereferenceLeaves(ctx);
         if (!equalityExpressionList.isEmpty()) {
@@ -733,20 +740,25 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 var rhsExpr = equalityExpressionContext.relationalExpression();
                 var rhsState = evalRHS(rhsExpr);
                 if (rhsState == NullState.NULL) {
-                    updateNullState(lhsExpr, NullState.NON_NULL);
+                    updateNullState(lhsExpr, thenTable, NullState.NON_NULL);
+                    updateNullState(lhsExpr, elseTable, NullState.NULL);
                 }
             }
         }
 
+        visit(ctx.statementNoShortIf());
+
+        currentSymbolTable = elseTable;
+
         visit(ctx.statement());
 
-        currentSymbolTable = join(before, thenTable);
+        currentSymbolTable = join(before, join(thenTable, elseTable));
 
         return null;
-    }*/
+    }
 
     private SymbolTable join(SymbolTable before, SymbolTable thenTable) {
-        //var joined = before.copy();
+        var joined = before.copy();
 
         var keyIterator = before.keyIterator();
         while (keyIterator.hasNext()) {
@@ -759,22 +771,17 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             var beforeState = b.getNullState();
             var thenState = t.getNullState();
-            var elseState = thenState == NullState.NON_NULL ? NullState.NULL : NullState.UNKNOWN;
 
             var joinedState = NullState.join(beforeState, thenState);
-            joinedState = NullState.join(joinedState, elseState);
-
-            //joined.declare(symbol, b.toBuilder().nullState(joinedState).build());
-            before.declare(symbol, b.toBuilder().nullState(joinedState).build());
+            joined.declare(symbol, b.toBuilder().nullState(joinedState).build());
         }
 
-//        return joined;
-        return before;
+        return joined;
     }
 
-    private NullState updateNullState(ParserRuleContext ctx, NullState nullState) {
+    private NullState updateNullState(ParserRuleContext ctx, SymbolTable symbolTable, NullState nullState) {
         System.err.println("[updateNullState] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
-        System.err.println("[updateNullState] resolvedChains: " + currentSymbolTable.getResolvedChains());
+        System.err.println("[updateNullState] resolvedChains: " + symbolTable.getResolvedChains());
 
         var ctxRange = Utils.getTextChangeRange(originalText, ctx);
         System.err.println("[updateNullState] original range = " + ctxRange);
@@ -786,7 +793,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         System.err.println("[updateNullState] mapped range = " + mappedRangeOpt.get());
 
-        var resolvedChainOpt = currentSymbolTable.findResolvedChain(mappedRangeOpt.get());
+        var resolvedChainOpt = symbolTable.findResolvedChain(mappedRangeOpt.get());
         if (resolvedChainOpt.isEmpty()) {
             return NullState.UNKNOWN;
         }
@@ -802,15 +809,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         var prevNullState = NullState.UNKNOWN;
         var step = resolvedChain.last();
-        SymbolInfo symbolInfo = currentSymbolTable.resolve(step.symbol);
+        SymbolInfo symbolInfo = symbolTable.resolve(step.symbol);
         if (symbolInfo != null) {
             prevNullState = symbolInfo.getNullState();
             SymbolInfo updated = symbolInfo.toBuilder()
                     .nullState(nullState)
                     .build();
 
-            currentSymbolTable.declare(step.symbol, updated);
-            System.err.println("[updateNullState] updated symbolInfo = " + currentSymbolTable.resolve(step.symbol));
+            symbolTable.declare(step.symbol, updated);
+            System.err.println("[updateNullState] updated symbolInfo = " + symbolTable.resolve(step.symbol));
         }
 
         return prevNullState;

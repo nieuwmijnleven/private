@@ -45,13 +45,40 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         this.parent = parent;
     }
 
+//    public SymbolTable copy() {
+//        SymbolTable copy = new SymbolTable(this.parent);
+//        copy.symbolMap = new HashMap<>(this.symbolMap);
+//        copy.enclosing = new HashMap<>(this.enclosing);
+//        copy.resolvedChains = new ArrayList<>(this.resolvedChains);
+//        return copy;
+//    }
+
     public SymbolTable copy() {
-        SymbolTable copy = new SymbolTable(this.parent);
-        copy.symbolMap = new HashMap<>(this.symbolMap);
-        copy.enclosing = new HashMap<>(this.enclosing);
-        copy.resolvedChains = new ArrayList<>(this.resolvedChains);
-        return copy;
+        SymbolTable replica = new SymbolTable(this.parent);
+
+        // 1. symbolMap deep copy (상태)
+        replica.symbolMap = new HashMap<>();
+        for (var e : this.symbolMap.entrySet()) {
+            replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().build());
+        }
+
+        // 2. resolvedChains deep copy
+        replica.resolvedChains = new ArrayList<>(this.resolvedChains);
+//        for (ResolvedChain chain : this.resolvedChains) {
+//            copy.resolvedChains.add(chain.deepCopy());
+//        }
+
+        // 3. enclosing은 새로 만들되, child만 복제
+        replica.enclosing = new HashMap<>();
+        for (var e : this.enclosing.entrySet()) {
+            SymbolTable childCopy = e.getValue().copy();
+            childCopy.parent = replica;          // ⭐ 중요
+            replica.enclosing.put(e.getKey(), childCopy);
+        }
+
+        return replica;
     }
+
 
     public void declare(String name, SymbolInfo symbolInfo) {
         symbolMap.put(name, symbolInfo);
