@@ -16,7 +16,6 @@
 
 package jplus.analyzer.nullability;
 
-import jplus.analyzer.JavaSymbolResolver;
 import jplus.analyzer.ResolvedChain;
 import jplus.analyzer.StepCursor;
 import jplus.analyzer.nullability.dataflow.NullState;
@@ -45,9 +44,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
@@ -692,7 +688,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     public Void visitIfThenStatement(JPlus25Parser.IfThenStatementContext ctx) {
         SymbolTable before = currentSymbolTable;
 
-        // then 전용 상태
         SymbolTable thenTable = before.copy();
         currentSymbolTable = thenTable;
 
@@ -714,9 +709,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         visit(ctx.statement());
 
-        //UnaryOperator<NullState> elseFunc = (NullState thenState) -> thenState == NullState.NON_NULL ? NullState.NULL : NullState.UNKNOWN;
-
-        //currentSymbolTable = join(before, joinThenAndImplicitElse(thenTable, elseFunc));
         currentSymbolTable = join(before, join(thenTable, elseTable));
 
         return null;
@@ -726,7 +718,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     public Void visitIfThenElseStatement(JPlus25Parser.IfThenElseStatementContext ctx) {
         SymbolTable before = currentSymbolTable;
 
-        // then 전용 상태
         SymbolTable thenTable = before.copy();
         currentSymbolTable = thenTable;
 
@@ -751,6 +742,40 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         currentSymbolTable = elseTable;
 
         visit(ctx.statement());
+
+        currentSymbolTable = join(before, join(thenTable, elseTable));
+
+        return null;
+    }
+
+    @Override
+    public Void visitIfThenElseStatementNoShortIf(JPlus25Parser.IfThenElseStatementNoShortIfContext ctx) {
+        SymbolTable before = currentSymbolTable;
+
+        SymbolTable thenTable = before.copy();
+        currentSymbolTable = thenTable;
+
+        SymbolTable elseTable = before.copy();
+
+        var equalityExpressionList = getDereferenceLeaves(ctx);
+        if (!equalityExpressionList.isEmpty()) {
+            var equalityExpressionContext = (JPlus25Parser.EqualityExpressionContext) equalityExpressionList.get(0);
+            if (equalityExpressionContext.NOTEQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, thenTable, NullState.NON_NULL);
+                    updateNullState(lhsExpr, elseTable, NullState.NULL);
+                }
+            }
+        }
+
+        visit(ctx.statementNoShortIf(0));
+
+        currentSymbolTable = elseTable;
+
+        visit(ctx.statementNoShortIf(1));
 
         currentSymbolTable = join(before, join(thenTable, elseTable));
 
