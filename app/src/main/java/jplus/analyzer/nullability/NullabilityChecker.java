@@ -689,6 +689,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitIfThenStatement(JPlus25Parser.IfThenStatementContext ctx) {
+        SymbolTable before = currentSymbolTable;
+
+        // then 전용 상태
+        //SymbolTable thenTable = before.copy();
+        SymbolTable thenTable = before;
+        currentSymbolTable = thenTable;
+
         var equalityExpressionList = getDereferenceLeaves(ctx);
         if (!equalityExpressionList.isEmpty()) {
             var equalityExpressionContext = (JPlus25Parser.EqualityExpressionContext) equalityExpressionList.get(0);
@@ -702,10 +709,70 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             }
         }
 
-        return super.visitIfThenStatement(ctx);
+        visit(ctx.statement());
+
+        currentSymbolTable = join(before, thenTable);
+
+        return null;
     }
 
-    private void updateNullState(ParserRuleContext ctx, NullState nullState) {
+    /*@Override
+    public Void visitIfThenElseStatement(JPlus25Parser.IfThenElseStatementContext ctx) {
+        SymbolTable before = currentSymbolTable;
+
+        // then 전용 상태
+        //SymbolTable thenTable = before.copy();
+        SymbolTable thenTable = before;
+        currentSymbolTable = thenTable;
+
+        var equalityExpressionList = getDereferenceLeaves(ctx);
+        if (!equalityExpressionList.isEmpty()) {
+            var equalityExpressionContext = (JPlus25Parser.EqualityExpressionContext) equalityExpressionList.get(0);
+            if (equalityExpressionContext.NOTEQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, NullState.NON_NULL);
+                }
+            }
+        }
+
+        visit(ctx.statement());
+
+        currentSymbolTable = join(before, thenTable);
+
+        return null;
+    }*/
+
+    private SymbolTable join(SymbolTable before, SymbolTable thenTable) {
+        //var joined = before.copy();
+
+        var keyIterator = before.keyIterator();
+        while (keyIterator.hasNext()) {
+            String symbol = keyIterator.next();
+
+            var b = before.resolveInCurrent(symbol);
+            var t = thenTable.resolveInCurrent(symbol);
+
+            if (b == null || t == null) continue;
+
+            var beforeState = b.getNullState();
+            var thenState = t.getNullState();
+            var elseState = thenState == NullState.NON_NULL ? NullState.NULL : NullState.UNKNOWN;
+
+            var joinedState = NullState.join(beforeState, thenState);
+            joinedState = NullState.join(joinedState, elseState);
+
+            //joined.declare(symbol, b.toBuilder().nullState(joinedState).build());
+            before.declare(symbol, b.toBuilder().nullState(joinedState).build());
+        }
+
+//        return joined;
+        return before;
+    }
+
+    private NullState updateNullState(ParserRuleContext ctx, NullState nullState) {
         System.err.println("[updateNullState] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
         System.err.println("[updateNullState] resolvedChains: " + currentSymbolTable.getResolvedChains());
 
@@ -714,28 +781,30 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         var mappedRangeOpt = findTransformedRange(ctxRange);
         if (mappedRangeOpt.isEmpty()) {
-            return;
+            return NullState.UNKNOWN;
         }
 
         System.err.println("[updateNullState] mapped range = " + mappedRangeOpt.get());
 
         var resolvedChainOpt = currentSymbolTable.findResolvedChain(mappedRangeOpt.get());
         if (resolvedChainOpt.isEmpty()) {
-            return;
+            return NullState.UNKNOWN;
         }
 
         System.err.println("[updateNullState] findResolvedChain = " + resolvedChainOpt.get());
 
         var resolvedChain = resolvedChainOpt.get();
         if (resolvedChain.isEmpty()) {
-            return;
+            return NullState.UNKNOWN;
         }
 
         System.err.println("[updateNullState] resolvedChain = " + resolvedChain);
 
+        var prevNullState = NullState.UNKNOWN;
         var step = resolvedChain.last();
         SymbolInfo symbolInfo = currentSymbolTable.resolve(step.symbol);
         if (symbolInfo != null) {
+            prevNullState = symbolInfo.getNullState();
             SymbolInfo updated = symbolInfo.toBuilder()
                     .nullState(nullState)
                     .build();
@@ -743,6 +812,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             currentSymbolTable.declare(step.symbol, updated);
             System.err.println("[updateNullState] updated symbolInfo = " + currentSymbolTable.resolve(step.symbol));
         }
+
+        return prevNullState;
     }
 
     private List<ParseTree> getDereferenceLeaves(ParseTree node) {
@@ -1389,16 +1460,20 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             System.err.println("[processExpressionNameContext] identifier = " + identifier);
             if (!identifier.equals(step.symbol)) throw new IllegalStateException();
 
-            SymbolInfo symbolInfo = currentSymbolTable.resolve(identifier);
-            NullState nullState = NullState.UNKNOWN;
-            if (symbolInfo != null) {
-                System.err.println("[processExpressionNameContext] symbolInfo = " + symbolInfo);
-                nullState = symbolInfo.getNullState();
-            }
-            System.err.println("[processExpressionNameContext] nullState = " + nullState);
+            System.err.println("[processExpressionNameContext] line(" + ctx.start.getLine() + ")" );
 
-            if (prevStep != null && prevStep.typeInfo.isNullable() && nullState != NullState.NON_NULL && ctx.NULLSAFE() == null) {
-            //if (prevStep != null && prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
+            /*NullState nullState = NullState.UNKNOWN;
+            if (prevStep != null) {
+                SymbolInfo symbolInfo = currentSymbolTable.resolve(prevStep.symbol);
+                if (symbolInfo != null) {
+                    System.err.println("[processExpressionNameContext] symbolInfo = " + symbolInfo);
+                    nullState = symbolInfo.getNullState();
+                }
+                System.err.println("[processExpressionNameContext] nullState = " + nullState);
+            }*/
+
+            //if (prevStep != null && prevStep.typeInfo.isNullable() && nullState != NullState.NON_NULL && ctx.NULLSAFE() == null) {
+            if (prevStep != null && prevStep.typeInfo.isNullable() && ctx.NULLSAFE() == null) {
                 reportIssue(
                         ctx.start,
                         prevStep.symbol + " is a nullable variable. But it directly accesses "

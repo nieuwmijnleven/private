@@ -17,6 +17,7 @@
 package jplus.base;
 
 import jplus.analyzer.ResolvedChain;
+import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.generator.TextChangeRange;
 import org.w3c.dom.Text;
 
@@ -34,7 +35,7 @@ import java.util.Optional;
 public class SymbolTable implements Iterable<SymbolInfo> {
     private SymbolTable parent;
 
-    private final Map<String, SymbolInfo> symbolMap = new HashMap<>();
+    private Map<String, SymbolInfo> symbolMap = new HashMap<>();
 
     private Map<String, SymbolTable> enclosing = new HashMap<>();
 
@@ -42,6 +43,14 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     public SymbolTable(SymbolTable parent) {
         this.parent = parent;
+    }
+
+    public SymbolTable copy() {
+        SymbolTable copy = new SymbolTable(this.parent);
+        copy.symbolMap = new HashMap<>(this.symbolMap);
+        copy.enclosing = new HashMap<>(this.enclosing);
+        copy.resolvedChains = new ArrayList<>(this.resolvedChains);
+        return copy;
     }
 
     public void declare(String name, SymbolInfo symbolInfo) {
@@ -73,6 +82,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     @Override
     public Iterator<SymbolInfo> iterator() {
         return symbolMap.values().iterator();
+    }
+
+    public Iterator<String> keyIterator() {
+        return symbolMap.keySet().iterator();
     }
 
     public Collection<SymbolTable> getEnclosingSymbolTables() {
@@ -145,6 +158,17 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return enclosing.computeIfAbsent(name, s -> new SymbolTable((this)));
 //        return enclosing.getOrDefault(name, new SymbolTable(this));
     }
+
+//    public SymbolTable joinNullState(SymbolTable other) {
+//        for (String symbol : symbolMap.keySet()) {
+//            var syminfo1 = resolveInCurrent(symbol);
+//            var symInfo2 = other.resolveInCurrent(symbol);
+//            NullState joined = NullState.join(syminfo1.getNullState(), symInfo2.getNullState());
+//            symbolMap.put(symbol, syminfo1.toBuilder().nullState(joined).build());
+//        }
+//
+//        return this;
+//    }
 
     public void addResolvedChain(ResolvedChain chain) {
         resolvedChains.add(chain);
