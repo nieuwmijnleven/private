@@ -106,6 +106,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         expr.toString(), // 괄호 포함 텍스트
                         child.last() != null ? child.last().typeInfo : null, // typeInfo는 마지막 step에서 결정
                         child.last() != null ? child.last().typeInfo.isNullable() : false,
+                        false,
                         computeRange(expr),
                         null,
                         child
@@ -167,6 +168,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         String.valueOf(value),
                         ti,
                         false,
+                        false,
                         computeRange(lt),
                         null,
                         null
@@ -183,9 +185,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 handleMethodInvocation(mi, chain);
             } else if (expr instanceof NewClassTree nc) {
                 handleNewClass(nc, chain);
-            }/* else if (expr instanceof NewArrayTree na) {
+            } else if (expr instanceof NewArrayTree na) {
                 handleNewArray(na, chain);
-            }*/
+            }
         }
 
         private void handleIdentifier(IdentifierTree id, ResolvedChain chain) {
@@ -199,6 +201,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     id.getName().toString(),
                     ti,
                     ti.isNullable(),
+                    false,
                     computeRange(id),
                     null,
                     null
@@ -216,6 +219,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     ms.getIdentifier().toString(),
                     ti,
                     ti.isNullable(),
+                    false,
                     computeRange(ms),
                     null,
                     null
@@ -253,6 +257,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     method.getSimpleName().toString(),
                     ti,
                     ti.isNullable(),
+                    false,
                     computeRange(mi),
                     buildMethodInvocationInfo(
                             mi,
@@ -275,6 +280,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     qualifiedName,
                     ti,
                     ti.isNullable(),
+                    false,
                     computeRange(nc),
                     buildMethodInvocationInfo(nc, qualifiedName, qualifiedName),
                     null
@@ -285,7 +291,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             }
         }
 
-        /*private void handleNewArray(NewArrayTree na, ResolvedChain chain) {
+        private void handleNewArray(NewArrayTree na, ResolvedChain chain) {
             // 배열 타입 정보 가져오기
             TreePath path = trees.getPath(ast, na);
             Element element = trees.getElement(path);
@@ -299,6 +305,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     na.toString(),    // "new T[]{ ... }"
                     arrayType,
                     arrayType.isNullable(),
+                    false,
                     computeRange(na),
                     null,
                     null
@@ -308,7 +315,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             for (var initializer : na.getInitializers()) {
                 build(initializer); // visit()를 재귀적으로 호출해서 Step 생성
             }
-        }*/
+        }
 
         private void addMethodStep(
                 MemberSelectTree ms,
@@ -328,6 +335,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     method.getSimpleName().toString(),
                     ti,
                     ti.isNullable(),
+                    false,
                     computeRange(mi),
                     buildMethodInvocationInfo(mi, resolveReceiverType(chain), method.getSimpleName().toString()),
                     null
@@ -436,6 +444,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         String typeName = classSymbolInfo.getTypeInfo().getName();
         String simpleName = classSymbolInfo.getSymbol();
         currentSymbolTable.declare(simpleName, classSymbolInfo);
+        currentSymbolTable.declare("this", classSymbolInfo);
         globalSymbolTable.declare(typeName, classSymbolInfo);
     }
 
@@ -448,6 +457,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         SymbolInfo fieldSymbolInfo = createSymbolInfo(node.getName().toString(), node.getModifiers().getFlags(), typeInfo, node, currentSymbolTable);
         System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
         currentSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
+
+        ExpressionTree initializer = node.getInitializer();
+        if (initializer != null) {
+            buildChain(initializer);
+        }
     }
 
     private TypeInfo buildTypeInfo(TypeMirror typeMirror, Element originalElement) {
@@ -789,6 +803,19 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         return super.visitMethodInvocation(node, unused);
     }
+
+    @Override
+    public Void visitBinary(BinaryTree node, Void unused) {
+        buildChain(node.getLeftOperand());
+        buildChain(node.getRightOperand());
+        return super.visitBinary(node, unused);
+    }
+
+//    @Override
+//    public Void visitIf(IfTree node, Void unused) {
+//        ExpressionTree exprTree = node.getCondition();
+//        return super.visitIf(node, unused);
+//    }
 
     public SymbolInfo buildResolvedChain(ExpressionTree expr) {
 

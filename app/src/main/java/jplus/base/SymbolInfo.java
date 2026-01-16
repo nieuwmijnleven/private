@@ -179,7 +179,7 @@ public class SymbolInfo {
             return this;
         }
         public SymbolInfo build() {
-            return new SymbolInfo(symbol, typeInfo, nullState, range, originalText, modifierList, symbolTable);
+            return new SymbolInfo(symbol, typeInfo, (nullState == null ? (typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL) : nullState), range, originalText, modifierList, symbolTable);
         }
 
     }

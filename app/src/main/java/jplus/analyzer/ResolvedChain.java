@@ -25,6 +25,7 @@ public final class ResolvedChain {
         public final String symbol;
         public final TypeInfo typeInfo;     // 이 step의 결과 타입
         public final boolean nullable;      // 선언상 nullable
+        public final boolean nullSafety;
         public final TextChangeRange range; // 소스 위치
         public final MethodInvocationInfo invocationInfo;
         public final ResolvedChain childChain;
@@ -33,6 +34,7 @@ public final class ResolvedChain {
                     String symbol,
                     TypeInfo typeInfo,
                     boolean nullable,
+                    boolean nullSafety,
                     TextChangeRange range,
                     MethodInvocationInfo invocationInfo,
                     ResolvedChain childChain) {
@@ -40,6 +42,7 @@ public final class ResolvedChain {
             this.symbol = symbol;
             this.typeInfo = typeInfo;
             this.nullable = nullable;
+            this.nullSafety = nullSafety;
             this.range = range;
             this.invocationInfo = invocationInfo;
             this.childChain = childChain;
@@ -52,6 +55,7 @@ public final class ResolvedChain {
                     ", symbol=" + symbol +
                     ", typeInfo=" + typeInfo +
                     ", nullable=" + nullable +
+                    ", nullSafety=" + nullSafety +
                     ", range=" + range +
                     ", invocationInfo=" + invocationInfo +
                     ", childChain=" + childChain +
@@ -63,6 +67,7 @@ public final class ResolvedChain {
             private String symbol;
             private TypeInfo typeInfo;
             private boolean nullable;
+            private boolean nullSafety;
             private TextChangeRange range;
             private MethodInvocationInfo invocationInfo;
             private ResolvedChain childChain;
@@ -87,6 +92,11 @@ public final class ResolvedChain {
                 return this;
             }
 
+            public Builder nullSafety(boolean nullsafety) {
+                this.nullSafety = nullSafety;
+                return this;
+            }
+
             public Builder range(TextChangeRange range) {
                 this.range = range;
                 return this;
@@ -103,7 +113,7 @@ public final class ResolvedChain {
             }
 
             public Step build() {
-                return new Step(kind, symbol, typeInfo, nullable, range, invocationInfo, childChain);
+                return new Step(kind, symbol, typeInfo, nullable, nullSafety, range, invocationInfo, childChain);
             }
         }
 
@@ -117,6 +127,7 @@ public final class ResolvedChain {
                     .symbol(this.symbol)
                     .typeInfo(this.typeInfo)
                     .nullable(this.nullable)
+                    .nullSafety(this.nullSafety)
                     .range(this.range)
                     .invocationInfo(this.invocationInfo)
                     .childChain(this.childChain);
@@ -131,6 +142,10 @@ public final class ResolvedChain {
 
     public List<Step> getSteps() {
         return List.copyOf(steps);
+    }
+
+    public boolean isEmpty() {
+        return steps.isEmpty();
     }
 
     public boolean hasQualifier() {
