@@ -39,10 +39,8 @@ public class JPlusTest9 {
                 "DataFlowInitialState",
                 "Error: (line:4, column:8) s is a non-nullable variable. But null value is assigned to it.\n" +
                         "Error: (line:12, column:16) u is not initialized.\n" +
-                        "Error: (line:12, column:8) r is a non-nullable variable. But null value is assigned to it.\n" +
-                        "Error: (line:14, column:8) s is a non-nullable variable. But null value is assigned to it.\n" +
-                        "Error: (line:15, column:12) s is null. Accessing length() may cause NPE.\n" +
-                        "Error: (line:15, column:8) p is a non-nullable variable. But null value is assigned to it.\n"
+                        "Error: (line:12, column:8) r is a non-nullable variable. But nullable value is assigned to it.\n" +
+                        "Error: (line:14, column:8) s is a non-nullable variable. But null value is assigned to it.\n"
         );
     }
 
