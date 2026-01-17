@@ -33,6 +33,9 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SymbolTable implements Iterable<SymbolInfo> {
+
+    private boolean deadContext;
+
     private SymbolTable parent;
 
     private Map<String, SymbolInfo> symbolMap = new HashMap<>();
@@ -44,14 +47,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     public SymbolTable(SymbolTable parent) {
         this.parent = parent;
     }
-
-//    public SymbolTable copy() {
-//        SymbolTable copy = new SymbolTable(this.parent);
-//        copy.symbolMap = new HashMap<>(this.symbolMap);
-//        copy.enclosing = new HashMap<>(this.enclosing);
-//        copy.resolvedChains = new ArrayList<>(this.resolvedChains);
-//        return copy;
-//    }
 
     public SymbolTable copy() {
         SymbolTable replica = new SymbolTable(this.parent);
@@ -126,6 +121,14 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     public boolean isEmpty() {
         return symbolMap.isEmpty();
+    }
+
+    public boolean isDeadContext() {
+        return deadContext;
+    }
+
+    public void setDeadContext(boolean deadContext) {
+        this.deadContext = deadContext;
     }
 
     public boolean contains(String symbol, TypeInfo.Type type) {
