@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 class JPlusTest {
 

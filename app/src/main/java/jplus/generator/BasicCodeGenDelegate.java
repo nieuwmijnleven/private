@@ -225,7 +225,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         return replaced;
     }
 
-    private String forceUpdateContextString(ParserRuleContext ctx) {
+    protected String forceUpdateContextString(ParserRuleContext ctx) {
         System.err.println("[forceUpdateContextString] ParserRuleContext = " + ctx.getClass().getSimpleName());
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         String contextString = Utils.getTokenString(ctx);
@@ -274,12 +274,12 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         return updateContextString(ctx, replaced);
     }
 
-    private Optional<String> getRangeText(ParserRuleContext ctx) {
+    protected Optional<String> getRangeText(ParserRuleContext ctx) {
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         return getRangeFragmentedText(range);
     }
 
-    private Optional<String> getRhsExpressionRangeText(NullCoalescingExpressionContext ctx) {
+    protected Optional<String> getRhsExpressionRangeText(NullCoalescingExpressionContext ctx) {
         if (ctx.nullCoalescingExpression() != null) {
             return getRangeText(ctx.nullCoalescingExpression());
         } else if (ctx.lambdaExpression() != null) {
@@ -293,7 +293,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         return fragmentedText.findFragmentByRange(range);
     }
 
-    private FragmentedText getCurrentFragmentedText() {
+    protected FragmentedText getCurrentFragmentedText() {
         CodeGenContext codeGenContext = CodeGenContext.current();
         FragmentedText fragmentedText = codeGenContext.getFragmentedText();
         return fragmentedText;

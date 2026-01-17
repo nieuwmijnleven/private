@@ -149,6 +149,16 @@ public class FragmentedText {
         return temp.toString();
     }
 
+    public void appendTextFromEndParenthesis(String text) {
+        String originalText = getOriginalText();
+        int endParenIndex = originalText.lastIndexOf("}");
+        System.err.println("[appendTextFromEndParenthesis] originalRange = " + originalRange);
+        if (endParenIndex != -1) {
+            var endRange = rangeFrom(endParenIndex, endParenIndex);
+            update(endRange, text);
+        }
+    }
+
     public void update(TextChangeRange textChangeRange, String replace) {
         splitOverlappingFragment(textChangeRange);
         replace(textChangeRange, replace);

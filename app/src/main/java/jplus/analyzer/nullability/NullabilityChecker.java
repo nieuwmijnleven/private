@@ -628,7 +628,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         NullState rhsState = evalRHS(ctx.expression());
         log("[NullabilityChecker][Assignment] rhsState = " + rhsState);
-        if (!typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
+        if (typeInfo.getType() == TypeInfo.Type.Reference && !typeInfo.isNullable() && rhsState != NullState.NON_NULL) {
             reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
         }
 
@@ -734,6 +734,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     updateNullState(lhsExpr, thenTable, NullState.NON_NULL);
                     updateNullState(lhsExpr, elseTable, NullState.NULL);
                 }
+            } else if (equalityExpressionContext.EQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, thenTable, NullState.NULL);
+                    updateNullState(lhsExpr, elseTable, NullState.NON_NULL);
+                }
             }
         }
 
@@ -777,7 +785,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         visit(ctx.statementNoShortIf(1));
 
-        currentSymbolTable = join(before, join(thenTable, elseTable));
+        if (thenTable.isDeadContext() && elseTable.isDeadContext()) {
+            currentSymbolTable = new SymbolTable(null);
+        } else if (thenTable.isDeadContext()) {
+            currentSymbolTable = elseTable;
+        } else if (elseTable.isDeadContext()) {
+            currentSymbolTable = thenTable;
+        } else {
+            currentSymbolTable = join(before, join(thenTable, elseTable));
+        }
 
         return null;
     }
@@ -861,6 +877,18 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitReturnStatement(JPlus25Parser.ReturnStatementContext ctx) {
+        currentSymbolTable.setDeadContext(true);
+        return super.visitReturnStatement(ctx);
+    }
+
+    @Override
+    public Void visitThrowStatement(JPlus25Parser.ThrowStatementContext ctx) {
+        currentSymbolTable.setDeadContext(true);
+        return super.visitThrowStatement(ctx);
+    }
+
+    @Override
     public Void visitEqualityExpression(JPlus25Parser.EqualityExpressionContext ctx) {
         if (ctx.NOTEQUAL() != null) {
             String variableName = Utils.getTokenString(ctx.equalityExpression());
@@ -886,6 +914,77 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         return super.visitEqualityExpression(ctx);
     }
+
+    /*@Override
+    public Void visitConditionalOrExpression(JPlus25Parser.ConditionalOrExpressionContext ctx) {
+
+        if (ctx.conditionalOrExpression() == null) return null;
+
+        SymbolTable before = currentSymbolTable;
+
+        // LHS 분석
+        SymbolTable lhsTable = before.copy();
+        currentSymbolTable = lhsTable;
+        visit(ctx.conditionalOrExpression());
+
+        // RHS는 LHS == false 일 때만 진입
+        SymbolTable rhsTable = lhsTable.copy();
+        applyConditionFalse(ctx.conditionalOrExpression(), rhsTable);
+
+        currentSymbolTable = rhsTable;
+        visit(ctx.conditionalAndExpression());
+
+        // true 분기 = lhs true → rhs 미실행
+        SymbolTable trueTable = before.copy();
+        applyConditionTrue(ctx.conditionalOrExpression(), trueTable);
+
+        currentSymbolTable = join(rhsTable, trueTable);
+        return super.visitConditionalOrExpression(ctx);
+    }
+
+    void applyConditionTrue(JPlus25Parser.ConditionalOrExpressionContext ctx, SymbolTable table) {
+        var equalityExpressionList = getDereferenceLeaves(ctx);
+        if (!equalityExpressionList.isEmpty()) {
+            var equalityExpressionContext = (JPlus25Parser.EqualityExpressionContext)  equalityExpressionList.get(0);
+            if (equalityExpressionContext.NOTEQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, table, NullState.NON_NULL);
+                }
+            } else if (equalityExpressionContext.EQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, table, NullState.NULL);
+                }
+            }
+        }
+    }
+
+    void applyConditionFalse(JPlus25Parser.ConditionalOrExpressionContext ctx, SymbolTable table) {
+        var equalityExpressionList = getDereferenceLeaves(ctx);
+        if (!equalityExpressionList.isEmpty()) {
+            var equalityExpressionContext = (JPlus25Parser.EqualityExpressionContext)  equalityExpressionList.get(0);
+            if (equalityExpressionContext.NOTEQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, table, NullState.NULL);
+                }
+            } else if (equalityExpressionContext.EQUAL() != null) {
+                var lhsExpr = equalityExpressionContext.equalityExpression();
+                var rhsExpr = equalityExpressionContext.relationalExpression();
+                var rhsState = evalRHS(rhsExpr);
+                if (rhsState == NullState.NULL) {
+                    updateNullState(lhsExpr, table, NullState.NON_NULL);
+                }
+            }
+        }
+    }*/
 
     @Override
     public Void visitMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
