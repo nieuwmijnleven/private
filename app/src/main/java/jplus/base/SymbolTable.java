@@ -131,6 +131,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         this.deadContext = deadContext;
     }
 
+    public void mergeDeadContext(boolean deadContext) {
+        this.deadContext |= deadContext;
+    }
+
     public boolean contains(String symbol, TypeInfo.Type type) {
         SymbolInfo symbolInfo = resolve(symbol);
         if (symbolInfo != null && symbolInfo.getTypeInfo().getType() == type) {
