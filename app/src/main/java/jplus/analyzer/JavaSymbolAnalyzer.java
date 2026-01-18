@@ -348,6 +348,12 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     @Override
+    public Void visitInstanceOf(InstanceOfTree node, Void unused) {
+        buildChain(node.getExpression());
+        return super.visitInstanceOf(node, unused);
+    }
+
+    @Override
     public Void visitExpressionStatement(ExpressionStatementTree node, Void unused) {
         buildChain(node.getExpression());
         return super.visitExpressionStatement(node, unused);

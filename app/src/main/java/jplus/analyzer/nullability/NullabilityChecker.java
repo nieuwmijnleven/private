@@ -373,20 +373,24 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitBlock(JPlus25Parser.BlockContext ctx) {
+        var saved = currentSymbolTable;
         enterSymbolTable("^block$");
         try {
             return super.visitBlock(ctx);
         } finally {
+            saved.mergeDeadContext(currentSymbolTable.isDeadContext());
             exitSymbolTable();
         }
     }
 
     @Override
     public Void visitConstructorBody(JPlus25Parser.ConstructorBodyContext ctx) {
+        var saved = currentSymbolTable;
         enterSymbolTable("^block$");
         try {
             return super.visitConstructorBody(ctx);
         } finally {
+            saved.mergeDeadContext(currentSymbolTable.isDeadContext());
             exitSymbolTable();
         }
     }
@@ -877,6 +881,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         var prevNullState = NullState.UNKNOWN;
         var step = resolvedChain.last();
         SymbolInfo symbolInfo = symbolTable.resolve(step.symbol);
+        System.err.println("[updateNullState] step.symbol = " + step.symbol);
+        System.err.println("[updateNullState] symbolInfo = " + symbolInfo);
+
         if (symbolInfo != null) {
             prevNullState = symbolInfo.getNullState();
             SymbolInfo updated = symbolInfo.toBuilder()

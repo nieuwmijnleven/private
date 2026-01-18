@@ -37,10 +37,13 @@ public class JPlusTest9 {
     void testDataFlowInitialState() throws Exception {
         checkNullability(
                 "DataFlowInitialState",
-                "Error: (line:4, column:8) s is a non-nullable variable. But null value is assigned to it.\n" +
-                        "Error: (line:12, column:16) u is not initialized.\n" +
+                "Error: (line:12, column:16) u is not initialized.\n" +
                         "Error: (line:12, column:8) r is a non-nullable variable. But nullable value is assigned to it.\n" +
-                        "Error: (line:14, column:8) s is a non-nullable variable. But null value is assigned to it.\n"
+                        "Error: (line:15, column:12) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
+                        "Error: (line:20, column:16) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
+                        "Error: (line:24, column:16) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
+                        "Error: (line:42, column:12) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
+                        "Error: (line:47, column:16) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n"
         );
     }
 

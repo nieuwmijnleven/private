@@ -228,8 +228,10 @@ class ConditionVisitor
 
     @Override
     public ConditionResult visitRelationalExpression(JPlus25Parser.RelationalExpressionContext ctx) {
+        System.err.println("[RelationalExpression]");
 
         if (ctx.INSTANCEOF() != null) {
+            System.err.println("[InstanceOf]");
             SymbolTable t = before.copy();
             SymbolTable f = before.copy();
 
