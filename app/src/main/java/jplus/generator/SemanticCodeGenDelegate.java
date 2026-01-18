@@ -78,7 +78,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         String conditionalOrExpressionString = Utils.getTokenString(ctx.conditionalOrExpression());
         String rhsExpressionString = ctx.nullCoalescingExpression() != null ? Utils.getTokenString(ctx.nullCoalescingExpression()) : Utils.getTokenString(ctx.lambdaExpression());
 
-        String replaced = "__elvis(" + conditionalOrExpressionString + ", " + rhsExpressionString + ")";
+        String replaced = "jext.util.JextUtils.__elvis(" + conditionalOrExpressionString + ", " + rhsExpressionString + ")";
 
         System.err.println("[replaceElvisOperator] replaced = " + replaced);
         return updateContextString(ctx, replaced);
@@ -101,12 +101,14 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
 //            System.err.println("debugString = " + fragmentedText.debugString());
 
 
-            var contextString = fragmentedText.toString();
+            /*var contextString = fragmentedText.toString();
             var range = Utils.computeTextChangeRange(contextString,0, contextString.length() - 1);
 
             FragmentedText appendedfragmentedText = new FragmentedText(range, contextString);
-            appendedfragmentedText.appendTextFromEndParenthesis("static <T> T __elvis(T... args) { return null; }}");
-            this.updatedContextString = appendedfragmentedText.toString();
+            appendedfragmentedText.appendTextFromEndParenthesis("static <T> T __elvis(T... args) { return null; }}");*/
+
+            //this.updatedContextString = appendedfragmentedText.toString();
+            this.updatedContextString = fragmentedText.toString();
             return this.updatedContextString;
         } else {
             return forceUpdateContextString(ctx);

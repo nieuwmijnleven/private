@@ -149,7 +149,21 @@ public class JPlusProcessor {
         CodeGenContext ctx = CodeGenContext.current();
         sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
 
-        javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
+        String jextUtilsClass = "package jext.util;\n" +
+                "\n" +
+                "public final class JextUtils {\n" +
+                "\n" +
+                "    private JextUtils() {}\n" +
+                "\n" +
+                "    static <T> T __elvis(T... args) { return null; }\n" +
+                "}";
+
+        List<InMemoryJavaFile> inMemoryJavaFiles = new ArrayList<>();
+        inMemoryJavaFiles.add(new InMemoryJavaFile("source", javaCode));
+        inMemoryJavaFiles.add(new InMemoryJavaFile("JextUtils", jextUtilsClass));
+
+        //javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
+        javaProcessor = new JavaProcessor(inMemoryJavaFiles, globalSymbolTable);
         javaProcessor.process();
     }
 
@@ -241,6 +255,7 @@ public class JPlusProcessor {
         try {
             CodeGenContext.current().setSemanticMode(false);
             CodeGenContext.current().setFragmentedText(new FragmentedText(originalText));
+
             generated = parseTree.getText();
         } finally {
             CodeGenContext.pop();
