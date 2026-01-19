@@ -538,9 +538,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
         System.err.println("[NewClass] methodInvocationInfo = " + info);
 
-//        for (ExpressionTree arg : node.getArguments()) {
-//            buildChain(arg);
-//        }
+        for (ExpressionTree arg : node.getArguments()) {
+            buildChain(arg);
+        }
 
         return super.visitNewClass(node, unused);
     }

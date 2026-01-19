@@ -25,6 +25,7 @@ import java.util.List;
 
 public class SymbolInfo {
     private final String symbol;
+    private final boolean isStatic;
     private final TypeInfo typeInfo;
     private final NullState nullState;
     private final TextChangeRange range;
@@ -40,8 +41,9 @@ public class SymbolInfo {
         UNRESOLVED
     }
 
-    public SymbolInfo(String symbol, TypeInfo typeInfo, NullState nullState, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
+    public SymbolInfo(String symbol, boolean isStatic, TypeInfo typeInfo, NullState nullState, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
         this.symbol = symbol;
+        this.isStatic = isStatic;
         this.typeInfo = typeInfo;
         this.nullState = nullState;
         this.range = range;
@@ -51,15 +53,16 @@ public class SymbolInfo {
     }
 
     public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
-        this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, symbolTable);
+        this(symbol, false, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, symbolTable);
     }
 
     public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList) {
-        this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, null);
+        this(symbol, false, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, null);
     }
 
     public SymbolInfo(SymbolInfo other) {
         this.symbol = other.symbol;
+        this.isStatic = other.isStatic;
         this.typeInfo = other.typeInfo;
         this.nullState = other.nullState;
         this.range = other.range;
@@ -75,6 +78,7 @@ public class SymbolInfo {
     public Builder toBuilder() {
         return new Builder()
                 .symbol(this.symbol)
+                .isStatic(this.isStatic)
                 .typeInfo(this.typeInfo)
                 .nullState(this.nullState)
                 .originalText(this.originalText)
@@ -136,6 +140,7 @@ public class SymbolInfo {
 
     public static class Builder {
         private String symbol;
+        private boolean isStatic;
         private TypeInfo typeInfo;
         private NullState nullState;
         private TextChangeRange range;
@@ -146,6 +151,11 @@ public class SymbolInfo {
 
         public Builder symbol(String symbol) {
             this.symbol = symbol;
+            return this;
+        }
+
+        public Builder isStatic(boolean isStatic) {
+            this.isStatic = isStatic;
             return this;
         }
 
@@ -179,7 +189,7 @@ public class SymbolInfo {
             return this;
         }
         public SymbolInfo build() {
-            return new SymbolInfo(symbol, typeInfo, (nullState == null ? (typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL) : nullState), range, originalText, modifierList, symbolTable);
+            return new SymbolInfo(symbol, isStatic, typeInfo, (nullState == null ? (typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL) : nullState), range, originalText, modifierList, symbolTable);
         }
 
     }
