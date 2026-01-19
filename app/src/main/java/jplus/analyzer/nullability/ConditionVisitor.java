@@ -53,15 +53,40 @@ class ConditionVisitor
             System.err.println("[ConditionVisitor][visitEqualityExpression] NotEqual");
             nullabilityChecker.updateNullState(lhs, thenTable, NullState.NON_NULL);
             nullabilityChecker.updateNullState(lhs, elseTable, NullState.NULL);
+
+            strengthenReceiver(lhs, thenTable);
         }
 
         if (ctx.EQUAL() != null) {
             System.err.println("[ConditionVisitor][visitEqualityExpression] equal");
             nullabilityChecker.updateNullState(lhs, thenTable, NullState.NULL);
             nullabilityChecker.updateNullState(lhs, elseTable, NullState.NON_NULL);
+
+            strengthenReceiver(lhs, thenTable);
+            strengthenReceiver(lhs, elseTable);
         }
 
         return new ConditionResult(thenTable, elseTable);
+    }
+
+    void strengthenReceiver(ParserRuleContext lhs, SymbolTable thenTable) {
+        ParserRuleContext recv = null;
+
+        if (lhs instanceof JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext m) {
+            recv = m.expressionName();
+        }
+
+        if (lhs instanceof JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext t) {
+            recv = t.typeName();
+        }
+
+        // 필요시 array / super / qualified 확장
+        //primaryNoNewArraySuperMethodInvocation
+        //primaryNoNewArrayQualifiedSuperMethodInvocation
+
+        if (recv != null) {
+            nullabilityChecker.updateNullState(recv, thenTable, NullState.NON_NULL);
+        }
     }
 
     /**
@@ -99,6 +124,7 @@ class ConditionVisitor
         // UnaryExpression → !x, -x 등은 단일식 아님
         // -------------------------------
         if (expr instanceof JPlus25Parser.UnaryExpressionContext ue) {
+            if (ue.unaryExpression() != null) return null;
             return extractLValue(ue.unaryExpressionNotPlusMinus());
         }
 
@@ -235,13 +261,36 @@ class ConditionVisitor
             SymbolTable t = before.copy();
             SymbolTable f = before.copy();
 
-            nullabilityChecker.updateNullState(ctx.relationalExpression(), t, NullState.NON_NULL);
-            // false 쪽은 정보 불충분 → 그대로
+            var target = extractLValue(ctx.relationalExpression());
+            if (target != null) {
+                nullabilityChecker.updateNullState(target, t, NullState.NON_NULL);
+            }
 
             return new ConditionResult(t, f);
         }
 
-        return super.visitRelationalExpression(ctx);
+        // <, >, <=, >=
+        if (ctx.LT() != null || ctx.GT() != null
+                || ctx.LE() != null || ctx.GE() != null) {
+
+            SymbolTable t = before.copy();
+            SymbolTable f = before.copy();
+
+            // 좌변에서 receiver 추출
+            var lhs = extractLValue(ctx.relationalExpression());
+            if (lhs != null) {
+                // 비교가 평가되었다는 사실 자체가 NON_NULL 보장
+                nullabilityChecker.updateNullState(lhs, t, NullState.NON_NULL);
+                nullabilityChecker.updateNullState(lhs, f, NullState.NON_NULL);
+
+                strengthenReceiver(lhs, t);
+                strengthenReceiver(lhs, f);
+            }
+
+            return new ConditionResult(t, f);
+        }
+
+        return new ConditionResult(before.copy(), before.copy());
     }
 
     @Override
@@ -284,83 +333,4 @@ class ConditionVisitor
                 right.whenFalse
         );
     }
-
-
-
-    /*ConditionResult analyzeCondition(ExpressionContext ctx, SymbolTable before) {
-
-        // 1. AND
-        if (ctx instanceof ConditionalAndExpressionContext and) {
-            return analyzeAnd(and.left, and.right, before);
-        }
-
-        // 2. OR
-        if (ctx instanceof ConditionalOrExpressionContext or) {
-            return analyzeOr(or.left, or.right, before);
-        }
-
-        // 3. NOT
-        if (ctx instanceof UnaryExpressionNotPlusMinusContext not) {
-            ConditionResult inner =
-                    analyzeCondition(not.expression(), before);
-
-            return new ConditionResult(
-                    inner.whenFalse,
-                    inner.whenTrue
-            );
-        }
-
-        // 4. ==
-        if (ctx instanceof EqualityExpressionContext eq) {
-            return analyzeEquality(eq, before);
-        }
-
-        // 5. instanceof
-        if (ctx instanceof InstanceofExpressionContext inst) {
-            return analyzeInstanceof(inst, before);
-        }
-
-        // 6. 메서드 기반 (Objects.nonNull)
-        if (isObjectsNonNullCall(ctx)) {
-            return analyzeObjectsNonNull(ctx, before);
-        }
-
-        // 분석 불가 → 상태 변화 없음
-        return new ConditionResult(before.copy(), before.copy());
-    }
-
-
-    ConditionResult analyzeInstanceof(
-            InstanceofExpressionContext ctx,
-            SymbolTable before
-    ) {
-        SymbolTable t = before.copy();
-        SymbolTable f = before.copy();
-
-        updateNullState(ctx.expression(), t, NullState.NON_NULL);
-        // false 쪽은 정보 불충분 → 그대로
-
-        return new ConditionResult(t, f);
-    }
-
-    ConditionResult analyzeObjectsNonNull(
-            ExpressionContext ctx,
-            SymbolTable before
-    ) {
-        SymbolTable t = before.copy();
-        SymbolTable f = before.copy();
-
-        Expression arg = extractArg(ctx);
-
-        updateNullState(arg, t, NullState.NON_NULL);
-        updateNullState(arg, f, NullState.NULL);
-
-        return new ConditionResult(t, f);
-    }*/
-
-
-
-
-
-
 }

@@ -461,7 +461,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private void validateMethodArguments(
-            ParserRuleContext ctx,
+            MethodInvocationSignatureContextAdapter ctx,
             MethodInvocationInfo info,
             SymbolInfo methodSymbolInfo
     ) {
@@ -469,22 +469,31 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         String rawParamTypes = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
         String[] paramTypes = rawParamTypes.isEmpty() ? new String[0] : rawParamTypes.split("_");
 
+        List<JPlus25Parser.ExpressionContext> argumentList = Optional.ofNullable(ctx.argumentList()).map(argList -> argList.expression()).orElseGet(() -> new ArrayList<>());
+
+        if (argumentList.size() != paramTypes.length) {
+            throw new IllegalStateException("The number of arguments is not equal.");
+        }
+
         for (int i = 0; i < paramTypes.length; i++) {
             String paramType = paramTypes[i];
             String argType = info.argTypes.get(i);
             log("paramType = " + paramType + ", argType = " + argType);
 
-            if (isInvalidNullAssignment(paramType, argType)) {
-                reportInvalidNull(ctx, info, i + 1);
+            NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
+
+            if (isInvalidNullAssignment(paramType, argState)) {
+                reportInvalidNull(ctx.originalContext(), info, i + 1);
             }
 
 
         }
     }
 
-    private boolean isInvalidNullAssignment(String paramType, String argType) {
+    private boolean isInvalidNullAssignment(String paramType, NullState argState) {
         if (paramType.endsWith("?")) return false;
-        return "<nulltype>".equals(argType);
+        return argState == NullState.NULL;
+        //return "<nulltype>".equals(argType);
         //return !paramType.endsWith("?") && "<nulltype>".equals(argType);
     }
 
@@ -547,7 +556,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 throw new IllegalStateException("cannot find a mapping constructor.");
             }
 
-            validateMethodArguments(ctx, info, constructorSymbol.get());
+            validateMethodArguments(MethodInvocationSignatureContextAdapter.from(ctx), info, constructorSymbol.get());
         });
 
         return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
@@ -792,28 +801,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         return null;
     }
 
-    /*SymbolTable join(SymbolTable before, SymbolTable thenTable) {
-        var joined = before.copy();
-
-        var keyIterator = before.keyIterator();
-        while (keyIterator.hasNext()) {
-            String symbol = keyIterator.next();
-
-            var b = before.resolveInCurrent(symbol);
-            var t = thenTable.resolveInCurrent(symbol);
-
-            if (b == null || t == null) continue;
-
-            var beforeState = b.getNullState();
-            var thenState = t.getNullState();
-
-            var joinedState = NullState.join(beforeState, thenState);
-            joined.declare(symbol, b.toBuilder().nullState(joinedState).build());
-        }
-
-        return joined;
-    }*/
-
     SymbolTable join(SymbolTable a, SymbolTable b) {
         if (a.isDeadContext()) return b;
         if (b.isDeadContext()) return a;
@@ -879,7 +866,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         System.err.println("[updateNullState] resolvedChain = " + resolvedChain);
 
         var prevNullState = NullState.UNKNOWN;
-        var step = resolvedChain.last();
+        var step = resolvedChain.first();
         SymbolInfo symbolInfo = symbolTable.resolve(step.symbol);
         System.err.println("[updateNullState] step.symbol = " + step.symbol);
         System.err.println("[updateNullState] symbolInfo = " + symbolInfo);
@@ -1295,7 +1282,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         TypeInfo receiverTypeInfo = currentSymbolTable.resolve("^TopLevelClass$").getTypeInfo();
         System.err.println("[handlePrimaryNoNewArrayMethodInvocation] receiverTypeInfo = " + receiverTypeInfo);
 
-        validateMethodArgumentNullability(ctx.originalContext(), receiverTypeInfo.getName(), currentStep);
+        validateMethodArgumentNullability(ctx, receiverTypeInfo.getName(), currentStep);
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
@@ -1335,7 +1322,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             );
         }
 
-        validateMethodArgumentNullability(ctx, receiverTypeInfo.getName(), currentStep);
+        validateMethodArgumentNullability(MethodInvocationSignatureContextAdapter.from(ctx), receiverTypeInfo.getName(), currentStep);
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
@@ -1377,7 +1364,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             );
         }
 
-        validateMethodArgumentNullability(ctx.originalContext(), receiverTypeInfo.getName(), currentStep);
+        validateMethodArgumentNullability(ctx, receiverTypeInfo.getName(), currentStep);
 
         //handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }
@@ -1512,7 +1499,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         //String typeName = currentStep.invocationInfo.typeInfo.getName();
         log("[unqualifiedClassInstanceCreationExpression] typeName = " + typeName);
 
-        validateMethodArgumentNullability(ctx.originalContext(), typeName, curStep);
+        validateMethodArgumentNullability(MethodInvocationSignatureContextAdapter.from(ctx), typeName, curStep);
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
 
@@ -1594,7 +1581,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         processExpressionNameContext(expressionNameList, cursor);
     }
 
-    private void validateMethodArgumentNullability(ParserRuleContext ctx, String typeName, ResolvedChain.Step invocationStep) {
+    private void validateMethodArgumentNullability(MethodInvocationSignatureContextAdapter ctx, String typeName, ResolvedChain.Step invocationStep) {
         globalSymbolTable
             .resolveInCurrent(typeName, EnumSet.of(TypeInfo.Type.Class))
             .ifPresent(receiverClassSymbolInfo -> {

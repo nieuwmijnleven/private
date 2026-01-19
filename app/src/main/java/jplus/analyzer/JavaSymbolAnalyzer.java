@@ -799,9 +799,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                             methodName
                     );
 
-//            for (ExpressionTree arg : node.getArguments()) {
-//                buildChain(arg);
-//            }
+            for (ExpressionTree arg : node.getArguments()) {
+                buildChain(arg);
+            }
 
             javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
             System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);

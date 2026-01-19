@@ -156,6 +156,10 @@ public final class ResolvedChain {
         return hasQualifier() ? steps.get(steps.size() - 2) : null;
     }
 
+    public Step first() {
+        return !steps.isEmpty() ? steps.get(0) : null;
+    }
+
     public Step last() {
         return !steps.isEmpty() ? steps.get(steps.size() - 1) : null;
     }
@@ -167,6 +171,34 @@ public final class ResolvedChain {
 
         int last = steps.size() - 1;
         steps.set(last, updater.apply(steps.get(last)));
+    }
+
+    public ResolvedChain extractReceiverChain() {
+        if (steps.isEmpty()) return null;
+
+        Step last = last();
+
+        // method 호출이 아닌 경우 receiver 개념 없음
+        if (last.kind != ResolvedChain.Kind.METHOD) {
+            return null;
+        }
+
+        // qualifier가 없으면 receiver 없음 (static call or implicit this)
+        if (steps.size() < 2) {
+            return null;
+        }
+
+        ResolvedChain receiver = new ResolvedChain();
+        for (int i = 0; i < steps.size() - 1; i++) {
+            receiver.addStep(steps.get(i));
+        }
+
+        return receiver;
+    }
+
+    public Step extractReceiverLastStep() {
+        ResolvedChain receiver = extractReceiverChain();
+        return receiver != null ? receiver.last() : null;
     }
 
     public StepCursor stepCursor() {
