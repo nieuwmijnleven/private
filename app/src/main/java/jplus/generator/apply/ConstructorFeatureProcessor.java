@@ -62,7 +62,13 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
         }
 
         TypeInfo typeInfo = new TypeInfo(constructorName, false, TypeInfo.Type.Constructor);
-        SymbolInfo constructorSymInfo = SymbolInfo.builder().symbol(constructorName).typeInfo(typeInfo).build();
+        SymbolInfo constructorSymInfo =
+                SymbolInfo.builder()
+                        .symbol(constructorName)
+                        .typeInfo(typeInfo)
+                        .modifierList(List.of())
+                        .build();
+
         classSymbolTable.declare(constructorName, constructorSymInfo);
 
         List<String> fieldList = context.getFieldList();
@@ -99,7 +105,13 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
         }
 
         TypeInfo typeInfo = new TypeInfo(constructorName, false, TypeInfo.Type.Constructor);
-        SymbolInfo constructorSymInfo = SymbolInfo.builder().symbol(constructorName).typeInfo(typeInfo).build();
+        SymbolInfo constructorSymInfo =
+                SymbolInfo.builder()
+                        .symbol(constructorName)
+                        .typeInfo(typeInfo)
+                        .modifierList(List.of())
+                        .build();
+
         classSymbolTable.declare(constructorName, constructorSymInfo);
 
         String indentation = context.getIndentation();
@@ -157,7 +169,13 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
         }
 
         TypeInfo typeInfo = new TypeInfo(constructorName, false, TypeInfo.Type.Constructor);
-        SymbolInfo constructorSymInfo = SymbolInfo.builder().symbol(constructorName).typeInfo(typeInfo).build();
+        SymbolInfo constructorSymInfo =
+                SymbolInfo.builder()
+                        .symbol(constructorName)
+                        .typeInfo(typeInfo)
+                        .modifierList(List.of())
+                        .build();
+
         classSymbolTable.declare(constructorName, constructorSymInfo);
 
         String indentation = context.getIndentation();

@@ -34,6 +34,11 @@ import java.util.Optional;
 
 public class SymbolTable implements Iterable<SymbolInfo> {
 
+    public static final String STATIC_NS = "^static$";
+    public static final String INSTANCE_NS = "^instance$";
+
+    private final ExecutionContext context;
+
     private boolean deadContext;
 
     private SymbolTable parent;
@@ -44,12 +49,28 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private List<ResolvedChain> resolvedChains = new ArrayList<>();
 
-    public SymbolTable(SymbolTable parent) {
+    public enum ExecutionContext {
+        STATIC,
+        INSTANCE
+    }
+
+    /*enum TableKind {
+        CLASS,
+        METHOD,
+        BLOCK
+    }*/
+
+    public SymbolTable(SymbolTable parent, ExecutionContext context) {
         this.parent = parent;
+        this.context = context;
+    }
+
+    public SymbolTable(SymbolTable parent) {
+        this(parent, ExecutionContext.INSTANCE);
     }
 
     public SymbolTable copy() {
-        SymbolTable replica = new SymbolTable(this.parent);
+        SymbolTable replica = new SymbolTable(parent, this.context);
 
         // 1. symbolMap deep copy (상태)
         replica.symbolMap = new HashMap<>();
@@ -75,20 +96,96 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
 
-    public void declare(String name, SymbolInfo symbolInfo) {
+    private void declareInternal(String name, SymbolInfo symbolInfo) {
         symbolMap.put(name, symbolInfo);
     }
 
-    public SymbolInfo resolve(String name) {
+    public void declare(String name, SymbolInfo symbolInfo) {
+        if (isClassContext()) {
+            if (symbolInfo.isStatic()) {
+                getEnclosingSymbolTable(STATIC_NS)
+                        .declareInternal(name, symbolInfo);
+            } else {
+                getEnclosingSymbolTable(INSTANCE_NS)
+                        .declareInternal(name, symbolInfo);
+            }
+        } else {
+            declareInternal(name, symbolInfo);
+        }
+    }
+
+    private boolean isClassContext() {
+        return containsInCurrent("this", TypeInfo.Type.Class);
+    }
+
+    /*public SymbolInfo resolve(String name) {
         SymbolInfo symbolInfo = symbolMap.get(name);
         if (symbolInfo == null && parent != null) {
             symbolInfo = parent.resolve(name);
         }
         return symbolInfo;
+    }*/
+
+    public SymbolInfo resolve(String name) {
+
+        SymbolInfo local = symbolMap.get(name);
+        if (local != null) return local;
+
+        // 1. local / param
+        if (isClassContext()) {
+
+            System.err.println("[resolve] symbol = " + name);
+            if (context == ExecutionContext.INSTANCE) {
+                SymbolTable instanceNS = enclosing.get(INSTANCE_NS);
+                System.err.println("[resolve][instance] isClassContext symbol = " + name);
+                if (instanceNS != null) {
+                    SymbolInfo inst = instanceNS.resolveInCurrent(name);
+                    if (inst != null) return inst;
+                }
+            }
+
+            SymbolTable staticNS = enclosing.get(STATIC_NS);
+            if (staticNS != null) {
+                System.err.println("[resolve][static] isClassContext symbol = " + name);
+                SymbolInfo stat = staticNS.resolveInCurrent(name);
+                if (stat != null) return stat;
+            }
+
+            return null;
+        }
+
+        // 2. class-level
+        if (parent != null) {
+            return parent.resolve(name);
+        }
+
+        return null;
     }
 
     public SymbolInfo resolveInCurrent(String name) {
-        return symbolMap.get(name);
+        SymbolInfo local = symbolMap.get(name);
+        if (local != null) return local;
+
+        if (!isClassContext()) return null;
+
+        System.err.println("[resolve] symbol = " + name);
+        if (context == ExecutionContext.INSTANCE) {
+            SymbolTable instanceNS = enclosing.get(INSTANCE_NS);
+            System.err.println("[resolve][instance] isClassContext symbol = " + name);
+            if (instanceNS != null) {
+                SymbolInfo inst = instanceNS.resolveInCurrent(name);
+                if (inst != null) return inst;
+            }
+        }
+
+        SymbolTable staticNS = enclosing.get(STATIC_NS);
+        if (staticNS != null) {
+            System.err.println("[resolve][static] isClassContext symbol = " + name);
+            SymbolInfo stat = staticNS.resolveInCurrent(name);
+            if (stat != null) return stat;
+        }
+
+        return null;
     }
 
     private SymbolInfo resolveInCurrentInternal(String name, EnumSet<TypeInfo.Type> type) {
@@ -151,7 +248,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public boolean containsInCurrent(String symbol, TypeInfo.Type type) {
-        SymbolInfo symbolInfo = resolveInCurrent(symbol);
+        SymbolInfo symbolInfo = symbolMap.get(symbol);
         if (symbolInfo != null && symbolInfo.getTypeInfo().getType() == type) {
             return true;
         }
@@ -166,7 +263,16 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public List<String> findSymbolsByType(List<TypeInfo.Type> typeList) {
-        return symbolMap.entrySet().stream()
+
+        var allSymbolMap = symbolMap;
+
+        if (isClassContext()) {
+            allSymbolMap = new HashMap<>();
+            getEnclosingSymbolTable(INSTANCE_NS).symbolMap.forEach(allSymbolMap::putIfAbsent);
+            getEnclosingSymbolTable(STATIC_NS).symbolMap.forEach(allSymbolMap::putIfAbsent);
+        }
+
+        return allSymbolMap.entrySet().stream()
                 .map(Map.Entry::getValue)
                 .filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().getType()))
                 .sorted(
@@ -189,8 +295,15 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public SymbolTable getEnclosingSymbolTable(String name) {
-        return enclosing.computeIfAbsent(name, s -> new SymbolTable((this)));
-//        return enclosing.getOrDefault(name, new SymbolTable(this));
+        return enclosing.computeIfAbsent(name, s -> {
+            if (STATIC_NS.equals(name)) {
+                return new SymbolTable(this, ExecutionContext.STATIC);
+            }
+            if (INSTANCE_NS.equals(name)) {
+                return new SymbolTable(this, ExecutionContext.INSTANCE);
+            }
+            return new SymbolTable(this, this.context);
+        });
     }
 
 //    public SymbolTable joinNullState(SymbolTable other) {

@@ -155,6 +155,7 @@ public class BoilerplateCodeGenerator extends JPlus25ParserBaseVisitor<Void> {
             );
 
             SymbolTable classSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(targetClass);
+            System.err.println("[CodeGenerator] classSymbolTable = " + classSymbolTable);
 
             List<String> fieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive, TypeInfo.Type.Reference, TypeInfo.Type.TypeParameter));
             List<String> primitiveTypeFieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive));

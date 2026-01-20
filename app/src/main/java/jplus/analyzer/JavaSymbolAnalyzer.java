@@ -414,10 +414,17 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             currentSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
         }
         declareClassSymbol(classSymbolInfo);
+        System.err.println("[JavaSymbolAnalyzer] currentSymbolTable = " + currentSymbolTable);
         System.err.println("[JavaSymbolAnalyzer] classSymbolInfo = " + classSymbolInfo);
 
         System.err.println("[JavaSymbolAnalyzer] node.getSimpleName().toString() = " + node.getSimpleName().toString());
         enterSymbolTable(node.getSimpleName().toString());
+
+        currentSymbolTable.declare("this", classSymbolInfo);
+
+        currentSymbolTable.declare(classSymbolInfo.getSymbol(), classSymbolInfo);
+        currentSymbolTable.declare(classSymbolInfo.getTypeInfo().getName(), classSymbolInfo);
+
         for (Tree member : node.getMembers()) {
             if (member instanceof VariableTree var) visitField(var, getCurrentPath());
         }
@@ -443,6 +450,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .symbolTable(currentSymbolTable)
                 .range(computeRange(node))
                 .originalText(computeRangeText(node))
+                .modifierList(convertModifiers(node.getModifiers().getFlags()))
                 .build();
     }
 
@@ -450,7 +458,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         String typeName = classSymbolInfo.getTypeInfo().getName();
         String simpleName = classSymbolInfo.getSymbol();
         currentSymbolTable.declare(simpleName, classSymbolInfo);
-        currentSymbolTable.declare("this", classSymbolInfo);
+        //currentSymbolTable.declare("this", classSymbolInfo);
         globalSymbolTable.declare(typeName, classSymbolInfo);
     }
 
@@ -462,7 +470,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         SymbolInfo fieldSymbolInfo = createSymbolInfo(node.getName().toString(), node.getModifiers().getFlags(), typeInfo, node, currentSymbolTable);
         System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
+
         currentSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
+        System.err.println("[JavaSymbolAnalyzer] currentSymbolTable = " + currentSymbolTable);
+        System.err.println("[JavaSymbolAnalyzer] currentSymbolTable.instanceTable = " + currentSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS));
 
         ExpressionTree initializer = node.getInitializer();
         if (initializer != null) {
@@ -719,7 +730,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         // ---------- 현재 SymbolTable에 등록 ----------
         currentSymbolTable.declare(symbolName, symbolInfo);
         currentSymbolTable.declare(symbolNameWithSimpleTypeName, symbolInfo);
-        //System.err.println("[method] currentSymbolTable = "  + currentSymbolTable);
+        System.err.println("[method] symbolInfo = "  + symbolInfo);
+        System.err.println("[method] currentSymbolTable = "  + currentSymbolTable);
 
         enterSymbolTable(symbolName, methodSymbolTable);
         try {

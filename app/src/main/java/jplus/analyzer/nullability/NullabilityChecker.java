@@ -23,6 +23,7 @@ import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
+import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -203,7 +204,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         List<String> typeNameList = getTypeNamesFromParameterList(ctx.formalParameterList());
         String methodSymbol = "^" + ctx.methodName() + "$_" + String.join("_", typeNameList);
 
-        SymbolInfo methodSymbolInfo = currentSymbolTable.resolveInCurrent(methodSymbol);
+        System.err.println("[processInvocationDeclaration] currentSymbolTable = " + currentSymbolTable);
+        //SymbolInfo methodSymbolInfo = currentSymbolTable.resolveInCurrent(methodSymbol);
+        SymbolInfo methodSymbolInfo = currentSymbolTable.resolve(methodSymbol);
+
+        /*SymbolInfo methodSymbolInfo = currentSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS).resolveInCurrent(methodSymbol);
+        if (ctx.modifiers().contains(Modifier.STATIC)) {
+            methodSymbolInfo = currentSymbolTable.getEnclosingSymbolTable(SymbolTable.STATIC_NS).resolveInCurrent(methodSymbol);
+        }*/
+
         if (methodSymbolInfo == null) {
             throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
         }
@@ -241,6 +250,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             String symbol = Utils.getTokenString(decl.variableDeclaratorId());
             System.err.println("[NullabilityChecker][FieldDecl] symbol = " + symbol);
 
+
+            System.err.println("[NullabilityChecker][FieldDecl] currentSymbolTable = " + currentSymbolTable);
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
             System.err.println("[NullabilityChecker][FieldDecl] symbolInfo = " + symbolInfo);
 
@@ -449,8 +460,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
 
         for (String candidate : candidates) {
-            Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate, EnumSet.of(TypeInfo.Type.Constructor, TypeInfo.Type.Method));
-            if (methodSymbolInfo.isPresent()) return methodSymbolInfo;
+            //Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
+            //Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate, EnumSet.of(TypeInfo.Type.Constructor, TypeInfo.Type.Method));
+
+            var methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
+            if (methodSymbolInfo != null) return Optional.of(methodSymbolInfo);
         }
 
         return Optional.empty();
@@ -686,6 +700,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         SymbolTable symbolTable = currentSymbolTable;
         while (cursor.hasNext()) {
             var step = cursor.consume();
+            log("[resolvedSymbolInfo] step = " + step.symbol);
             /*if ("this".equals(step.symbol)) {
                 var symInfo = globalSymbolTable.resolveInCurrent(step.typeInfo.getName());
                 symbolTable = symInfo.getSymbolTable().getEnclosingSymbolTable(symInfo.getSymbol());
@@ -693,6 +708,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             }*/
 
             if (step.kind == ResolvedChain.Kind.IDENTIFIER || step.kind == ResolvedChain.Kind.FIELD) {
+                log("[resolvedSymbolInfo] currentSymbolTable = " + currentSymbolTable);
                 symbolInfo = symbolTable.resolve(step.symbol);
                 symbolTable = symbolInfo.getSymbolTable().getEnclosingSymbolTable(symbolInfo.getSymbol());
             }
