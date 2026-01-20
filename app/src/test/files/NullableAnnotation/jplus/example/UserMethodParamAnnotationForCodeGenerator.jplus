@@ -142,6 +142,60 @@ class UserMethodParamAnnotationForCodeGenerator {
         return (this.address.street).name;
     }
 
+    UserMethodParamAnnotationForCodeGenerator createUser() {
+        return new UserMethodParamAnnotationForCodeGenerator("Jane Smith", null);
+    }
+
+    String createUserWithChaining() {
+        return new UserMethodParamAnnotationForCodeGenerator("Jane Smith", null).address.street.name;
+    }
+
+    UserMethodParamAnnotationForCodeGenerator createUserWithQualifiedClassName() {
+        return new jplus.example.UserMethodParamAnnotationForCodeGenerator("Jane Smith", null);
+    }
+
+    String createUserWithQualifiedClassNameAndChaining() {
+        return new jplus.example.UserMethodParamAnnotationForCodeGenerator("Jane Smith", null).address.street.name;
+    }
+
+
+    String createUserArrayWithChaining() {
+        UserMethodParamAnnotationForCodeGenerator[] userArr = new UserMethodParamAnnotationForCodeGenerator[]{new UserMethodParamAnnotationForCodeGenerator("Jeroen", new AddressAnnotation("New Amsterdam")), new jplus.example.UserMethodParamAnnotationForCodeGenerator("Jane Smith", null)};
+        return userArr[0].address.street.name;
+    }
+
+    String createUserArrayWithInitializer() {
+        return new UserMethodParamAnnotationForCodeGenerator[]{new UserMethodParamAnnotationForCodeGenerator("Jeroen", new AddressAnnotation("New Amsterdam")), new jplus.example.UserMethodParamAnnotationForCodeGenerator("Jane Smith", null)}[0].address.street.name;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public static void main(String[] args) {
         // Null-safe object creation
         UserMethodParamAnnotationForCodeGenerator user1 = new UserMethodParamAnnotationForCodeGenerator("Jeroen", new AddressAnnotation("New Amsterdam"));
