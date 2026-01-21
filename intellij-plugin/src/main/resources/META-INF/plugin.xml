@@ -56,6 +56,9 @@
         <lang.parserDefinition language="JPlus" implementationClass="jplus.plugin.intellij.JPlusParserDefinition"/>
         <lang.commenter language="JPlus" implementationClass="jplus.plugin.intellij.JPlusLanguageCommenter"/>
         <renamePsiElementProcessor order="first" implementation="jplus.plugin.intellij.JPlusRenameProcessor"/>
-        <annotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusAnnotator"/>
+        <externalAnnotator
+                language="JPlus"
+                implementationClass="jplus.plugin.intellij.annotator.JPlusExternalAnnotator"/>
+        <!--annotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusAnnotator"/-->
     </extensions>
 </idea-plugin>

@@ -122,7 +122,6 @@ public class JPlusProcessor {
         );
     }
 
-
     // --------------------------------------------------------------
     // Main processing pipeline
     // --------------------------------------------------------------
@@ -184,6 +183,7 @@ public class JPlusProcessor {
 
         //javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
         javaProcessor = new JavaProcessor(project, inMemoryJavaFiles, globalSymbolTable);
+        System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaProcessor.process()");
         javaProcessor.process();
     }
 

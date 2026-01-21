@@ -15,6 +15,8 @@ public class Project {
     /** Java classpath entries (.class directories or .jar files) */
     private final List<Path> javaClassPath;
 
+    private String jdkHome;
+
     /* ------------------------------------------------------------
      * Constructors
      * ------------------------------------------------------------ */
@@ -59,6 +61,15 @@ public class Project {
     /* ------------------------------------------------------------
      * Source dirs
      * ------------------------------------------------------------ */
+
+
+    public void setJdkHome(String jdkHome) {
+        this.jdkHome = jdkHome;
+    }
+
+    public String getJdkHome() {
+        return jdkHome;
+    }
 
     public List<Path> getSourceDirs() {
         return sourceDirs;

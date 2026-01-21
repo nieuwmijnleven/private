@@ -29,12 +29,14 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,7 +86,17 @@ public class JavaProcessor {
 
     public void process() throws Exception {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            //System.err.println("No system Java compiler available (JDK required)");
+            //throw new IllegalStateException("No system Java compiler available (JDK required)");
+
+            if (project.getJdkHome() != null) {
+                compiler = loadJavaCompiler();
+            }
+        }
+
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
+        System.err.println("fileManager");
 
         /*task = (JavacTask) compiler.getTask(
                 null, fileManager, null,
@@ -95,7 +107,30 @@ public class JavaProcessor {
         List<String> options = new ArrayList<>();
         options.add("-XDcompilePolicy=simple");
 
-        if (project != null && !project.getSourceDirs().isEmpty()) {
+        if (project != null) {
+            // source path
+            List<File> sourcePathDirs = project.getSourceDirs().stream()
+                    .map(Path::toFile)
+                    .toList();
+            fileManager.setLocation(javax.tools.StandardLocation.SOURCE_PATH, sourcePathDirs);
+
+            // classpath
+            List<File> classPathDirs = project.getJavaClassPath().stream()
+                    .map(Path::toFile)
+                    .toList();
+
+            if (!classPathDirs.isEmpty()) {
+                List<File> mergedClassPathDirs = new ArrayList<>();
+
+                fileManager.getLocation(javax.tools.StandardLocation.CLASS_PATH).forEach(mergedClassPathDirs::add);
+                mergedClassPathDirs.addAll(classPathDirs);
+                System.err.println("classPathDirs = " + mergedClassPathDirs);
+
+                fileManager.setLocation(javax.tools.StandardLocation.CLASS_PATH, mergedClassPathDirs);
+            }
+        }
+
+        /*if (project != null && !project.getSourceDirs().isEmpty()) {
             List<File> sourcePathDirs = project.getSourceDirs().stream()
                     .map(Path::toFile)
                     .toList();
@@ -105,15 +140,24 @@ public class JavaProcessor {
                     sourcePathDirs
             );
 
-            /*String sourcePath = project.getSourceDirs().stream()
+            String sourcePath = project.getSourceDirs().stream()
                     .map(Path::toAbsolutePath)
                     .map(Path::toString)
                     .collect(Collectors.joining(File.pathSeparator));
 
             options.add("-sourcepath");
-            options.add(sourcePath);*/
-        }
+            options.add(sourcePath);
+        }*/
 
+        /*if (project != null) {
+            String classPath = project.buildJavaClassPath();
+            if (!classPath.isEmpty()) {
+                options.add("-classpath");
+                options.add(classPath);
+            }
+        }*/
+
+        System.err.println("task before");
         task = (JavacTask) compiler.getTask(
                 null,
                 fileManager,
@@ -123,11 +167,31 @@ public class JavaProcessor {
                 javaFiles
         );
 
+        System.err.println("task after");
+
+        System.err.println("task.parse()");
         asts = task.parse();
+        System.err.println("task.analyze()");
         task.analyze();
+        System.err.println("Trees.instance(task)");
         trees = Trees.instance(task);
+        System.err.println("task.getElements()");
         elements = task.getElements();
+        System.err.println("task.getTypes()");
         types = task.getTypes();
+    }
+
+    private JavaCompiler loadJavaCompiler() {
+        try {
+            ClassLoader jdkClassLoader = new java.net.URLClassLoader(
+                    new java.net.URL[]{new File(project.getJdkHome() + "/lib/tools.jar").toURI().toURL()},
+                    ToolProvider.class.getClassLoader()
+            );
+            Class<?> javacClass = Class.forName("com.sun.tools.javac.api.JavacTool", true, jdkClassLoader);
+            return (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load JavacTool from JDK", e);
+        }
     }
 
     public void analyzeSymbols() {
