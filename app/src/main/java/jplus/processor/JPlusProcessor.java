@@ -76,11 +76,7 @@ public class JPlusProcessor {
         this(
                 project,
                 Files.readString(
-                        packageName == null || packageName.isBlank()
-                                ? project.getSrcDir().resolve(className + ".jplus")
-                                : project.getSrcDir()
-                                .resolve(packageName.replace(".", "/"))
-                                .resolve(className + ".jplus"),
+                        resolveSourceFile(project, packageName, className),
                         StandardCharsets.UTF_8
                 ),
                 new SymbolTable(null)
@@ -102,6 +98,30 @@ public class JPlusProcessor {
     public JPlusProcessor(Path filePath, SymbolTable globalSymbolTable) throws Exception {
         this(Files.readString(filePath, StandardCharsets.UTF_8), globalSymbolTable);
     }
+
+    private static Path resolveSourceFile(Project project, String packageName, String className) {
+        if (project == null) {
+            throw new IllegalStateException("Project is null");
+        }
+
+        String relativePath =
+                (packageName == null || packageName.isBlank())
+                        ? className + ".jplus"
+                        : packageName.replace('.', '/') + "/" + className + ".jplus";
+
+        for (Path srcDir : project.getSourceDirs()) {
+            Path candidate = srcDir.resolve(relativePath);
+            if (Files.exists(candidate)) {
+                return candidate;
+            }
+        }
+
+        throw new IllegalStateException(
+                "Cannot find source file: " +
+                        (packageName == null ? className : packageName + "." + className)
+        );
+    }
+
 
     // --------------------------------------------------------------
     // Main processing pipeline
@@ -163,7 +183,7 @@ public class JPlusProcessor {
         inMemoryJavaFiles.add(new InMemoryJavaFile("JextUtils", jextUtilsClass));
 
         //javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
-        javaProcessor = new JavaProcessor(inMemoryJavaFiles, globalSymbolTable);
+        javaProcessor = new JavaProcessor(project, inMemoryJavaFiles, globalSymbolTable);
         javaProcessor.process();
     }
 
@@ -228,7 +248,7 @@ public class JPlusProcessor {
                 inMemoryJavaFiles.add(new InMemoryJavaFile(unresolved.getFullyQualifiedName(), javaCode));
             }
 
-            javaProcessor = new JavaProcessor(inMemoryJavaFiles, globalSymbolTable);
+            javaProcessor = new JavaProcessor(project, inMemoryJavaFiles, globalSymbolTable);
             javaProcessor.process();
             javaProcessor.analyzeSymbols();
             symbolTable = javaProcessor.getSymbolTable().get(0);

@@ -85,7 +85,7 @@ public class JPlusSymbolTableTest {
             });
         }
 
-        assertEquals("Error: (line:13, column:8) cannot assign addr(nullable) to this.address(non-nullable).\n" +
+        assertEquals("Error: (line:13, column:8) this.address is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:18, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:30, column:47) The 1st argument of the jplus.example.UserConstructorParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:30, column:88) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
@@ -111,7 +111,7 @@ public class JPlusSymbolTableTest {
                 "Error: (line:33, column:42) The 2nd argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:34, column:42) The 1st argument of the jplus.example.UserMethodParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:34, column:78) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:37, column:8) The 1st argument of the user2.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:37, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotation.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
 

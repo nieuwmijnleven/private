@@ -22,6 +22,7 @@ import com.sun.source.util.Trees;
 import jplus.analyzer.JavaSymbolAnalyzer;
 import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
+import jplus.base.Project;
 import jplus.base.SymbolTable;
 
 import javax.lang.model.util.Elements;
@@ -29,14 +30,18 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class JavaProcessor {
+    private final Project project;
+
     private List<InMemoryJavaFile> javaFiles;
     private String source;
     private SymbolTable globalSymbolTable;
@@ -51,11 +56,12 @@ public class JavaProcessor {
 
     private Map<String, MethodInvocationInfo> methodInvocationInfoMap;
 
-    public JavaProcessor(String source) {
-        this(source, new SymbolTable(null));
+    public JavaProcessor(Project project, String source) {
+        this(project, source, new SymbolTable(null));
     }
 
-    public JavaProcessor(String source, SymbolTable globalSymbolTable) {
+    public JavaProcessor(Project project, String source, SymbolTable globalSymbolTable) {
+        this.project = project;
         this.source = source;
         this.globalSymbolTable = globalSymbolTable;
         this.javaFiles = new ArrayList<>();
@@ -64,24 +70,56 @@ public class JavaProcessor {
         javaFiles.add(file);
     }
 
-    public JavaProcessor(List<InMemoryJavaFile> javaFiles, SymbolTable globalSymbolTable) {
+    public JavaProcessor(Project project, List<InMemoryJavaFile> javaFiles, SymbolTable globalSymbolTable) {
+        this.project = project;
         this.source = javaFiles.get(0).getContent();
         this.javaFiles = javaFiles;
         this.globalSymbolTable = globalSymbolTable;
         this.symbolAnalyzerList = new ArrayList<>();
     }
 
-    public JavaProcessor(Path filePath) throws Exception {
-        this(Files.readString(filePath, StandardCharsets.UTF_8));
+    public JavaProcessor(Project project, Path filePath) throws Exception {
+        this(project, Files.readString(filePath, StandardCharsets.UTF_8));
     }
 
     public void process() throws Exception {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-        task = (JavacTask) compiler.getTask(
+        /*task = (JavacTask) compiler.getTask(
                 null, fileManager, null,
                 List.of("-XDcompilePolicy=simple"), null,
+                javaFiles
+        );*/
+
+        List<String> options = new ArrayList<>();
+        options.add("-XDcompilePolicy=simple");
+
+        if (project != null && !project.getSourceDirs().isEmpty()) {
+            List<File> sourcePathDirs = project.getSourceDirs().stream()
+                    .map(Path::toFile)
+                    .toList();
+
+            fileManager.setLocation(
+                    javax.tools.StandardLocation.SOURCE_PATH,
+                    sourcePathDirs
+            );
+
+            /*String sourcePath = project.getSourceDirs().stream()
+                    .map(Path::toAbsolutePath)
+                    .map(Path::toString)
+                    .collect(Collectors.joining(File.pathSeparator));
+
+            options.add("-sourcepath");
+            options.add(sourcePath);*/
+        }
+
+        task = (JavacTask) compiler.getTask(
+                null,
+                fileManager,
+                null,
+                options,
+                null,
                 javaFiles
         );
 
