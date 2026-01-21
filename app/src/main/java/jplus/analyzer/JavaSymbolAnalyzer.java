@@ -420,10 +420,14 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         System.err.println("[JavaSymbolAnalyzer] node.getSimpleName().toString() = " + node.getSimpleName().toString());
         enterSymbolTable(node.getSimpleName().toString());
 
-        currentSymbolTable.declare("this", classSymbolInfo);
+        currentSymbolTable.declare("^ClassDef$", classSymbolInfo);
 
         currentSymbolTable.declare(classSymbolInfo.getSymbol(), classSymbolInfo);
         currentSymbolTable.declare(classSymbolInfo.getTypeInfo().getName(), classSymbolInfo);
+
+        currentSymbolTable
+                .getEnclosingSymbolTable(SymbolTable.INSTANCE_NS)
+                .declare("this", classSymbolInfo);
 
         for (Tree member : node.getMembers()) {
             if (member instanceof VariableTree var) visitField(var, getCurrentPath());

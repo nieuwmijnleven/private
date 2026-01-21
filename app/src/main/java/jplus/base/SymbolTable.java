@@ -115,7 +115,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     private boolean isClassContext() {
-        return containsInCurrent("this", TypeInfo.Type.Class);
+        return containsInCurrent("^ClassDef$", TypeInfo.Type.Class);
     }
 
     /*public SymbolInfo resolve(String name) {
