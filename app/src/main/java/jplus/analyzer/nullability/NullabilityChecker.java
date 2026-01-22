@@ -454,6 +454,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
         System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
+        System.err.println("[resolveMethod] classSymbolTable.hasSuperClassTable() = " + classSymbolTable.hasSuperClassTable());
+        System.err.println("[resolveMethod] classSymbolTable.superClassTable() = " + classSymbolTable.getSuperClassTable());
 
         String methodName = resolveMethodName(info);
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
@@ -463,7 +465,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             //Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
             //Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate, EnumSet.of(TypeInfo.Type.Constructor, TypeInfo.Type.Method));
 
-            var methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
+            //var methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
+            var methodSymbolInfo = classSymbolTable.resolve(candidate);
             if (methodSymbolInfo != null) return Optional.of(methodSymbolInfo);
         }
 

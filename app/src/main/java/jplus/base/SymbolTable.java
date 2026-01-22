@@ -37,6 +37,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     public static final String STATIC_NS = "^static$";
     public static final String INSTANCE_NS = "^instance$";
 
+    private SymbolTable superClassTable;
+
+    private List<SymbolTable> superInterfaceTables;
+
     private final ExecutionContext context;
 
     private boolean deadContext;
@@ -126,11 +130,32 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return symbolInfo;
     }*/
 
+    public void setSuperClassTable(SymbolTable superClassTable) {
+        this.superClassTable = superClassTable;
+    }
+    
+    public boolean hasSuperClassTable() {
+        return this.superClassTable != null;
+    }
+
+    public SymbolTable getSuperClassTable() {
+        return superClassTable;
+    }
+
+    public void setSuperInterfaceTables(List<SymbolTable> superInterfaceTables) {
+        this.superInterfaceTables = superInterfaceTables;
+    }
+
     public SymbolInfo resolve(String name) {
 
         SymbolInfo symbolInfo = resolveInCurrent(name);
         if (symbolInfo != null) {
             return symbolInfo;
+        }
+
+        if (superClassTable != null) {
+            symbolInfo = superClassTable.resolve(name);
+            if (symbolInfo != null) return symbolInfo;
         }
 
         if (parent != null) {
@@ -185,8 +210,8 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return symbolMap.keySet().iterator();
     }
 
-    public Collection<SymbolTable> getEnclosingSymbolTables() {
-        return enclosing.values();
+    public List<SymbolTable> getEnclosingSymbolTables() {
+        return enclosing.values().stream().toList();
     }
 
     public void merge(SymbolTable table) {

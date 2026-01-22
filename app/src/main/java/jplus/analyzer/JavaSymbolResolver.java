@@ -1,5 +1,6 @@
 package jplus.analyzer;
 
+import com.sun.source.util.TreePath;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -12,6 +13,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -51,7 +53,6 @@ public class JavaSymbolResolver {
         if (clazz == null) {
             return null; // classpath에 존재하지 않음
         }
-
 
         // Class Declaration
         // 1. 타입 파라미터 추출 (T, K, V 등)
@@ -157,6 +158,16 @@ public class JavaSymbolResolver {
                 classSymbolTable.declare(symbolName, symbolInfo);
                 classSymbolTable.addEnclosingSymbolTable(symbolName, methodSymbolTable);
             }
+        }
+
+        TypeMirror superClassMirror = clazz.getSuperclass();
+        if (superClassMirror.getKind() == TypeKind.DECLARED) {
+            TypeElement superClassElement =
+                    (TypeElement) types.asElement(superClassMirror);
+
+            String superClassFQName = superClassElement.getQualifiedName().toString();
+            var superClassSymInfo = resolveClass(superClassFQName);
+            classSymbolTable.setSuperClassTable(superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
         }
 
         return classSymbolInfo;

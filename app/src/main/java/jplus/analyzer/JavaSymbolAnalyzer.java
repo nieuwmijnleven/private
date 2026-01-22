@@ -429,6 +429,29 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .getEnclosingSymbolTable(SymbolTable.INSTANCE_NS)
                 .declare("this", classSymbolInfo);
 
+        Element element = trees.getElement(getCurrentPath());
+        if (element instanceof TypeElement typeElement) {
+            TypeMirror superClassMirror = typeElement.getSuperclass();
+            if (superClassMirror.getKind() == TypeKind.DECLARED) {
+                TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
+                TreePath superClassPath = trees.getPath(superClassElement);
+                //ClassTree superClassTree = (ClassTree) superClassPath.getLeaf();
+                //SymbolInfo superClassSymbol = resolver.resolveClass(superClassElement.getQualifiedName().toString());
+                if (superClassPath != null) {
+                    JavaSymbolAnalyzer superClassAnalyzer = new JavaSymbolAnalyzer(
+                            source, ast, trees, globalSymbolTable, elements, types
+                    );
+
+                    superClassAnalyzer.scan(superClassPath.getLeaf(), null);
+//                    var topLevelSymbolTable = superClassAnalyzer.getTopLevelSymbolTable();
+//                    var classSymInfo = topLevelSymbolTable.resolveInCurrent("^TopLevelClass$");
+//                    var classSymbolTable = topLevelSymbolTable.getEnclosingSymbolTable(classSymInfo.getSymbol());
+
+                    currentSymbolTable.setSuperClassTable(superClassAnalyzer.getTopLevelSymbolTable().getEnclosingSymbolTables().get(0));
+                }
+            }
+        }
+
         for (Tree member : node.getMembers()) {
             if (member instanceof VariableTree var) visitField(var, getCurrentPath());
         }

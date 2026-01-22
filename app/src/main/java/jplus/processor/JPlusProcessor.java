@@ -224,7 +224,7 @@ public class JPlusProcessor {
         for (SymbolTable symbolTable : symbolTableList) {
             UnresolvedReferenceScanner scanner = new UnresolvedReferenceScanner(symbolTable);
             List<UnresolvedReferenceScanner.UnresolvedReferenceInfo> unresolvedReferenceInfoList = scanner.findUnresolvedReference();
-            //unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
+            unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
             allUnresolvedReferenceInfoList.addAll(unresolvedReferenceInfoList);
         }
         return allUnresolvedReferenceInfoList;
