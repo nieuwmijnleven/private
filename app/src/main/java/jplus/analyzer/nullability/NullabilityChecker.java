@@ -38,6 +38,7 @@ import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -498,27 +499,39 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
         List<JPlus25Parser.ExpressionContext> argumentList = Optional.ofNullable(ctx.argumentList()).map(argList -> argList.expression()).orElseGet(() -> new ArrayList<>());
 
-        if (argumentList.size() != paramTypes.length) {
-            throw new IllegalStateException("The number of arguments is not equal.");
+//        if (argumentList.size() != paramTypes.length) {
+//            throw new IllegalStateException("The number of arguments is not equal. argumentList.size() = " + argumentList.size() + ", paramTypes.length = " + paramTypes.length);
+//        }
+
+        int fixedVariableCnt = paramTypes.length;
+        if (info.hasVarArgs) {
+            --fixedVariableCnt;
         }
 
-        for (int i = 0; i < paramTypes.length; i++) {
+        for (int i = 0; i < fixedVariableCnt; i++) {
+        //for (int i = 0; i < info.argTypes.size(); i++) {
             String paramType = paramTypes[i];
-            String argType = info.argTypes.get(i);
-            log("paramType = " + paramType + ", argType = " + argType);
+            //String argType = info.argTypes.get(i);
+            //log("paramType = " + paramType + ", argType = " + argType);
 
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
 
             if (isInvalidNullAssignment(paramType, argState)) {
                 reportInvalidNull(ctx.originalContext(), info, i + 1);
             }
-
-
         }
+
+        for (int i = fixedVariableCnt; i < argumentList.size(); ++i) {
+            NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
+            if (argState != NullState.NON_NULL) {
+                reportInvalidNull(ctx.originalContext(), info, i + 1);
+            }
+        }
+
     }
 
-    private boolean isInvalidNullAssignment(String paramType, NullState argState) {
-        if (paramType.endsWith("?")) return false;
+    private boolean isInvalidNullAssignment(@NonNull String argType, NullState argState) {
+        if (argType.endsWith("?")) return false;
         return argState == NullState.NULL;
         //return "<nulltype>".equals(argType);
         //return !paramType.endsWith("?") && "<nulltype>".equals(argType);
