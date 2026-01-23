@@ -24,15 +24,18 @@ public class MethodInvocationInfo {
     public final String instanceName;
     public final TypeInfo typeInfo;
     public final String methodName;
+
     public final List<String> args;
     public final List<String> argTypes;
     public final List<String> paramTypes;
     public final String returnType;
+    public final boolean hasVarArgs;
+
     public final String source;
     public final int startPos;
     public final int endPos;
 
-    public MethodInvocationInfo(String instanceName, TypeInfo typeInfo, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType, String source, int startPos, int endPos) {
+    public MethodInvocationInfo(String instanceName, TypeInfo typeInfo, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType,  boolean hasVarArgs, String source, int startPos, int endPos) {
         this.instanceName = instanceName;
         this.typeInfo = typeInfo;
         this.methodName = methodName;
@@ -40,6 +43,7 @@ public class MethodInvocationInfo {
         this.argTypes = argTypes;
         this.paramTypes = paramTypes;
         this.returnType = returnType;
+        this.hasVarArgs = hasVarArgs;
         this.source = source;
         this.startPos = startPos;
         this.endPos = endPos;
@@ -53,6 +57,7 @@ public class MethodInvocationInfo {
         private List<String> argTypes;
         private List<String> paramTypes;
         private String returnType;
+        private boolean hasVarArgs;
         private String source;
         private int startPos;
         private int endPos;
@@ -91,6 +96,11 @@ public class MethodInvocationInfo {
             this.returnType = returnType;
             return this;
         }
+
+        public Builder hasVarArgs(boolean hasVarArgs) {
+            this.hasVarArgs = hasVarArgs;
+            return this;
+        }
     
         public Builder source(String source) {
             this.source = source;
@@ -108,7 +118,7 @@ public class MethodInvocationInfo {
         }
     
         public MethodInvocationInfo build() {
-            return new MethodInvocationInfo(instanceName, typeInfo, methodName, args, argTypes, paramTypes, returnType, source, startPos, endPos);
+            return new MethodInvocationInfo(instanceName, typeInfo, methodName, args, argTypes, paramTypes, returnType, hasVarArgs, source, startPos, endPos);
         }
     }
     
@@ -133,6 +143,7 @@ public class MethodInvocationInfo {
                 ", argTypes=" + argTypes +
                 ", paramTypes=" + paramTypes +
                 ", returnType='" + returnType + '\'' +
+                ", hasVarArgs=" + hasVarArgs +
                 ", source ='" + source + '\'' +
                 ", startPos=" + startPos +
                 ", endPos=" + endPos +

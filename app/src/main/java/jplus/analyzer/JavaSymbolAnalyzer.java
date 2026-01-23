@@ -672,7 +672,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             if (e instanceof ExecutableElement ee) {
                 CleanTypePrinter printer = new CleanTypePrinter();
                 List<String> paramTypes = ((ExecutableType) ee.asType()).getParameterTypes().stream().map(printer::print).toList();
-                builder.paramTypes(paramTypes).returnType(((ExecutableType) ee.asType()).getReturnType().toString());
+                builder.paramTypes(paramTypes).returnType(((ExecutableType) ee.asType()).getReturnType().toString()).hasVarArgs(ee.isVarArgs());
             }
         }
 
