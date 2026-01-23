@@ -751,7 +751,15 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         String symbolNameWithSimpleTypeName = "^" + methodName + "$_" + String.join("_", simpleTypeNameList);
         //System.err.println("[method] symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
 
-        TypeInfo typeInfo = new TypeInfo(symbolName, false, type);
+        boolean isNullableReturn = node.getModifiers().getAnnotations().stream()
+                .map(a -> a.getAnnotationType().toString())
+                .anyMatch(name ->
+                        name.endsWith(".Nullable")
+                                || name.equals("org.jspecify.annotations.Nullable")
+                );
+        System.err.println("[processCallable] isNullableReturn = " + isNullableReturn);
+
+        TypeInfo typeInfo = new TypeInfo(symbolName, isNullableReturn, type);
         SymbolInfo symbolInfo = new SymbolInfo(symbolName, typeInfo, computeRange(node), computeRangeText(node), convertModifiers(node.getModifiers().getFlags()), currentSymbolTable);
 
         // ---------- 현재 SymbolTable에 등록 ----------
