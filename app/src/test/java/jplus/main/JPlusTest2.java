@@ -91,29 +91,57 @@ class JPlusTest2 {
             });
         }
 
-        assertEquals("Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+        assertEquals("Error: (line:22, column:8) The method(getStreet) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:22, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:26, column:8) The method(getStreet_ExpressionName) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:26, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:30, column:64) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:38, column:8) The method(getStreet_ExpressionName_AddressStreetNullsatey) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:42, column:8) The method(getStreet_FieldAccess) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:42, column:34) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:46, column:8) The method(getStreet_FieldAccess_AddressNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:46, column:35) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:50, column:8) The method(getStreet_FieldAccess_StreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:54, column:8) The method(getStreet_FieldAccess_AddressStreetNullsatey) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:58, column:8) The method(getStreet_MethodInvocation_Primary_AddressNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:58, column:35) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:62, column:8) The method(getStreet_MethodInvocation_Primary_StreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:66, column:8) The method(getStreet_MethodInvocation_Primary_AddressStreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:70, column:8) The method(getStreet_MethodInvocation_ExpressionName) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:70, column:15) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:74, column:8) The method(getStreet_MethodInvocation_ExpressionName_AddressNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:74, column:15) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:78, column:8) The method(getStreet_MethodInvocation_ExpressionName_StreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:82, column:8) The method(getStreet_MethodInvocation_ExpressionName_AddressStreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:86, column:8) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
                 "Error: (line:90, column:8) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:102, column:8) The method(getStreet_TypeNameFieldAccess) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:102, column:76) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:106, column:8) The method(getStreet_TypeNameFieldAccess_AddressNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:106, column:91) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:110, column:8) The method(getStreet_TypeNameFieldAccess_StreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:114, column:8) The method(getStreet_TypeNameFieldAccess_AddressStreetNullsatey) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:118, column:8) The method(getStreet_MethodInvocation_TypeNamePrimary) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:118, column:90) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:122, column:8) The method(getStreet_MethodInvocation_TypeNamePrimary_AddressNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:122, column:35) street is a nullable variable. But it directly accesses name(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:126, column:8) The method(getStreet_MethodInvocation_TypeNamePrimary_StreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:130, column:8) The method(getStreet_MethodInvocation_TypeNamePrimary_AddressStreetNullsafety) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:138, column:8) The method(getStreet_FieldAccess_WithParenthesis) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:138, column:35) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:142, column:8) The method(getStreet_FieldAccess_WithParenthesis_UtilStreet) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:142, column:36) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:146, column:15) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:150, column:8) The method(createUserWithChaining) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:150, column:15) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:150, column:95) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:154, column:15) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:158, column:8) The method(createUserWithQualifiedClassNameAndChaining) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:158, column:15) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:158, column:109) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:164, column:8) The method(createUserArrayWithChaining) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:164, column:40) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:168, column:8) The method(createUserArrayWithInitializer) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:168, column:258) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:202, column:58) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:203, column:58) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +

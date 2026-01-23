@@ -88,7 +88,9 @@ class JPlusTest {
                 "Error: (line:13, column:8) lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:14, column:8) this.lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:15, column:8) User.this.lastname is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:19, column:15) firstname is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n";
+                "Error: (line:19, column:8) The method(getFirstnameLen) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:19, column:15) firstname is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:23, column:8) The method(getLastnameLen) is declared to return a non-null value, but this return statement may return null.\n";
 
         assertEquals(expected, outContent.toString());
     }
@@ -109,7 +111,9 @@ class JPlusTest {
 
         String expected = "Error: (line:5, column:4) lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:12, column:12) lastname is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:17, column:15) firstname is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n";
+                "Error: (line:17, column:8) The method(getFirstnameLen) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:17, column:15) firstname is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
+                "Error: (line:21, column:8) The method(getLastnameLen) is declared to return a non-null value, but this return statement may return null.\n";
 
         assertEquals(expected, outContent.toString());
     }
@@ -147,7 +151,8 @@ class JPlusTest {
             });
         }
 
-        String expected = "Error: (line:18, column:15) address is a nullable variable. But it directly accesses city. Consider using null-safe operator(?.).\n" +
+        String expected = "Error: (line:18, column:8) The method(getCity) is declared to return a non-null value, but this return statement may return null.\n" +
+                "Error: (line:18, column:15) address is a nullable variable. But it directly accesses city. Consider using null-safe operator(?.).\n" +
                 "Error: (line:42, column:21) The 1st argument of the jplus.example.User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:42, column:36) The 1st argument of the jplus.example.User.Address constructor is a non-nullable variable, but a null value is assigned to it.\n";
         assertEquals(expected, outContent.toString());
