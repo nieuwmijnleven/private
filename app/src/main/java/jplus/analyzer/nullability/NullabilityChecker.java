@@ -393,7 +393,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                 nullState = rootInfo.getNullState();
 
                 if (!rootInfo.getTypeInfo().isNullable() && nullState == NullState.UNKNOWN) {
-                    reportIssue(ctx.start, root.symbol + " is not initialized.");
+                    reportIssue(ctx.start, root.symbol + " may be null. Consider checking for null or using null-safe operator(?.) before accessing.");
                     rootReported = true;
                 }
             } else {

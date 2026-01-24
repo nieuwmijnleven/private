@@ -46,6 +46,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
@@ -781,15 +782,17 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TreePath path = getCurrentPath();
         Element element = trees.getElement(path);
 
-        if (element != null && element.getKind() == ElementKind.LOCAL_VARIABLE) {
-            ExpressionTree initializer = node.getInitializer();
-            if (initializer != null) {
-                buildChain(initializer);
-            }
-            return handleLocalVariable(node, p);
+        final EnumSet localKindSet = EnumSet.of(ElementKind.LOCAL_VARIABLE, ElementKind.RESOURCE_VARIABLE);
+        if (element == null || !localKindSet.contains(element.getKind())) {
+            return super.visitVariable(node, p);
         }
 
-        return super.visitVariable(node, p);
+        ExpressionTree initializer = node.getInitializer();
+        if (initializer != null) {
+            buildChain(initializer);
+        }
+
+        return handleLocalVariable(node, p);
     }
 
     @Override
@@ -818,6 +821,18 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         return super.visitVariable(node, unused);
     }
+
+    @Override
+    public Void visitTry(TryTree tryTree, Void unused) {
+        for (Tree resource : tryTree.getResources()) {
+            if (resource instanceof VariableTree varTree) {
+                visitVariable(varTree, unused);
+            }
+        }
+
+        return super.visitTry(tryTree, unused);
+    }
+
 
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
