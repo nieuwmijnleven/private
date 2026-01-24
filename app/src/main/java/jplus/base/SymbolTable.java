@@ -17,12 +17,9 @@
 package jplus.base;
 
 import jplus.analyzer.ResolvedChain;
-import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.generator.TextChangeRange;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;

@@ -1,6 +1,5 @@
 package jplus.analyzer;
 
-import com.sun.source.util.TreePath;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
