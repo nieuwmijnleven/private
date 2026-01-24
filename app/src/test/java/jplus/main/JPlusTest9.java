@@ -36,6 +36,8 @@ public class JPlusTest9 {
     @Test
     void testDataFlowInitialState() throws Exception {
         checkNullability(
+                "./src/test/files/NullabilityDataflowAnalysis",
+                "jplus.example",
                 "DataFlowInitialState",
                 "Error: (line:12, column:16) u is not initialized.\n" +
                         "Error: (line:12, column:8) r is a non-nullable variable. But nullable value is assigned to it.\n" +
@@ -47,9 +49,19 @@ public class JPlusTest9 {
         );
     }
 
-    private void checkNullability(String className, String expected) throws Exception {
-        Project project = new Project(Path.of("./src/test/files/NullabilityDataflowAnalysis"));
-        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", className);
+    @Test
+    void testConstructors() throws Exception {
+        checkNullability(
+                "./src/test/files/NullableAnnotation",
+                "jplus.example",
+                "Constructors",
+                "Error: (line:5, column:4) Non-null field 'name' is not initialized in one or more constructors of class 'Constructors'\n"
+        );
+    }
+
+    private void checkNullability(String srcPath, String packageName, String className, String expected) throws Exception {
+        Project project = new Project(Path.of(srcPath));
+        JPlusProcessor processor = new JPlusProcessor(project, packageName, className);
 
         processor.process();
         System.err.println("[ParseTreeString] = " + processor.getParseTreeString());

@@ -51,11 +51,12 @@ public class SymbolInfo {
     }
 
     public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList, SymbolTable symbolTable) {
-        this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, symbolTable);
+        //this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, symbolTable);
+        this(symbol, typeInfo, NullState.UNKNOWN, range, originalText, modifierList, symbolTable);
     }
 
     public SymbolInfo(String symbol, TypeInfo typeInfo, TextChangeRange range, String originalText, List<Modifier> modifierList) {
-        this(symbol, typeInfo, typeInfo.isNullable() ? NullState.UNKNOWN : NullState.NON_NULL, range, originalText, modifierList, null);
+        this(symbol, typeInfo, NullState.UNKNOWN, range, originalText, modifierList, null);
     }
 
     public SymbolInfo(SymbolInfo other) {

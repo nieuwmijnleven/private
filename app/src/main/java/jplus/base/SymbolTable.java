@@ -287,6 +287,27 @@ public class SymbolTable implements Iterable<SymbolInfo> {
                 .toList();
     }
 
+    public List<SymbolInfo> findSymbolInfoByType(List<TypeInfo.Type> typeList) {
+
+        var allSymbolMap = symbolMap;
+
+        if (isClassContext()) {
+            allSymbolMap = new HashMap<>();
+            getEnclosingSymbolTable(INSTANCE_NS).symbolMap.forEach(allSymbolMap::putIfAbsent);
+            getEnclosingSymbolTable(STATIC_NS).symbolMap.forEach(allSymbolMap::putIfAbsent);
+        }
+
+        return allSymbolMap.entrySet().stream()
+                .map(Map.Entry::getValue)
+                .filter(symbolInfo -> typeList.contains(symbolInfo.getTypeInfo().getType()))
+                .sorted(
+                        Comparator
+                                .comparingInt((SymbolInfo s) -> s.getRange().startLine())
+                                .thenComparingInt(s -> s.getRange().startIndex())
+                )
+                .toList();
+    }
+
     public SymbolTable getParent() {
         return parent;
     }
