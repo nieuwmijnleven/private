@@ -824,11 +824,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitTry(TryTree tryTree, Void unused) {
-        for (Tree resource : tryTree.getResources()) {
+        /*for (Tree resource : tryTree.getResources()) {
             if (resource instanceof VariableTree varTree) {
                 visitVariable(varTree, unused);
             }
-        }
+        }*/
 
         return super.visitTry(tryTree, unused);
     }

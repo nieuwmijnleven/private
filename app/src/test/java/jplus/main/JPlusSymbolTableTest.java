@@ -114,6 +114,25 @@ public class JPlusSymbolTableTest {
                 "Error: (line:37, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotation.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
+    @Test
+    void testTryCatchBlock() throws Exception {
+        Project project = new Project(Path.of("./src/test/files/SymbolResolver"));
+        JPlusProcessor processor = new JPlusProcessor(project, "jplus.example", "TryCatchBlock");
+        processor.process();
+//        System.err.println(processor.getParseTreeString());
+        processor.analyzeSymbols();
+
+        var issues = processor.checkNullability();
+        if (!issues.isEmpty()) {
+            issues.forEach(nullabilityIssue -> {
+                System.out.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.line(), nullabilityIssue.column(), nullabilityIssue.message());
+                System.err.printf("Error: (line:%d, column:%d) %s\n", nullabilityIssue.line(), nullabilityIssue.column(), nullabilityIssue.message());
+            });
+        }
+
+        assertEquals("", outContent.toString());
+    }
+
 
     @Test
     void testConvertJavaWithNullableAnnotation() throws Exception {
