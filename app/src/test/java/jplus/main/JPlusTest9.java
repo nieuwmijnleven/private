@@ -50,6 +50,16 @@ public class JPlusTest9 {
     }
 
     @Test
+    void testStaticFieldInitialization() throws Exception {
+        checkNullability(
+                "./src/test/files/NullabilityDataflowAnalysis",
+                "jplus.example",
+                "StaticFieldInitialization",
+                ""
+        );
+    }
+
+    @Test
     void testConstructors() throws Exception {
         checkNullability(
                 "./src/test/files/NullableAnnotation",

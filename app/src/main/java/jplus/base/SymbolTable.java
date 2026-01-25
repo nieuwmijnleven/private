@@ -373,6 +373,21 @@ public class SymbolTable implements Iterable<SymbolInfo> {
             if (result.isPresent()) return result;
         }
 
+        return findResolvedPlusChain(range);
+    }
+
+    private Optional<ResolvedChain> findResolvedPlusChain(TextChangeRange range) {
+        for (ResolvedChain resolvedChain : resolvedChains) {
+            if (resolvedChain.isEmpty()) continue;
+
+            var firstStep = resolvedChain.first();
+            var lastStep = resolvedChain.last();
+
+            TextChangeRange totalRange = new TextChangeRange(firstStep.range.startLine(), firstStep.range.startIndex(), lastStep.range.endLine(), lastStep.range.inclusiveEndIndex());
+
+            if (totalRange.equals(range)) return Optional.of(resolvedChain);
+        }
+
         return Optional.empty();
     }
 

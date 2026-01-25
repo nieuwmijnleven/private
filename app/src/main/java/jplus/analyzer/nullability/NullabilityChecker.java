@@ -1088,6 +1088,18 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
+    public ResultState visitAdditiveExpression(JPlus25Parser.AdditiveExpressionContext ctx) {
+        //System.err.println("[AdditiveExpression] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
+        //System.err.println("[AdditiveExpression] resolvedChains: " + currentSymbolTable.getResolvedChains());
+
+        if (ctx.additiveExpression() == null) {
+            return super.visitAdditiveExpression(ctx);
+        }
+
+        return null;
+    }
+
+    @Override
     public ResultState visitMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
         TextChangeRange invocationCodeRange = getCodeRange(ctx);
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
@@ -1692,6 +1704,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
             String identifier = Utils.getTokenString(ctx.identifier());
             System.err.println("[processExpressionNameContext] identifier = " + identifier);
+            System.err.println("[processExpressionNameContext] step.symbol = " + step.symbol);
             if (!identifier.equals(step.symbol)) throw new IllegalStateException();
 
             System.err.println("[processExpressionNameContext] line(" + ctx.start.getLine() + ")" );

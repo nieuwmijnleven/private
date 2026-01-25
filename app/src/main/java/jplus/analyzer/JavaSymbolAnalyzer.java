@@ -116,6 +116,16 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 return; // 괄호 안은 childChain에서 처리
             }
 
+            // ⚡ + 연산(BinaryTree)
+            if (expr instanceof BinaryTree bt && bt.getKind() == Tree.Kind.PLUS) {
+                // 좌측 operand
+                visit(bt.getLeftOperand(), chain);
+
+                // 우측 operand
+                visit(bt.getRightOperand(), chain);
+                return;
+            }
+
             while (true) {
                 /*if (expr instanceof ParenthesizedTree p) {
                     expr = p.getExpression();
@@ -876,6 +886,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     public Void visitBinary(BinaryTree node, Void unused) {
         buildChain(node.getLeftOperand());
         buildChain(node.getRightOperand());
+
+        buildChain((node));
+
         return super.visitBinary(node, unused);
     }
 
