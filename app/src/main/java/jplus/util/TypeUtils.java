@@ -35,7 +35,7 @@ public class TypeUtils {
 
                     boolean isGeneric = !((TypeElement)declaration).getTypeParameters().isEmpty();
 
-                    return new TypeInfo(className, false, isGeneric, TypeInfo.Type.Class, typeParams, List.of());
+                    return new TypeInfo(className, false, isGeneric, TypeInfo.Type.Class, null, typeParams, List.of());
                 } else {
                     String referenceTypeName = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
 
@@ -50,7 +50,7 @@ public class TypeUtils {
 
                     boolean isGeneric = !((TypeElement)declaration).getTypeParameters().isEmpty();
 
-                    return new TypeInfo(referenceTypeName, isNullable, isGeneric, TypeInfo.Type.Reference, List.of(), typeArgs);
+                    return new TypeInfo(referenceTypeName, isNullable, isGeneric, TypeInfo.Type.Reference, null, List.of(), typeArgs);
                 }
 
             case TYPEVAR:
@@ -78,7 +78,13 @@ public class TypeUtils {
                 );
 
             default:
-                return new TypeInfo((typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString(), false, TypeInfo.Type.Unknown);
+                String typeName = (typeMirror instanceof DeclaredType dt) ? dt.asElement().toString() : typeMirror.toString();
+
+                if ("void".equals(typeName)) {
+                    return new TypeInfo(typeName, false, TypeInfo.Type.Void);
+                }
+
+                return new TypeInfo(typeName, false, TypeInfo.Type.Unknown);
         }
     }
 
