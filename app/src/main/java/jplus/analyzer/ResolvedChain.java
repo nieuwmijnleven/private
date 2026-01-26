@@ -15,6 +15,7 @@ public final class ResolvedChain {
         FIELD,
         METHOD,
         EXPRESSION,
+        NEW,
         LITERAL,
         ARRAY_ACCESS,
         CHAIN

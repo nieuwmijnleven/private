@@ -160,11 +160,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 return;
             }
 
-            if (expr instanceof ConditionalExpressionTree ce) {
+            /*if (expr instanceof ConditionalExpressionTree ce) {
                 visit(ce.getTrueExpression(), chain);
                 visit(ce.getFalseExpression(), chain);
                 return;
-            }
+            }*/
 
             if (expr instanceof AssignmentTree at) {
                 visit(at.getExpression(), chain);
@@ -308,7 +308,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
             String qualifiedName = getQualifiedName(nc);
             chain.addStep(new ResolvedChain.Step(
-                    ResolvedChain.Kind.IDENTIFIER,
+                    ResolvedChain.Kind.NEW,
                     qualifiedName,
                     ti,
                     ti.isNullable(),

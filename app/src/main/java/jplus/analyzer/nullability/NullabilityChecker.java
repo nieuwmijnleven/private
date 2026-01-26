@@ -403,7 +403,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             return NullState.NULL;
         }
 
-        if (root.kind == ResolvedChain.Kind.LITERAL) {
+        if (root.kind == ResolvedChain.Kind.LITERAL || root.kind == ResolvedChain.Kind.NEW || root.kind == ResolvedChain.Kind.METHOD) {
             return NullState.NON_NULL;
         }
 
@@ -877,7 +877,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 //        SymbolTable elseTable = before.copy();
 
         var conditionResult = new ConditionVisitor(this, before).visit(ctx.expression());
-        System.err.println("[visitIfThenElseStatement] line(" + ctx.start.getLine() + "), contextString = " + Utils.getTokenString(ctx) + ", conditionResult = " + conditionResult);
+        System.err.println("[IfThenElseStatement] line(" + ctx.start.getLine() + "), contextString = " + Utils.getTokenString(ctx) + ", conditionResult = " + conditionResult);
         //System.err.println("[visitIfThenElseStatement] " + conditionResult);
 
         currentSymbolTable = conditionResult.whenTrue;
@@ -972,6 +972,50 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         }
 
         return joined;
+    }
+
+    @Override
+    public ResultState visitConditionalExpression(JPlus25Parser.ConditionalExpressionContext ctx) {
+
+        if (ctx.expression() == null) {
+            return super.visitConditionalExpression(ctx);
+        }
+
+        SymbolTable before = currentSymbolTable.copy();
+//
+//        SymbolTable thenTable = before.copy();
+//        currentSymbolTable = thenTable;
+//
+//        SymbolTable elseTable = before.copy();
+
+        var conditionResult = new ConditionVisitor(this, before).visit(ctx.nullCoalescingExpression());
+        System.err.println("[ConditionalExpression] line(" + ctx.start.getLine() + "), contextString = " + Utils.getTokenString(ctx) + ", conditionResult = " + conditionResult);
+
+        currentSymbolTable = conditionResult.whenTrue;
+        visit(ctx.expression());
+
+        currentSymbolTable = conditionResult.whenFalse;
+        ResultState elseResult =
+                (ctx.conditionalExpression() != null)
+                        ? visit(ctx.conditionalExpression())
+                        : visit(ctx.lambdaExpression());
+
+        //currentSymbolTable = join(before, join(conditionResult.whenTrue, conditionResult.whenFalse));
+        //currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
+
+        if (conditionResult.whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
+            //currentSymbolTable = new SymbolTable(null);
+            currentSymbolTable = before;
+        } else if (conditionResult.whenTrue.isDeadContext()) {
+            currentSymbolTable = conditionResult.whenFalse;
+        } else if (conditionResult.whenFalse.isDeadContext()) {
+            currentSymbolTable = conditionResult.whenTrue;
+        } else {
+            //currentSymbolTable = join(before, join(thenTable, elseTable));
+            currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
+        }
+
+        return null;
     }
 
     NullState updateNullState(ParserRuleContext ctx, SymbolTable symbolTable, NullState nullState) {
