@@ -169,6 +169,19 @@ public class JavaSymbolResolver {
             classSymbolTable.setSuperClassTable(superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
         }
 
+        List<? extends TypeMirror> superInterfaceMirrorList = clazz.getInterfaces();
+        for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
+
+            if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
+                TypeElement superInterfaceElement =
+                        (TypeElement) types.asElement(superInterfaceMirror);
+
+                String superInterfaceFQName = superInterfaceElement.getQualifiedName().toString();
+                var superClassSymInfo = resolveClass(superInterfaceFQName);
+                classSymbolTable.addSuperInterfaceTable(superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+            }
+        }
+
         return classSymbolInfo;
     }
 

@@ -36,7 +36,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private SymbolTable superClassTable;
 
-    private List<SymbolTable> superInterfaceTables;
+    private List<SymbolTable> superInterfaceTables = new ArrayList<>();
 
     private final ExecutionContext context;
 
@@ -50,9 +50,11 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private List<ResolvedChain> resolvedChains = new ArrayList<>();
 
+
+
     public enum ExecutionContext {
         STATIC,
-        INSTANCE
+        INSTANCE;
     }
 
     /*enum TableKind {
@@ -60,7 +62,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         METHOD,
         BLOCK
     }*/
-
     public SymbolTable(SymbolTable parent, ExecutionContext context) {
         this.parent = parent;
         this.context = context;
@@ -119,6 +120,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return containsInCurrent("^ClassDef$", TypeInfo.Type.Class);
     }
 
+
     /*public SymbolInfo resolve(String name) {
         SymbolInfo symbolInfo = symbolMap.get(name);
         if (symbolInfo == null && parent != null) {
@@ -126,11 +128,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         }
         return symbolInfo;
     }*/
-
     public void setSuperClassTable(SymbolTable superClassTable) {
         this.superClassTable = superClassTable;
     }
-    
+
     public boolean hasSuperClassTable() {
         return this.superClassTable != null;
     }
@@ -139,8 +140,12 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return superClassTable;
     }
 
-    public void setSuperInterfaceTables(List<SymbolTable> superInterfaceTables) {
-        this.superInterfaceTables = superInterfaceTables;
+    public void addSuperInterfaceTable(SymbolTable superInterfaceTable) {
+        superInterfaceTables.add(superInterfaceTable);
+    }
+
+    public List<SymbolTable> getSuperInterfaceTables() {
+        return Collections.unmodifiableList(this.superInterfaceTables);
     }
 
     public SymbolInfo resolve(String name) {
@@ -150,10 +155,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
             return symbolInfo;
         }
 
-        if (superClassTable != null) {
-            symbolInfo = superClassTable.resolve(name);
-            if (symbolInfo != null) return symbolInfo;
-        }
+//        if (superClassTable != null) {
+//            symbolInfo = superClassTable.resolve(name);
+//            if (symbolInfo != null) return symbolInfo;
+//        }
 
         if (parent != null) {
             return parent.resolve(name);
@@ -165,6 +170,18 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     public SymbolInfo resolveInCurrent(String name) {
         SymbolInfo local = symbolMap.get(name);
         if (local != null) return local;
+
+        if (superClassTable != null) {
+            var symbolInfo = superClassTable.resolve(name);
+            if (symbolInfo != null) return symbolInfo;
+        }
+
+        if (!superInterfaceTables.isEmpty()) {
+            for (var superInterfaceTable : superInterfaceTables) {
+                var symbolInfo = superInterfaceTable.resolve(name);
+                if (symbolInfo != null) return symbolInfo;
+            }
+        }
 
         if (!isClassContext()) return null;
 
