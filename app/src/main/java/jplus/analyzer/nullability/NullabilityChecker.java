@@ -1044,6 +1044,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             MethodContext methodContext = (MethodContext) contextStack.peek();
             System.err.println("[ReturnStatement] methodContext: " + methodContext);
 
+            var returnType = methodContext.getMethodSymbolInfo().getTypeInfo().getReturnTypeInfo().getType();
+            if (returnType == TypeInfo.Type.Void || returnType == TypeInfo.Type.Primitive) {
+                return super.visitReturnStatement(ctx);
+            }
+
             NullState nullState = evalRHS(ctx.expression(), currentSymbolTable);
             System.err.println("[ReturnStatement] nullState: " + nullState);
 
@@ -1066,7 +1071,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         var methodSymbolInfo = methodContext.getMethodSymbolInfo();
         var step = chain.last();
 
-        if (!methodSymbolInfo.getTypeInfo().isNullable() && (step.nullable || nullState != NullState.NON_NULL)) {
+        if (!methodSymbolInfo.getTypeInfo().getReturnTypeInfo().isNullable() && (step.nullable || nullState != NullState.NON_NULL)) {
             reportIssue(
                     ctx.start,
                     String.format("The method(%s) is declared to return a non-null value, but this return statement may return null.", methodContext.getMethodName())

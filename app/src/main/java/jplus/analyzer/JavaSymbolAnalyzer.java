@@ -166,6 +166,27 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 return;
             }
 
+            if (expr instanceof AssignmentTree at) {
+                visit(at.getExpression(), chain);
+
+                TreePath path = TreePath.getPath(ast, at);
+                TypeMirror tm = trees.getTypeMirror(path);
+                Element e = trees.getElement(path);
+                TypeInfo ti = TypeUtils.fromTypeMirror(tm, e);
+
+                chain.addStep(new ResolvedChain.Step(
+                        ResolvedChain.Kind.EXPRESSION,
+                        at.toString(),
+                        ti,
+                        ti.isNullable(),
+                        false,
+                        computeRange(at),
+                        null,
+                        null
+                ));
+                return;
+            }
+
             if (expr instanceof LiteralTree lt) {
                 Object value = lt.getValue();
 
@@ -799,7 +820,22 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 );
         System.err.println("[processCallable] isNullableReturn = " + isNullableReturn);
 
-        TypeInfo typeInfo = new TypeInfo(symbolName, isNullableReturn, type);
+
+        TypeInfo returnTypeInfo;
+        if (type == TypeInfo.Type.Constructor) {
+            // 생성자는 void와 같은 개념
+            returnTypeInfo = TypeInfo.builder()
+                    .name("void")
+                    .isNullable(false)
+                    .type(TypeInfo.Type.Void)
+                    .build();
+        } else {
+            TypeMirror returnTypeMirror = trees.getTypeMirror(TreePath.getPath(ast, node.getReturnType()));
+            Element returnTypeElement = trees.getElement(TreePath.getPath(ast, node.getReturnType()));
+            returnTypeInfo = buildTypeInfo(returnTypeMirror, returnTypeElement);
+        }
+
+        TypeInfo typeInfo = new TypeInfo(symbolName, isNullableReturn, type, returnTypeInfo);
         SymbolInfo symbolInfo = new SymbolInfo(symbolName, typeInfo, computeRange(node), computeRangeText(node), convertModifiers(node.getModifiers().getFlags()), currentSymbolTable);
 
         // ---------- 현재 SymbolTable에 등록 ----------

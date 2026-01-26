@@ -25,6 +25,7 @@ public class TypeInfo {
     private final boolean isNullable;
     private final boolean isGeneric;
     private final Type type;
+    private final TypeInfo returnTypeInfo;
     private final List<String> typeParameters;
     private final List<TypeInfo> typeArguments;
     private final TypeInfo elementType;
@@ -37,27 +38,33 @@ public class TypeInfo {
         Primitive,
         Constructor,
         Unknown,
+        Void,
         Array,
         TypeParameter,
         TypeArgument
     }
 
-    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, List<String> typeParameters, List<TypeInfo> typeArguments, TypeInfo elementType) {
+    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, TypeInfo returnTypeInfo, List<String> typeParameters, List<TypeInfo> typeArguments, TypeInfo elementType) {
         this.name = name;
         this.isNullable = isNullable;
         this.isGeneric = isGeneric;
         this.type = type;
+        this.returnTypeInfo = returnTypeInfo;
         this.typeParameters = typeParameters;
         this.typeArguments = typeArguments;
         this.elementType = elementType;
     }
 
-    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, List<String> typeParameters, List<TypeInfo> typeArguments) {
-        this(name, isNullable, isGeneric, type, typeParameters, typeArguments, null);
+    public TypeInfo(String name, boolean isNullable, boolean isGeneric, Type type, TypeInfo returnTypeInfo, List<String> typeParameters, List<TypeInfo> typeArguments) {
+        this(name, isNullable, isGeneric, type, returnTypeInfo, typeParameters, typeArguments, null);
     }
 
     public TypeInfo(String name, boolean isNullable, Type type) {
-        this(name, isNullable, false, type, List.of(), List.of(), null);
+        this(name, isNullable, false, type, null, List.of(), List.of(), null);
+    }
+
+    public TypeInfo(String name, boolean isNullable, Type type, TypeInfo returnTypeInfo) {
+        this(name, isNullable, false, type, returnTypeInfo, List.of(), List.of(), null);
     }
 
     public TypeInfo(TypeInfo other) {
@@ -65,6 +72,7 @@ public class TypeInfo {
         this.isNullable = other.isNullable;
         this.isGeneric = other.isGeneric;
         this.type = other.type;
+        this.returnTypeInfo = other.returnTypeInfo;
         this.typeParameters = other.typeParameters;
         this.typeArguments = other.typeArguments;
         this.elementType = other.elementType;
@@ -80,6 +88,7 @@ public class TypeInfo {
                 .isNullable(this.isNullable)
                 .isGeneric(this.isGeneric)
                 .type(this.type)
+                .returnTypeInfo(this.returnTypeInfo)
                 .typeParameters(this.typeParameters)
                 .typeArguments(this.typeArguments)
                 .elementType(this.elementType);
@@ -117,6 +126,10 @@ public class TypeInfo {
         return type;
     }
 
+    public TypeInfo getReturnTypeInfo() {
+        return returnTypeInfo;
+    }
+
     @Override
     public String toString() {
         return "TypeInfo{" +
@@ -124,6 +137,7 @@ public class TypeInfo {
                 ", isNullable=" + isNullable +
                 ", isGeneric=" + isGeneric +
                 ", type=" + type +
+                ", returnTypeInfo=" + returnTypeInfo +
                 ", typeParameters=" + typeParameters +
                 ", typeArguments=" + typeArguments +
                 '}';
@@ -134,6 +148,7 @@ public class TypeInfo {
         private boolean isNullable;
         private boolean isGeneric;
         private Type type;
+        private TypeInfo returnTypeInfo;
         private List<String> typeParameters = List.of();
         private List<TypeInfo> typeArguments = List.of();
         private TypeInfo elementType;
@@ -158,6 +173,11 @@ public class TypeInfo {
             return this;
         }
 
+        public Builder returnTypeInfo(TypeInfo returnTypeInfo) {
+            this.returnTypeInfo = returnTypeInfo;
+            return this;
+        }
+
         public Builder typeParameters(List<String> typeParameters) {
             this.typeParameters = typeParameters;
             return this;
@@ -174,7 +194,7 @@ public class TypeInfo {
         }
 
         public TypeInfo build() {
-            return new TypeInfo(name, isNullable, isGeneric, type, typeParameters, typeArguments, elementType);
+            return new TypeInfo(name, isNullable, isGeneric, type, returnTypeInfo, typeParameters, typeArguments, elementType);
         }
     }
 
