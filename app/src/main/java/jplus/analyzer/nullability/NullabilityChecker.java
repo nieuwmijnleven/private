@@ -21,6 +21,7 @@ import jplus.analyzer.StepCursor;
 import jplus.analyzer.nullability.context.ClassContext;
 import jplus.analyzer.nullability.context.ConstructorContext;
 import jplus.analyzer.nullability.context.Context;
+import jplus.analyzer.nullability.context.FieldContext;
 import jplus.analyzer.nullability.context.MethodContext;
 import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.analyzer.nullability.result.ResultState;
@@ -198,6 +199,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         try {
             return super.visitClassDeclaration(ctx);
         } finally {
+
+            classContext.integrateFieldInitResults();
+
             if (classContext.hasUninitializedNonNullField()) {
                 //System.err.println(String.format("There are uninitialized fields : %s", classContext.toString()));
                 for (SymbolInfo fieldInfo : classContext.getUninitializedFieldList()) {
@@ -330,6 +334,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
                 currentSymbolTable.declare(symbol, updated);
                 System.err.println("[NullabilityChecker][FieldDecl] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
+
+                if (rhsState == NullState.NON_NULL) {
+                    ClassContext classContext = classContextStack.peek();
+                    classContext.update(new FieldContext(symbol, InitState.INIT));
+                }
+
             } else {
                 if (!typeInfo.isNullable() && typeInfo.getType() == TypeInfo.Type.Reference) {
                     SymbolInfo updated = symbolInfo.toBuilder()
@@ -339,6 +349,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                     currentSymbolTable.declare(symbol, updated);
                     System.err.println("[NullabilityChecker][FieldDecl] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
                 }
+
+                ClassContext classContext = classContextStack.peek();
+                classContext.update(new FieldContext(symbol, InitState.UNINIT));
             }
         }
 
@@ -528,6 +541,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
         System.err.println("[resolveMethod] classSymbolTable.hasSuperClassTable() = " + classSymbolTable.hasSuperClassTable());
         System.err.println("[resolveMethod] classSymbolTable.superClassTable() = " + classSymbolTable.getSuperClassTable());
+        System.err.println("[resolveMethod] classSymbolTable.superIntefaceTable() = " + classSymbolTable.getSuperInterfaceTables());
 
         String methodName = resolveMethodName(info);
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
@@ -740,7 +754,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                 symbolInfo = symbolInfoOpt.get();
                 log("[NullabilityChecker][Assignment] symbolInfo = " + symbolInfo);
             } else {
-                throw new IllegalStateException(String.format("There is no symbolInfo(%s).", symbol));
+                //throw new IllegalStateException(String.format("There is no symbolInfo(%s).", symbol));
+                log(String.format("There is no symbolInfo(%s).", symbol));
+                return super.visitAssignment(ctx);
             }
         }
         
@@ -841,7 +857,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             currentSymbolTable = conditionResult.whenTrue;
         } else {
             //currentSymbolTable = join(before, join(thenTable, elseTable));
+            System.err.println("[ifThenStatement] conditionResult.whenTrue = " + conditionResult.whenTrue);
+            System.err.println("[ifThenStatement] conditionResult.whenFalse = " + conditionResult.whenFalse);
             currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
+
+            System.err.println("[ifThenStatement] join = " + currentSymbolTable);
         }
 
         return null;
