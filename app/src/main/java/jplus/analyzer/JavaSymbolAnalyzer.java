@@ -323,8 +323,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             ));
 
             // 배열 요소 체인 생성 (NewClassTree 등)
-            for (var initializer : na.getInitializers()) {
-                build(initializer); // visit()를 재귀적으로 호출해서 Step 생성
+            if (na.getInitializers() != null) {
+                for (var initializer : na.getInitializers()) {
+                    build(initializer); // visit()를 재귀적으로 호출해서 Step 생성
+                }
             }
         }
 
@@ -442,6 +444,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         Element element = trees.getElement(getCurrentPath());
         if (element instanceof TypeElement typeElement) {
+
             TypeMirror superClassMirror = typeElement.getSuperclass();
             if (superClassMirror.getKind() == TypeKind.DECLARED) {
                 TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
@@ -459,6 +462,31 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 //                    var classSymbolTable = topLevelSymbolTable.getEnclosingSymbolTable(classSymInfo.getSymbol());
 
                     currentSymbolTable.setSuperClassTable(superClassAnalyzer.getTopLevelSymbolTable().getEnclosingSymbolTables().get(0));
+                }
+            }
+
+            for (TypeMirror interfaceMirror : typeElement.getInterfaces()) {
+
+                if (interfaceMirror.getKind() == TypeKind.DECLARED) {
+                    TypeElement interfaceElement =
+                            (TypeElement) types.asElement(interfaceMirror);
+
+                    TreePath interfacePath = trees.getPath(interfaceElement);
+                    if (interfacePath != null) {
+                        JavaSymbolAnalyzer interfaceAnalyzer = new JavaSymbolAnalyzer(
+                                source, ast, trees, globalSymbolTable, elements, types
+                        );
+
+                        interfaceAnalyzer.scan(interfacePath.getLeaf(), null);
+
+                        // 인터페이스는 여러 개일 수 있으므로 add 형태가 자연스러움
+                        currentSymbolTable.addSuperInterfaceTable(
+                                interfaceAnalyzer
+                                        .getTopLevelSymbolTable()
+                                        .getEnclosingSymbolTables()
+                                        .get(0)
+                        );
+                    }
                 }
             }
         }
@@ -681,8 +709,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         if (path != null) {
             Element e = trees.getElement(path);
             if (e instanceof ExecutableElement ee) {
-                CleanTypePrinter printer = new CleanTypePrinter();
-                List<String> paramTypes = ((ExecutableType) ee.asType()).getParameterTypes().stream().map(printer::print).toList();
+                //CleanTypePrinter printer = new CleanTypePrinter();
+                //List<String> paramTypes = ((ExecutableType) ee.asType()).getParameterTypes().stream().map(printer::print).toList();
+                List<String> paramTypes = ((ExecutableType) ee.asType()).getParameterTypes().stream().map(t -> TypeUtils.fromTypeMirror(t, e)).map(TypeInfo::getFullname).toList();
                 builder.paramTypes(paramTypes).returnType(((ExecutableType) ee.asType()).getReturnType().toString()).hasVarArgs(ee.isVarArgs());
             }
         }

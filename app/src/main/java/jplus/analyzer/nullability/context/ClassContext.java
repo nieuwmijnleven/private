@@ -16,7 +16,9 @@ public class ClassContext implements Context {
 
     private SymbolTable staticSymbolTable;
 
-    private Map<SymbolInfo, InitState> fieldCtorNullState = new HashMap<>();
+    private final Map<String, InitState> fieldInitState = new HashMap<>();
+
+    private final Map<SymbolInfo, InitState> fieldCtorInitState = new HashMap<>();
 
     public ClassContext(SymbolTable classSymbolTable) {
         this.instanceSymbolTable = classSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS);
@@ -29,7 +31,7 @@ public class ClassContext implements Context {
         mergedSymbolTable.findSymbolInfoByType(List.of(TypeInfo.Type.Reference)).stream()
                 .peek(fieldInfo -> System.err.println("[ClassContext] fieldInfo = " + fieldInfo))
                 .filter(fieldInfo -> !fieldInfo.getTypeInfo().isNullable() && fieldInfo.getNullState() != NullState.NON_NULL)
-                .forEach(symbolInfo -> fieldCtorNullState.put(symbolInfo, InitState.INIT));
+                .forEach(symbolInfo -> fieldCtorInitState.put(symbolInfo, InitState.INIT));
     }
 
     private SymbolTable getMergedInstanceAndStaticSymbolTable() {
@@ -38,11 +40,33 @@ public class ClassContext implements Context {
         return mergedSymbolTable;
     }
 
+    public void update(FieldContext fieldCtx) {
+        fieldInitState.put(fieldCtx.getName(), fieldCtx.getInitState());
+    }
+
     public void merge(ConstructorContext ctor) {
-        for (var e : fieldCtorNullState.entrySet()) {
+        for (var e : fieldCtorInitState.entrySet()) {
             e.setValue(
                     InitState.meet(e.getValue(), ctor.get(e.getKey().getSymbol()))
             );
+        }
+    }
+
+    public void integrateFieldInitResults() {
+        for (Map.Entry<String, InitState> entry : fieldInitState.entrySet()) {
+            String field = entry.getKey();
+            InitState initState = entry.getValue();
+
+            if (initState == InitState.INIT) {
+                var fieldSymbolInfoOpt = fieldCtorInitState.entrySet().stream()
+                        .filter(_entry -> _entry.getKey().getSymbol().equals(field))
+                        .map(Map.Entry::getKey)
+                        .findFirst();
+
+                if (fieldSymbolInfoOpt.isPresent()) {
+                    fieldCtorInitState.put(fieldSymbolInfoOpt.get(), InitState.INIT);
+                }
+            }
         }
     }
 
@@ -53,12 +77,12 @@ public class ClassContext implements Context {
 //                .anyMatch(fieldInfo -> {
 //                    return fieldCtorNullState.getOrDefault(fieldInfo.getSymbol(), InitState.UNINIT) == InitState.UNINIT;
 //                });
-        return fieldCtorNullState.entrySet().stream()
+        return fieldCtorInitState.entrySet().stream()
                 .anyMatch(entry -> entry.getValue() == InitState.UNINIT);
     }
 
     public List<SymbolInfo> getUninitializedFieldList() {
-        return fieldCtorNullState.entrySet().stream()
+        return fieldCtorInitState.entrySet().stream()
                 .filter(entry -> entry.getValue() == InitState.UNINIT)
                 .map(Map.Entry::getKey)
                 .toList();
@@ -69,7 +93,7 @@ public class ClassContext implements Context {
         mergedSymbolTable.findSymbolInfoByType(List.of(TypeInfo.Type.Reference)).stream()
                 .filter(fieldInfo -> !fieldInfo.getTypeInfo().isNullable() && fieldInfo.getNullState() != NullState.NON_NULL)
                 .forEach(fieldInfo -> {
-                    var initState = fieldCtorNullState.get(fieldInfo.getSymbol());
+                    var initState = fieldCtorInitState.get(fieldInfo.getSymbol());
                     var updated = fieldInfo.toBuilder().nullState(NullState.NON_NULL).build();
                     if (initState == InitState.INIT) {
                         if (fieldInfo.isStatic()) {
@@ -84,7 +108,7 @@ public class ClassContext implements Context {
     @Override
     public String toString() {
         return "ClassContext{" +
-                "fieldCtorNullState=" + fieldCtorNullState +
+                "fieldCtorNullState=" + fieldCtorInitState +
                 '}';
     }
 }
