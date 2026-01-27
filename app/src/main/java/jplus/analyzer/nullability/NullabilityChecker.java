@@ -1046,7 +1046,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 //
 //        SymbolTable elseTable = before.copy();
 
-        var conditionResult = new ConditionVisitor(this, before).visit(ctx.nullCoalescingExpression());
+        var conditionResult = new ConditionVisitor(this, entry).visit(ctx.nullCoalescingExpression());
         System.err.println("[ConditionalExpression] line(" + ctx.start.getLine() + "), contextString = " + Utils.getTokenString(ctx) + ", conditionResult = " + conditionResult);
 
         currentSymbolTable = conditionResult.whenTrue;
