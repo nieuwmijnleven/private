@@ -72,12 +72,17 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public SymbolTable copy() {
+        return copy(false);
+    }
+
+    public SymbolTable copy(boolean parentCopy) {
+        SymbolTable parent = parentCopy ? this.parent.copy() : this.parent;
         SymbolTable replica = new SymbolTable(parent, this.context);
 
         // 1. symbolMap deep copy (상태)
         replica.symbolMap = new HashMap<>();
         for (var e : this.symbolMap.entrySet()) {
-            replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().build());
+            replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().symbolTable(replica).build());
         }
 
         // 2. resolvedChains deep copy

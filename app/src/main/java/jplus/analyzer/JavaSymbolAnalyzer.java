@@ -160,9 +160,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 return;
             }
 
-            /*if (expr instanceof ConditionalExpressionTree ce) {
-                visit(ce.getTrueExpression(), chain);
-                visit(ce.getFalseExpression(), chain);
+            /*if (expr instanceof ConditionalExpressionTree ct) {
+                visit(ct.getTrueExpression(), chain);
+                visit(ct.getFalseExpression(), chain);
                 return;
             }*/
 
@@ -957,7 +957,15 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitBinary(node, unused);
     }
 
-//    @Override
+    @Override
+    public Void visitConditionalExpression(ConditionalExpressionTree node, Void unused) {
+        buildChain(node.getTrueExpression());
+        buildChain(node.getFalseExpression());
+
+        return super.visitConditionalExpression(node, unused);
+    }
+
+    //    @Override
 //    public Void visitIf(IfTree node, Void unused) {
 //        ExpressionTree exprTree = node.getCondition();
 //        return super.visitIf(node, unused);

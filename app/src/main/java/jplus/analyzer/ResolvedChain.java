@@ -18,7 +18,7 @@ public final class ResolvedChain {
         NEW,
         LITERAL,
         ARRAY_ACCESS,
-        CHAIN
+        CONDITIONAL_EXPRESSION, CHAIN
     }
 
     public static final class Step {
