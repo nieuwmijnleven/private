@@ -90,7 +90,6 @@ class ConditionVisitor
      *
      * ParseTree에서 "단일 reference 식"만 추출합니다.
      * - 단일식: SymbolTable에서 null/non-null 상태를 추적할 수 있는 참조 타입 식
-     * - 단일식이 아닌 경우: null 반환
      */
     ParserRuleContext extractLValue(ParseTree expr) {
         System.err.println("[extractLValue] expr = " + expr.getClass().getSimpleName());

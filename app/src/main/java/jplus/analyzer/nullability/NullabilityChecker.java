@@ -1039,7 +1039,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             return super.visitNullCoalescingExpression(ctx.nullCoalescingExpression());
         }
 
-        SymbolTable before = currentSymbolTable.copy();
+        SymbolTable entry = currentSymbolTable.copy();
 //
 //        SymbolTable thenTable = before.copy();
 //        currentSymbolTable = thenTable;
@@ -1063,14 +1063,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
         if (conditionResult.whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
             //currentSymbolTable = new SymbolTable(null);
-            currentSymbolTable = before;
+            currentSymbolTable = entry;
         } else if (conditionResult.whenTrue.isDeadContext()) {
-            currentSymbolTable = conditionResult.whenFalse;
+            //currentSymbolTable = conditionResult.whenFalse;
         } else if (conditionResult.whenFalse.isDeadContext()) {
             currentSymbolTable = conditionResult.whenTrue;
         } else {
             //currentSymbolTable = join(before, join(thenTable, elseTable));
-            currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
+            //currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
+            currentSymbolTable = join(conditionResult.whenTrue, currentSymbolTable);
         }
 
         var expr1 = ctx.expression();
