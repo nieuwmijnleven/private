@@ -28,10 +28,6 @@ class ConditionVisitor
     public ConditionResult visitEqualityExpression(JPlus25Parser.EqualityExpressionContext ctx) {
         // base case
         if (ctx.EQUAL() == null && ctx.NOTEQUAL() == null) {
-//            return new ConditionResult(
-//                    before.copy(),
-//                    before.copy()
-//            );
             return visit(ctx.relationalExpression());
         }
 
