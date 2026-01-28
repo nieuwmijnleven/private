@@ -833,6 +833,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             TypeMirror returnTypeMirror = trees.getTypeMirror(TreePath.getPath(ast, node.getReturnType()));
             Element returnTypeElement = trees.getElement(TreePath.getPath(ast, node.getReturnType()));
             returnTypeInfo = buildTypeInfo(returnTypeMirror, returnTypeElement);
+            returnTypeInfo = returnTypeInfo.toBuilder().isNullable(isNullableReturn).build();
         }
 
         TypeInfo typeInfo = new TypeInfo(symbolName, isNullableReturn, type, returnTypeInfo);
