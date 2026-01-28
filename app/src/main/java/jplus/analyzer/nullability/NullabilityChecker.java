@@ -185,7 +185,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         }
 
         if (typeName == null) {
-            return super.visitClassDeclaration(ctx);
+            //return super.visitClassDeclaration(ctx);
+            return null;
         }
 
         //visit(ctx.normalClassDeclaration().classBody().classBodyDeclaration().get(0).classMemberDeclaration().fieldDeclaration());
@@ -200,7 +201,30 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         classContextStack.push(classContext);
 
         try {
-            return super.visitClassDeclaration(ctx);
+            //return super.visitClassDeclaration(ctx);
+            var classBodyDef = ctx.normalClassDeclaration().classBody().classBodyDeclaration();
+            for (var classBodyDeclarationContext : classBodyDef) {
+
+                if (classBodyDeclarationContext.classMemberDeclaration() != null) {
+                    var fieldDefCtx = classBodyDeclarationContext.classMemberDeclaration().fieldDeclaration();
+                    if (fieldDefCtx != null) {
+                        visit(fieldDefCtx);
+                    }
+                }
+
+                var ctorDefCtx = classBodyDeclarationContext.constructorDeclaration();
+                if (ctorDefCtx != null) {
+                    visit(ctorDefCtx);
+                }
+            }
+
+//            for (int i = 0; i < ctx.getChildCount(); i++) {
+//                if (ctx.getChild(i) instanceof JPlus25Parser.FieldDeclarationContext || ctx.getChild(i) instanceof JPlus25Parser.ConstructorDeclarationContext) {
+//                    System.err.println("[ClassDef] ctx.getChild = " + ctx.getChild(i).getClass().getSimpleName());
+//                    visit(ctx.getChild(i));
+//                }
+//            }
+
         } finally {
 
             classContext.integrateFieldInitResults();
@@ -220,8 +244,30 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             classContext.updateNonNullFieldNullState();
 
             classContextStack.pop();
+            //exitSymbolTable(ctx);
+        }
+
+
+        var saved = currentSymbolTable.copy();
+
+        //enterSymbolTable(typeName, ctx);
+        try {
+            var classBodyDef = ctx.normalClassDeclaration().classBody().classBodyDeclaration();
+            for (var classBodyDeclarationContext : classBodyDef) {
+
+                if (classBodyDeclarationContext.classMemberDeclaration() != null) {
+                    var methodDefCtx = classBodyDeclarationContext.classMemberDeclaration().methodDeclaration();
+                    if (methodDefCtx != null) {
+                        currentSymbolTable = saved.copy();
+                        visit(methodDefCtx);
+                    }
+                }
+            }
+        } finally {
             exitSymbolTable(ctx);
         }
+
+        return null;
     }
 
     @Override
@@ -232,7 +278,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
     @Override
     public ResultState visitMethodDeclaration(JPlus25Parser.MethodDeclarationContext ctx) {
-        //currentSymbolTable = currentSymbolTable.copy(true);
+        currentSymbolTable = currentSymbolTable.copy();
         return processInvocationDeclaration(InvocationDeclarationContext.from(ctx));
     }
 

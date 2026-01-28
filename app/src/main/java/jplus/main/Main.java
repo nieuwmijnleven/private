@@ -20,7 +20,7 @@ public class Main {
 
         List<Path> classPathList = List.of("/home/user/OnTheGoDatabase/onthego.database/app/build/classes/java/main", "/home/user/JPlus/intellij-plugin/build/idea-sandbox/IC-2025.1.4.1/plugins/intellij-plugin/lib/jspecify-1.0.0.jar").stream().map(Path::of).toList();
 
-        String className = "SQLParser";
+        String className = "SQLScanner";
 
         Project project = new Project(srcDirList, classPathList);
         JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.sqlprocessor", className);
