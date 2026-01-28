@@ -39,7 +39,7 @@ public class JPlusTest9 {
                 "./src/test/files/NullabilityDataflowAnalysis",
                 "jplus.example",
                 "DataFlowInitialState",
-                "Error: (line:12, column:16) u is not initialized.\n" +
+                "Error: (line:12, column:16) u may be null. Consider checking for null or using null-safe operator(?.) before accessing.\n" +
                         "Error: (line:12, column:8) r is a non-nullable variable. But nullable value is assigned to it.\n" +
                         "Error: (line:15, column:12) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
                         "Error: (line:20, column:16) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +

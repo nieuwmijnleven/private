@@ -226,7 +226,7 @@ class ConditionVisitor
         // ArrayCreationExpression → new Type[]
         // -------------------------------
         if (expr instanceof JPlus25Parser.ArrayCreationExpressionContext array) {
-            return array; // 항상 단일식
+            return array;
         }
 
         // -------------------------------
