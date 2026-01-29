@@ -96,6 +96,7 @@ class JPlusTest2 {
                 "Error: (line:26, column:8) The method(getStreet_ExpressionName) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:26, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:30, column:64) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:30, column:79) The 1st argument of the java.util.Optional.orElse() is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:38, column:8) The method(getStreet_ExpressionName_AddressStreetNullsatey) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:42, column:8) The method(getStreet_FieldAccess) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:42, column:34) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
@@ -139,6 +140,7 @@ class JPlusTest2 {
                 "Error: (line:158, column:8) The method(createUserWithQualifiedClassNameAndChaining) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:158, column:15) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:158, column:109) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
+                "Error: (line:163, column:207) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:164, column:8) The method(createUserArrayWithChaining) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:164, column:40) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:168, column:8) The method(createUserArrayWithInitializer) is declared to return a non-null value, but this return statement may return null.\n" +

@@ -81,7 +81,7 @@ public class JavaSymbolResolver {
         SymbolInfo classSymbolInfo = SymbolInfo.builder()
                 .symbol(qualifiedName)
                 .typeInfo(classTypeInfo)
-                //.nullState(NullState.NON_NULL)
+                .nullState(NullState.NON_NULL)
                 .symbolTable(topLevelSymbolTable)
                 .build();
         globalSymbolTable.declare(qualifiedName, classSymbolInfo);
@@ -131,7 +131,7 @@ public class JavaSymbolResolver {
                     SymbolInfo symbolInfo = SymbolInfo.builder()
                             .symbol(parameter.getSimpleName().toString())
                             .typeInfo(typeInfo)
-                            //.nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
+                            .nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
                             .symbolTable(methodSymbolTable)
                             .build();
 
@@ -154,6 +154,7 @@ public class JavaSymbolResolver {
                 SymbolInfo symbolInfo = SymbolInfo.builder()
                         .symbol(symbolName)
                         .typeInfo(typeInfo)
+                        .nullState(NullState.NON_NULL)
                         .symbolTable(classSymbolTable)
                         .build();
 

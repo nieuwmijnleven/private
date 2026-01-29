@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class MethodInvocationInfo {
-    public final String instanceName;
+    public final String receiver;
     public final TypeInfo typeInfo;
     public final String methodName;
 
@@ -30,13 +30,14 @@ public class MethodInvocationInfo {
     public final List<String> paramTypes;
     public final String returnType;
     public final boolean hasVarArgs;
+    private final List<Modifier> modifierList;
 
     public final String source;
     public final int startPos;
     public final int endPos;
 
-    public MethodInvocationInfo(String instanceName, TypeInfo typeInfo, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType,  boolean hasVarArgs, String source, int startPos, int endPos) {
-        this.instanceName = instanceName;
+    public MethodInvocationInfo(String receiver, TypeInfo typeInfo, String methodName, List<String> args, List<String> argTypes, List<String> paramTypes, String returnType, boolean hasVarArgs, List<Modifier> modifierList, String source, int startPos, int endPos) {
+        this.receiver = receiver;
         this.typeInfo = typeInfo;
         this.methodName = methodName;
         this.args = args;
@@ -44,13 +45,18 @@ public class MethodInvocationInfo {
         this.paramTypes = paramTypes;
         this.returnType = returnType;
         this.hasVarArgs = hasVarArgs;
+        this.modifierList = modifierList;
         this.source = source;
         this.startPos = startPos;
         this.endPos = endPos;
     }
+
+    public boolean isStatic() {
+        return modifierList.contains(Modifier.STATIC);
+    }
     
     public static class Builder {
-        private String instanceName;
+        private String receiver;
         private TypeInfo typeInfo;
         private String methodName;
         private List<String> args;
@@ -58,12 +64,13 @@ public class MethodInvocationInfo {
         private List<String> paramTypes;
         private String returnType;
         private boolean hasVarArgs;
+        private List<Modifier> modifierList;
         private String source;
         private int startPos;
         private int endPos;
     
-        public Builder instanceName(String instanceName) {
-            this.instanceName = instanceName;
+        public Builder receiver(String receiver) {
+            this.receiver = receiver;
             return this;
         }
 
@@ -101,6 +108,11 @@ public class MethodInvocationInfo {
             this.hasVarArgs = hasVarArgs;
             return this;
         }
+
+        public Builder modifierList(List<Modifier> modifierList) {
+            this.modifierList = modifierList;
+            return this;
+        }
     
         public Builder source(String source) {
             this.source = source;
@@ -118,7 +130,7 @@ public class MethodInvocationInfo {
         }
     
         public MethodInvocationInfo build() {
-            return new MethodInvocationInfo(instanceName, typeInfo, methodName, args, argTypes, paramTypes, returnType, hasVarArgs, source, startPos, endPos);
+            return new MethodInvocationInfo(receiver, typeInfo, methodName, args, argTypes, paramTypes, returnType, hasVarArgs, modifierList, source, startPos, endPos);
         }
     }
     
@@ -127,16 +139,16 @@ public class MethodInvocationInfo {
     }
 
     public String getInvocationInfoMessage() {
-        if (Objects.equals(instanceName, methodName)) {
-            return instanceName + " constructor";
+        if (Objects.equals(receiver, methodName)) {
+            return receiver + " constructor";
         }
-        return instanceName + "." + methodName + "()";
+        return receiver + "." + methodName + "()";
     }
 
     @Override
     public String toString() {
         return "MethodInvocationInfo{" +
-                "instanceName='" + instanceName + '\'' +
+                "instanceName='" + receiver + '\'' +
                 ", typeInfo='" + typeInfo + '\'' +
                 ", methodName='" + methodName + '\'' +
                 ", args=" + args +
@@ -144,6 +156,7 @@ public class MethodInvocationInfo {
                 ", paramTypes=" + paramTypes +
                 ", returnType='" + returnType + '\'' +
                 ", hasVarArgs=" + hasVarArgs +
+                ", modifierList=" + modifierList +
                 ", source ='" + source + '\'' +
                 ", startPos=" + startPos +
                 ", endPos=" + endPos +

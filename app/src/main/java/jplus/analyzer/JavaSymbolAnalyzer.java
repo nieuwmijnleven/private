@@ -268,8 +268,16 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 visit(ms.getExpression(), chain);
                 addMethodStep(ms, mi, chain);
             } else if (select instanceof IdentifierTree id) {
-                // method()  ← implicit this
-                addImplicitThisMethodStep(id, mi, chain);
+                Element e = trees.getElement(TreePath.getPath(ast, id));
+                if (!(e instanceof ExecutableElement method)) return;
+
+                if (method.getModifiers().contains(Modifier.STATIC)) {
+                    addStaticMethodStep(id, mi, method, chain);
+                } else {
+                    addImplicitThisMethodStep(id, mi, method, chain);
+                }
+
+                //addImplicitThisMethodStep(id, mi, chain);
             } else {
                 visit(select, chain);
             }
@@ -278,10 +286,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         private void addImplicitThisMethodStep(
                 IdentifierTree id,
                 MethodInvocationTree mi,
+                ExecutableElement method,
                 ResolvedChain chain
         ) {
-            Element e = trees.getElement(TreePath.getPath(ast, mi));
-            if (!(e instanceof ExecutableElement method)) return;
+//            Element e = trees.getElement(TreePath.getPath(ast, mi));
+//            if (!(e instanceof ExecutableElement method)) return;
 
             TypeMirror ret = method.getReturnType();
             TypeInfo ti = TypeUtils.fromTypeMirror(ret, method);
@@ -296,6 +305,33 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     buildMethodInvocationInfo(
                             mi,
                             "this",   // receiver
+                            method.getSimpleName().toString()
+                    ),
+                    null
+            ));
+        }
+
+        private void addStaticMethodStep(
+                IdentifierTree id,
+                MethodInvocationTree mi,
+                ExecutableElement method,
+                ResolvedChain chain
+        ) {
+            TypeMirror ret = method.getReturnType();
+            TypeInfo ti = TypeUtils.fromTypeMirror(ret, method);
+
+            TypeElement owner = (TypeElement) method.getEnclosingElement();
+
+            chain.addStep(new ResolvedChain.Step(
+                    ResolvedChain.Kind.METHOD,
+                    method.getSimpleName().toString(),
+                    ti,
+                    ti.isNullable(),
+                    true,
+                    computeRange(mi),
+                    buildMethodInvocationInfo(
+                            mi,
+                            owner.getQualifiedName().toString(), // or null
                             method.getSimpleName().toString()
                     ),
                     null
@@ -539,7 +575,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .symbolTable(currentSymbolTable)
                 .range(computeRange(node))
                 .originalText(computeRangeText(node))
-                //.nullState(NullState.NON_NULL)
+                .nullState(NullState.NON_NULL)
                 .modifierList(convertModifiers(node.getModifiers().getFlags()))
                 .build();
     }
@@ -626,9 +662,25 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return node.toString();
     }
 
+    @Override
+    public Void visitIdentifier(IdentifierTree node, Void unused) {
+        buildChain(node);
+        return super.visitIdentifier(node, unused);
+    }
+
+    @Override
+    public Void visitMemberSelect(MemberSelectTree node, Void unused) {
+
+        buildChain(node);
+
+        return super.visitMemberSelect(node, unused);
+    }
 
     @Override
     public Void visitNewClass(NewClassTree node, Void unused) {
+
+        buildChain(node);
+
         String qualifiedName = getQualifiedName(node);
 
         JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
@@ -644,6 +696,14 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
 
         return super.visitNewClass(node, unused);
+    }
+
+    @Override
+    public Void visitNewArray(NewArrayTree node, Void unused) {
+
+        buildChain(node);
+
+        return super.visitNewArray(node, unused);
     }
 
     @Override
@@ -676,7 +736,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         .typeInfo(ti)
                         .symbolTable(lambdaSymbolTable)
                         .range(computeRange(param))
-                        //.nullState(NullState.NON_NULL)
+                        .nullState(NullState.NON_NULL)
                         .originalText(param.toString())
                         .build();
 
@@ -698,7 +758,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
     }
 
-    private MethodInvocationInfo buildMethodInvocationInfo(Tree node, String instanceName, String methodName) {
+    private MethodInvocationInfo buildMethodInvocationInfo(Tree node, String receiver, String methodName) {
         List<? extends ExpressionTree> args;
         if (node instanceof MethodInvocationTree mit) {
             args = mit.getArguments();
@@ -721,7 +781,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TypeMirror typeMirror = trees.getTypeMirror(path);
 
         MethodInvocationInfo.Builder builder = MethodInvocationInfo.builder()
-                .instanceName(instanceName)
+                .receiver(receiver)
                 .typeInfo(buildTypeInfo(typeMirror, element))
                 .methodName(methodName)
                 .args(argStrings)
@@ -729,6 +789,16 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .source(computeRangeText(node))
                 .startPos(getSourceStartPosition(node))
                 .endPos(getSourceEndPosition(node));
+
+        if (element instanceof ExecutableElement method) {
+
+            var modifiers = method.getModifiers();
+            builder.modifierList(convertModifiers(method.getModifiers()));
+
+            if (receiver != null && modifiers.contains(Modifier.STATIC)) {
+                resolver.resolveClass(receiver);
+            }
+        }
 
 //        TreePath path = trees.getPath(ast, node);
         if (path != null) {
@@ -793,7 +863,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     .range(computeRange(node))
                     .originalText(param.toString())
                     .modifierList(convertModifiers(param.getModifiers().getFlags()))
-                    //.nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
+                    .nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
                     .symbolTable(methodSymbolTable)
                     .build();
 
@@ -842,7 +912,19 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
 
         TypeInfo typeInfo = new TypeInfo(symbolName, isNullableReturn, type, returnTypeInfo);
-        SymbolInfo symbolInfo = new SymbolInfo(symbolName, typeInfo, computeRange(node), computeRangeText(node), convertModifiers(node.getModifiers().getFlags()), currentSymbolTable);
+
+        SymbolInfo symbolInfo =
+                SymbolInfo.builder()
+                        .symbol(symbolName)
+                        .typeInfo(typeInfo)
+                        .originalText(computeRangeText(node))
+                        .range(computeRange(node))
+                        .nullState(NullState.NON_NULL)
+                        .modifierList(convertModifiers(node.getModifiers().getFlags()))
+                        .symbolTable(currentSymbolTable)
+                        .build();
+
+                //new SymbolInfo(symbolName, typeInfo, computeRange(node), computeRangeText(node), convertModifiers(node.getModifiers().getFlags()), currentSymbolTable);
 
         // ---------- 현재 SymbolTable에 등록 ----------
         currentSymbolTable.declare(symbolName, symbolInfo);
@@ -894,7 +976,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .typeInfo(typeInfo)
                 .modifierList(convertModifiers(node.getModifiers().getFlags()))
                 .symbolTable(currentSymbolTable)
-                //.nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
+                .nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
                 .originalText(computeRangeText(node))
                 .range(computeRange(node))
                 .build();
@@ -941,6 +1023,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {
+
+        buildChain(node);
 
         System.err.println("[JavaSymbolAnalyzer] code = " + node.getMethodSelect().toString());
 
