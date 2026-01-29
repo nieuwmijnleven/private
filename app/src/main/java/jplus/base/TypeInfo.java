@@ -99,7 +99,7 @@ public class TypeInfo {
     }
 
     public String getFullname() {
-        return isGeneric() ? name + "<" + getTypeArguments().stream().map(TypeInfo::getFullname).collect(Collectors.joining(", ")) + ">" : name;
+        return isGeneric() ? name + "<" + getTypeArguments().stream().map(TypeInfo::getFullname).collect(Collectors.joining(",")) + ">" : name;
     }
 
     public boolean isNullable() {

@@ -953,8 +953,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 //
 //        SymbolTable elseTable = before.copy();
 
+        System.err.println("[IfThenElseStatement] line(" + ctx.expression().start.getLine() + ") = " + Utils.getTokenString(ctx.expression()));
         var conditionResult = new ConditionVisitor(this, entry).visit(ctx.expression());
-        //System.err.println("[visitIfThenElseStatement] " + conditionResult);
 
         currentSymbolTable = conditionResult.whenTrue;
         visit(ctx.statementNoShortIf());

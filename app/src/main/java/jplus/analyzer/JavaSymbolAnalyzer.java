@@ -20,6 +20,7 @@ import com.sun.source.tree.*;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
+import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.analyzer.util.CleanTypePrinter;
 import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
@@ -117,7 +118,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             }
 
             // ⚡ + 연산(BinaryTree)
-            if (expr instanceof BinaryTree bt && bt.getKind() == Tree.Kind.PLUS) {
+            //if (expr instanceof BinaryTree bt && bt.getKind() == Tree.Kind.PLUS) {
+            if (expr instanceof BinaryTree bt && (bt.getKind() != Tree.Kind.EQUAL_TO && bt.getKind() != Tree.Kind.NOT_EQUAL_TO && bt.getKind() != Tree.Kind.GREATER_THAN && bt.getKind() != Tree.Kind.GREATER_THAN_EQUAL && bt.getKind() != Tree.Kind.LESS_THAN && bt.getKind() != Tree.Kind.LESS_THAN_EQUAL)) {
                 // 좌측 operand
                 visit(bt.getLeftOperand(), chain);
 
@@ -537,6 +539,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .symbolTable(currentSymbolTable)
                 .range(computeRange(node))
                 .originalText(computeRangeText(node))
+                //.nullState(NullState.NON_NULL)
                 .modifierList(convertModifiers(node.getModifiers().getFlags()))
                 .build();
     }
@@ -673,6 +676,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         .typeInfo(ti)
                         .symbolTable(lambdaSymbolTable)
                         .range(computeRange(param))
+                        //.nullState(NullState.NON_NULL)
                         .originalText(param.toString())
                         .build();
 
@@ -777,7 +781,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             // 이름 리스트 생성 (FQN / simple)
             String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
             System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
-            String simpleTypeNameWithNullability = param.getType().toString() + (typeInfo.isNullable() ? "?" : "");
+            String simpleTypeNameWithNullability = param.getType().toString().replace(", ", ",") + (typeInfo.isNullable() ? "?" : "");
             //System.err.println("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
             simpleTypeNameList.add(simpleTypeNameWithNullability);
@@ -789,6 +793,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                     .range(computeRange(node))
                     .originalText(param.toString())
                     .modifierList(convertModifiers(param.getModifiers().getFlags()))
+                    //.nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
                     .symbolTable(methodSymbolTable)
                     .build();
 
@@ -883,11 +888,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         Element element = trees.getElement(TreePath.getPath(ast, node));
         TypeMirror typeMirror = trees.getTypeMirror(typePath);
 
+        TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
         SymbolInfo symbolInfo = SymbolInfo.builder()
                 .symbol(node.getName().toString())
-                .typeInfo(buildTypeInfo(typeMirror, element))
+                .typeInfo(typeInfo)
                 .modifierList(convertModifiers(node.getModifiers().getFlags()))
                 .symbolTable(currentSymbolTable)
+                //.nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
                 .originalText(computeRangeText(node))
                 .range(computeRange(node))
                 .build();
@@ -909,6 +916,28 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitTry(tryTree, unused);
     }
 
+    /*@Override
+    public Void visitEnhancedForLoop(EnhancedForLoopTree node, Void unused) {
+
+        super.visitEnhancedForLoop(node, unused);
+
+        var variableTree = node.getVariable();
+        handleLocalVariable(variableTree, unused);
+
+        var symbol = variableTree.getName().toString();
+        var symbolInfo = currentSymbolTable.resolveInCurrent(symbol);
+        System.err.println("[EnhancedForLoop] symbolInfo = " + symbolInfo);
+
+        currentSymbolTable.declare(
+                symbol,
+                symbolInfo.toBuilder()
+                        .nullState(NullState.NON_NULL)
+                        .build()
+        );
+
+        //return super.visitEnhancedForLoop(node, unused);
+        return null;
+    }*/
 
     @Override
     public Void visitMethodInvocation(MethodInvocationTree node, Void unused) {

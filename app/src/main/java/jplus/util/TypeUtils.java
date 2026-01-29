@@ -2,8 +2,14 @@ package jplus.util;
 
 import jplus.base.TypeInfo;
 
-import javax.lang.model.type.*;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,7 +106,7 @@ public class TypeUtils {
                 if (!typeArgs.isEmpty()) {
                     String args = typeArgs.stream()
                                           .map(TypeUtils::getTypeName)
-                                          .collect(Collectors.joining(", "));
+                                          .collect(Collectors.joining(","));
                     return rawType + "<" + args + ">";
                 } else {
                     return rawType;

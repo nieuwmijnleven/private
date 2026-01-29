@@ -48,7 +48,7 @@ public class CleanTypePrinter extends SimpleTypeVisitor14<String, Void> {
             sb.append(
                 args.stream()
                     .map(this::print)
-                    .collect(Collectors.joining(", "))
+                    .collect(Collectors.joining(","))
             );
             sb.append(">");
         }
