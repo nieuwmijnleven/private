@@ -1,5 +1,6 @@
 package jplus.analyzer;
 
+import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -80,6 +81,7 @@ public class JavaSymbolResolver {
         SymbolInfo classSymbolInfo = SymbolInfo.builder()
                 .symbol(qualifiedName)
                 .typeInfo(classTypeInfo)
+                //.nullState(NullState.NON_NULL)
                 .symbolTable(topLevelSymbolTable)
                 .build();
         globalSymbolTable.declare(qualifiedName, classSymbolInfo);
@@ -129,6 +131,7 @@ public class JavaSymbolResolver {
                     SymbolInfo symbolInfo = SymbolInfo.builder()
                             .symbol(parameter.getSimpleName().toString())
                             .typeInfo(typeInfo)
+                            //.nullState(!typeInfo.isNullable() ? NullState.NON_NULL : NullState.UNKNOWN)
                             .symbolTable(methodSymbolTable)
                             .build();
 
