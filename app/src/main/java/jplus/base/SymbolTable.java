@@ -50,8 +50,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private List<ResolvedChain> resolvedChains = new ArrayList<>();
 
-
-
     public enum ExecutionContext {
         STATIC,
         INSTANCE;
@@ -365,6 +363,9 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public List<ResolvedChain> getResolvedChains() {
+//        if (resolvedChains.isEmpty()) {
+//            return Collections.unmodifiableList(parent.getResolvedChains());
+//        }
         return Collections.unmodifiableList(resolvedChains);
     }
 
