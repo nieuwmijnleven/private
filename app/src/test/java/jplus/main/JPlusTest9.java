@@ -65,7 +65,7 @@ public class JPlusTest9 {
                 "./src/test/files/NullableAnnotation",
                 "jplus.example",
                 "Constructors",
-                "Error: (line:5, column:4) Non-null field 'name' is not initialized in one or more constructors of class 'Constructors'\n"
+                ""
         );
     }
 

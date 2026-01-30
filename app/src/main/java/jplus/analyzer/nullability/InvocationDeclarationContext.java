@@ -10,6 +10,7 @@ import java.util.EnumSet;
 public interface InvocationDeclarationContext {
     ParserRuleContext originalContext();
     JPlus25Parser.FormalParameterListContext formalParameterList();
+    ParserRuleContext invocationBody();
     EnumSet<Modifier> modifiers();
     String methodName();
 
@@ -23,6 +24,11 @@ public interface InvocationDeclarationContext {
             @Override
             public JPlus25Parser.FormalParameterListContext formalParameterList() {
                 return ctx.methodHeader().methodDeclarator().formalParameterList();
+            }
+
+            @Override
+            public ParserRuleContext invocationBody() {
+                return ctx.methodBody().block();
             }
 
             @Override
@@ -51,6 +57,11 @@ public interface InvocationDeclarationContext {
             @Override
             public JPlus25Parser.FormalParameterListContext formalParameterList() {
                 return ctx.constructorDeclarator().formalParameterList();
+            }
+
+            @Override
+            public ParserRuleContext invocationBody() {
+                return ctx.constructorBody();
             }
 
             @Override
