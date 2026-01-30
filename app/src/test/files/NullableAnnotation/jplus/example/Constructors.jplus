@@ -2,27 +2,15 @@ package jplus.example;
 import org.jspecify.annotations.Nullable;
 
 public class Constructors {
-    String name;
     int age;
-
-    Constructors (boolean flag) {
-        if (flag) {
-            this.name = "jadex";
-        }
-    }
-
-    Constructors (boolean flag, String name) {
-        if (flag) {
-            this.name = name;
-        }
-    }
+    String name;
 
     Constructors (int age) {
-        this.age = age;
+        this(age, "jadex");
     }
 
-    Constructors (String name, int age) {
-        this.name = name;
+    Constructors (int age, String name) {
         this.age = age;
+        this.name = name;
     }
 }

@@ -1,6 +1,7 @@
 package jplus.analyzer.nullability.context;
 
 import jplus.analyzer.nullability.InitState;
+import jplus.analyzer.nullability.InvocationDeclarationContext;
 import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
@@ -9,29 +10,39 @@ import jplus.base.TypeInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ClassContext implements Context {
+
+    private SymbolTable classSymbolTable;
 
     private SymbolTable instanceSymbolTable;
 
     private SymbolTable staticSymbolTable;
 
+    private final Map<String, InvocationDeclarationContext> ctorNameToContextMap;
+
     private final Map<String, InitState> fieldInitState = new HashMap<>();
 
     private final Map<SymbolInfo, InitState> fieldCtorInitState = new HashMap<>();
 
-    public ClassContext(SymbolTable classSymbolTable) {
+    public ClassContext(SymbolTable classSymbolTable, Map<String, InvocationDeclarationContext> ctorNameToContextMap) {
+        this.classSymbolTable = classSymbolTable;
         this.instanceSymbolTable = classSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS);
         this.staticSymbolTable = classSymbolTable.getEnclosingSymbolTable(SymbolTable.STATIC_NS);
+        this.ctorNameToContextMap = ctorNameToContextMap;
+
         initFieldCtorNullState();
     }
 
     private void initFieldCtorNullState() {
         SymbolTable mergedSymbolTable = getMergedInstanceAndStaticSymbolTable();
         mergedSymbolTable.findSymbolInfoByType(List.of(TypeInfo.Type.Reference)).stream()
-                .peek(fieldInfo -> System.err.println("[ClassContext] fieldInfo = " + fieldInfo))
                 .filter(fieldInfo -> !fieldInfo.getTypeInfo().isNullable() && fieldInfo.getNullState() != NullState.NON_NULL)
+                .peek(fieldInfo -> System.err.println("[ClassContext] fieldInfo = " + fieldInfo))
                 .forEach(symbolInfo -> fieldCtorInitState.put(symbolInfo, InitState.INIT));
+
+        System.err.println("[ClassContext] fieldCtorInitState = " + fieldCtorInitState);
     }
 
     private SymbolTable getMergedInstanceAndStaticSymbolTable() {
@@ -50,6 +61,22 @@ public class ClassContext implements Context {
                     InitState.meet(e.getValue(), ctor.get(e.getKey().getSymbol()))
             );
         }
+    }
+
+    public SymbolTable getClassSymbolTable() {
+        return classSymbolTable;
+    }
+
+    public SymbolTable getInstanceSymbolTable() {
+        return instanceSymbolTable;
+    }
+
+    public SymbolTable getStaticSymbolTable() {
+        return staticSymbolTable;
+    }
+
+    public Optional<InvocationDeclarationContext> getCtorDefContext(String methodName) {
+        return Optional.ofNullable(ctorNameToContextMap.get(methodName));
     }
 
     public void integrateFieldInitResults() {
@@ -108,7 +135,8 @@ public class ClassContext implements Context {
     @Override
     public String toString() {
         return "ClassContext{" +
-                "fieldCtorNullState=" + fieldCtorInitState +
+                "fieldInitState=" + fieldInitState +
+                "fieldCtorInitState=" + fieldCtorInitState +
                 '}';
     }
 }
