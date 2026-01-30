@@ -173,47 +173,44 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     public ResultState visitClassDeclaration(JPlus25Parser.ClassDeclarationContext ctx) {
 
         String typeName = null;
+
+        List<JPlus25Parser.ClassBodyDeclarationContext> classBodyDefCtxList = null;
         Map<String, InvocationDeclarationContext> ctorNameToContextMap = null;
 
         if (ctx.normalClassDeclaration() != null) {
             typeName = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
-            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromNormalClass(ctx.normalClassDeclaration().classBody().classBodyDeclaration()));
             System.err.println("[NullabilityChecker][ClassDecl] className = " + typeName);
-            System.err.println("[NullabilityChecker][ClassDecl] ctorNameToContextMap = " + ctorNameToContextMap);
+
+            classBodyDefCtxList = ctx.normalClassDeclaration().classBody().classBodyDeclaration();
+            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromNormalClass(classBodyDefCtxList));
         } else if (ctx.enumDeclaration() != null) {
             typeName = Utils.getTokenString(ctx.enumDeclaration().typeIdentifier());
-            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromEnum(ctx.enumDeclaration().enumBody().enumBodyDeclarations().classBodyDeclaration()));
             System.err.println("[NullabilityChecker][ClassDecl] enumName = " + typeName);
-            System.err.println("[NullabilityChecker][ClassDecl] ctorNameToContextMap = " + ctorNameToContextMap);
+
+            classBodyDefCtxList = ctx.enumDeclaration().enumBody().enumBodyDeclarations().classBodyDeclaration();
+            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromEnum(classBodyDefCtxList));
         } else if (ctx.recordDeclaration() != null) {
             typeName = Utils.getTokenString(ctx.recordDeclaration().typeIdentifier());
-            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromRecord(ctx.recordDeclaration().recordBody().recordBodyDeclaration()));
             System.err.println("[NullabilityChecker][ClassDecl] recordName = " + typeName);
-            System.err.println("[NullabilityChecker][ClassDecl] ctorNameToContextMap = " + ctorNameToContextMap);
+
+            classBodyDefCtxList = ctx.recordDeclaration().recordBody().recordBodyDeclaration().stream().map(JPlus25Parser.RecordBodyDeclarationContext::classBodyDeclaration).toList();
+            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromRecord(ctx.recordDeclaration().recordBody().recordBodyDeclaration()));
         }
+
+        System.err.println("[NullabilityChecker][ClassDecl] classBodyDefCtxList = " + classBodyDefCtxList.stream().map(Utils::getTokenString).toList());
+        System.err.println("[NullabilityChecker][ClassDecl] ctorNameToContextMap = " + ctorNameToContextMap);
 
         if (typeName == null) {
-            //return super.visitClassDeclaration(ctx);
             return null;
         }
-
-        //visit(ctx.normalClassDeclaration().classBody().classBodyDeclaration().get(0).classMemberDeclaration().fieldDeclaration());
-
-//        ctx.normalClassDeclaration().classBody().classBodyDeclaration().forEach(classBodyDeclarationContext -> {
-//            visit(classBodyDeclarationContext.classMemberDeclaration().fieldDeclaration());
-//        });
 
         enterSymbolTable(typeName, ctx);
 
         ClassContext classContext = new ClassContext(currentSymbolTable, ctorNameToContextMap);
         classContextStack.push(classContext);
 
-        //getConstructorContextList(ctx);
-
         try {
-            //return super.visitClassDeclaration(ctx);
-            var classBodyDef = ctx.normalClassDeclaration().classBody().classBodyDeclaration();
-            for (var classBodyDeclarationContext : classBodyDef) {
+            for (var classBodyDeclarationContext : classBodyDefCtxList) {
 
                 if (classBodyDeclarationContext.classMemberDeclaration() != null) {
                     var fieldDefCtx = classBodyDeclarationContext.classMemberDeclaration().fieldDeclaration();
@@ -222,18 +219,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                     }
                 } else if (classBodyDeclarationContext.constructorDeclaration() != null) {
                     var ctorDefCtx = classBodyDeclarationContext.constructorDeclaration();
-                    if (ctorDefCtx != null) {
-                        visit(ctorDefCtx);
-                    }
+                    visit(ctorDefCtx);
                 }
             }
 
         } finally {
             System.err.println("[ClassDef] ClassContext = " + classContext);
-            classContext.integrateFieldInitResults();
 
+            classContext.integrateFieldInitResults();
             if (classContext.hasUninitializedNonNullField()) {
-                //System.err.println(String.format("There are uninitialized fields : %s", classContext.toString()));
                 for (SymbolInfo fieldInfo : classContext.getUninitializedFieldList()) {
                     reportIssue(
                             fieldInfo.getRange().startLine(),
@@ -245,22 +239,21 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             }
 
             classContext.updateNonNullFieldNullState();
-
             classContextStack.pop();
-            //exitSymbolTable(ctx);
         }
 
 
         var saved = currentSymbolTable.copy();
 
-        //enterSymbolTable(typeName, ctx);
         try {
             var classBodyDef = ctx.normalClassDeclaration().classBody().classBodyDeclaration();
             for (var classBodyDeclarationContext : classBodyDef) {
 
                 if (classBodyDeclarationContext.classMemberDeclaration() != null) {
+
                     var methodDefCtx = classBodyDeclarationContext.classMemberDeclaration().methodDeclaration();
                     if (methodDefCtx != null) {
+
                         currentSymbolTable = saved.copy();
                         visit(methodDefCtx);
                     }
@@ -1142,6 +1135,94 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
+    public ResultState visitSwitchStatement(JPlus25Parser.SwitchStatementContext ctx) {
+
+        var saved = currentSymbolTable;
+
+        var selector = ctx.expression();
+        if (selector != null) {
+
+            var conditionNullState = evalRHS(ctx.expression(), currentSymbolTable);
+            if (conditionNullState != NullState.NON_NULL) {
+
+                reportIssue(
+                        ctx.start,
+                        String.format("Switch selector expression(%s) is nullable; this may cause a NullPointerException.", Utils.getTokenString(ctx.expression()))
+                );
+            }
+        }
+
+        //var saved = currentSymbolTable.copy();
+        enterSymbolTable("^block$", ctx);
+
+        var switchRuleList = ctx.switchBlock().switchRule();
+        for (var switchRuleCtx : switchRuleList) {
+
+            //var symbolTable = saved.copy();
+
+            enterSymbolTable("^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""), ctx);
+            System.err.println("[SwitchStatement] enclosing = " + "^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""));
+
+            var casePatternList = switchRuleCtx.switchLabel().casePattern();
+            if (casePatternList != null) {
+                for (var casePatternCtx : casePatternList) {
+
+                    var typePattern = casePatternCtx.pattern().typePattern();
+                    var recordPattern = casePatternCtx.pattern().recordPattern();
+
+                    if (typePattern != null) {
+                        var varDefIdCtx = typePattern.localVariableDeclaration().variableDeclaratorList().variableDeclarator(0).variableDeclaratorId();
+                        var symbol = Utils.getTokenString(varDefIdCtx);
+
+                        var symbolInfo = currentSymbolTable.resolveInCurrent(symbol);
+                        System.err.println("[SwitchStatement] resolvedChaining = " + currentSymbolTable.getResolvedChains());
+
+                        System.err.println("[SwitchStatement] symbolTable = " + currentSymbolTable);
+                        System.err.println("[SwitchStatement] symbolInfo = " + symbolInfo);
+
+                        currentSymbolTable.declare(
+                                symbol,
+                                symbolInfo.toBuilder()
+                                        .nullState(NullState.NON_NULL)
+                                        .build()
+                        );
+
+                        System.err.println("[SwitchStatement] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
+
+                        var guard = switchRuleCtx.switchLabel().guard();
+                        if (guard != null) {
+                            var guardNullState = evalRHS(guard, currentSymbolTable);
+                            if (guardNullState != NullState.NON_NULL) {
+                                reportIssue(
+                                        guard.start,
+                                        String.format("Possible NullPointerException in switch guard expression(%s).", Utils.getTokenString(guard))
+                                );
+                            }
+                        }
+
+                    } else if (recordPattern != null) {
+
+                    }
+                }
+            }
+
+            if (switchRuleCtx.switchLabel().NullLiteral() != null) {
+                updateNullState(selector, saved, NullState.NULL);
+            }
+
+            if (switchRuleCtx.expression() != null) visit(switchRuleCtx.expression());
+            if (switchRuleCtx.block() != null) visit(switchRuleCtx.block());
+            if (switchRuleCtx.throwStatement() != null) visit(switchRuleCtx.throwStatement());
+
+            exitSymbolTable(ctx);
+        }
+
+        exitSymbolTable(ctx);
+
+        return null;
+    }
+
+    @Override
     public ResultState visitConditionalExpression(JPlus25Parser.ConditionalExpressionContext ctx) {
 
         if (ctx.expression() == null) {
@@ -1405,54 +1486,36 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     private void handleExplicitConstructorInvocation(JPlus25Parser.ExplicitConstructorInvocationContext ctx, ResolvedChain chain) {
-        //List<String> typeNameList = getTypeNamesFromParameterList(ctx.formalParameterList());
         String methodSymbol = "^constructor$_" + String.join("_", chain.first().invocationInfo.paramTypes);
+        System.err.println("[handleExplicitConstructorInvocation] methodSymbol = " + methodSymbol);
+
         String simpleMethodSymbol = "^constructor$_" + String.join("_", chain.first().invocationInfo.paramTypes.stream().map(CodeUtils::getSimpleName).toList());
         System.err.println("[handleExplicitConstructorInvocation] methodSymbol = " + methodSymbol);
 
         var classContext = classContextStack.peek();
-        classContext.getCtorDefContext(simpleMethodSymbol)
+        classContextStack.peek().getCtorDefContext(simpleMethodSymbol)
                 .ifPresent(invocationDefCtx -> {
                     System.err.println("[handleExplicitConstructorInvocation] invoke this()");
 
                     var saved = currentSymbolTable;
+
                     currentSymbolTable =
                             classContext.getClassSymbolTable()
                                     .getEnclosingSymbolTable(methodSymbol)
-                                            .getEnclosingSymbolTable("^block$");
+                                    .getEnclosingSymbolTable("^block$");
 
                     System.err.println("[handleExplicitConstructorInvocation] currentSymbolTable = " + currentSymbolTable);
 
-
-                    //constructorContextStack.push(new ConstructorContext());
                     try {
                         var constructorBody = (JPlus25Parser.ConstructorBodyContext) invocationDefCtx.invocationBody();
+
                         if (constructorBody.blockStatements() != null) visit(constructorBody.blockStatements());
                         if (constructorBody.explicitConstructorInvocation() != null) visit(constructorBody.explicitConstructorInvocation());
                         if (constructorBody.blockStatement() != null) visit(constructorBody.blockStatement());
-
-                        //super.visitConstructorBody((JPlus25Parser.ConstructorBodyContext) invocationDefCtx.invocationBody());
                     } finally {
-//                        System.err.println("[constructorContext] constructorContext = " + constructorContextStack.peek());
-//                        classContext.merge(constructorContextStack.pop());
                         currentSymbolTable = saved;
                     }
-
                 });
-//
-//        //System.err.println("[processInvocationDeclaration] currentSymbolTable = " + currentSymbolTable);
-//        System.err.println("[processInvocationDeclaration] methodSymbol = " + methodSymbol);
-//        //SymbolInfo methodSymbolInfo = currentSymbolTable.resolveInCurrent(methodSymbol);
-//        SymbolInfo methodSymbolInfo = currentSymbolTable.resolve(methodSymbol);
-
-        /*SymbolInfo methodSymbolInfo = currentSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS).resolveInCurrent(methodSymbol);
-        if (ctx.modifiers().contains(Modifier.STATIC)) {
-            methodSymbolInfo = currentSymbolTable.getEnclosingSymbolTable(SymbolTable.STATIC_NS).resolveInCurrent(methodSymbol);
-        }*/
-
-//        if (methodSymbolInfo == null) {
-//            throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
-//        }
     }
 
     @Override
@@ -1461,8 +1524,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
         return processMethodInvocation(ctx);
-        //evalRHS(ctx);
-        //return null;
     }
 
     private ResultState processMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {

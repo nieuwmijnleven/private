@@ -69,6 +69,17 @@ public class JPlusTest9 {
         );
     }
 
+    @Test
+    void testSwitch() throws Exception {
+        checkNullability(
+                "./src/test/files/NullableAnnotation",
+                "jplus.example",
+                "Switch",
+                "Error: (line:8, column:46) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:9, column:41) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n"
+        );
+    }
+
     private void checkNullability(String srcPath, String packageName, String className, String expected) throws Exception {
         Project project = new Project(Path.of(srcPath));
         JPlusProcessor processor = new JPlusProcessor(project, packageName, className);
