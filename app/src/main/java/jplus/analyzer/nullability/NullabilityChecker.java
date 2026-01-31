@@ -18,11 +18,13 @@ package jplus.analyzer.nullability;
 
 import jplus.analyzer.ResolvedChain;
 import jplus.analyzer.StepCursor;
+import jplus.analyzer.nullability.adapter.SwitchExprStmtContext;
 import jplus.analyzer.nullability.context.ClassContext;
 import jplus.analyzer.nullability.context.ConstructorContext;
 import jplus.analyzer.nullability.context.Context;
 import jplus.analyzer.nullability.context.FieldContext;
 import jplus.analyzer.nullability.context.MethodContext;
+import jplus.analyzer.nullability.context.SwitchContext;
 import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.analyzer.nullability.result.ResultState;
 import jplus.base.JPlus25Parser;
@@ -68,6 +70,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     private final Deque<ClassContext> classContextStack = new ArrayDeque<>();
 
     private final Deque<ConstructorContext> constructorContextStack = new ArrayDeque<>();
+    private final Deque<SwitchContext> switchContextStack = new ArrayDeque<>();
 
     private String originalText;
     private String packageName;
@@ -93,16 +96,17 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         return issues;
     }
 
-    private void enterSymbolTable(String symbol, ParserRuleContext ctx) {
+    /*private void enterSymbolTable(String symbol, ParserRuleContext ctx) {
         log("[enterSymbolTable] parent = " + ctx.parent.getClass().getSimpleName());
         log("[enterSymbolTable] context = " + ctx.getClass().getSimpleName());
         log("[enterSymbolTable] symbol = " + symbol);
         log("[enterSymbolTable] currentSymbolTable = " + currentSymbolTable);
         currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbol);
         log("[enterSymbolTable] enclosing symboltable = " + currentSymbolTable);
-    }
+    }*/
 
-    private void exitSymbolTable(ParserRuleContext ctx) {
+
+    /*private void exitSymbolTable(ParserRuleContext ctx) {
         log("[exitSymbolTable] context = " + ctx.getClass().getSimpleName());
         log("[exitSymbolTable] parent = " + ctx.parent.getClass().getSimpleName());
 
@@ -116,6 +120,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             );
         }
 
+        currentSymbolTable = currentSymbolTable.getParent();
+    }*/
+
+    private void enterSymbolTable(String symbol) {
+        currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable(symbol);
+    }
+
+    private void exitSymbolTable() {
         currentSymbolTable = currentSymbolTable.getParent();
     }
 
@@ -204,7 +216,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             return null;
         }
 
-        enterSymbolTable(typeName, ctx);
+        enterSymbolTable(typeName);
 
         ClassContext classContext = new ClassContext(currentSymbolTable, ctorNameToContextMap);
         classContextStack.push(classContext);
@@ -260,7 +272,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                 }
             }
         } finally {
-            exitSymbolTable(ctx);
+            exitSymbolTable();
         }
 
         return null;
@@ -377,13 +389,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
         }
 
-        enterSymbolTable(methodSymbolInfo.getSymbol(), ctx.originalContext());
+        enterSymbolTable(methodSymbolInfo.getSymbol());
         contextStack.push(new MethodContext(ctx.methodName(), methodSymbolInfo));
         try {
             return super.visitChildren(ctx.originalContext());
         } finally {
             contextStack.pop();
-            exitSymbolTable(ctx.originalContext());
+            exitSymbolTable();
         }
     }
 
@@ -393,12 +405,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         log("[LambdaExpression] startOffset = " + ctx.start.getStartIndex());
 
         String lambdaSymbol = "^lambda$" + ctx.start.getStartIndex();
-        enterSymbolTable(lambdaSymbol, ctx);
+        enterSymbolTable(lambdaSymbol);
         try {
             log("[LambdaExpression] lambdaSymboTable = " + currentSymbolTable);
             return super.visitLambdaExpression(ctx);
         } finally {
-            exitSymbolTable(ctx);
+            exitSymbolTable();
         }
     }
 
@@ -467,6 +479,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         if (conditionalExprResult != null) {
             System.err.println("[evalInitializer] conditionalExprResult = " + conditionalExprResult.getNullState());
             return conditionalExprResult.getNullState();
+        }
+
+        var switchExprResult = symbolTable.resolveInCurrent("^SwitchExpression$" + ctx.start.getStartIndex());
+        if (switchExprResult != null) {
+            System.err.println("[evalInitializer] switchExprResult = " + switchExprResult.getNullState());
+            return switchExprResult.getNullState();
         }
 
         System.err.println("[evalInitializer] resolvedChains: " + symbolTable.getResolvedChains());
@@ -574,19 +592,19 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     @Override
     public ResultState visitBlock(JPlus25Parser.BlockContext ctx) {
         var saved = currentSymbolTable;
-        enterSymbolTable("^block$", ctx);
+        enterSymbolTable("^block$");
         try {
             return super.visitBlock(ctx);
         } finally {
             saved.mergeDeadContext(currentSymbolTable.isDeadContext());
-            exitSymbolTable(ctx);
+            exitSymbolTable();
         }
     }
 
     @Override
     public ResultState visitConstructorBody(JPlus25Parser.ConstructorBodyContext ctx) {
         var saved = currentSymbolTable;
-        enterSymbolTable("^block$", ctx);
+        enterSymbolTable("^block$");
         constructorContextStack.push(new ConstructorContext());
         try {
             return super.visitConstructorBody(ctx);
@@ -594,7 +612,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             ClassContext classContext = classContextStack.peek();
             classContext.merge(constructorContextStack.pop());
             saved.mergeDeadContext(currentSymbolTable.isDeadContext());
-            exitSymbolTable(ctx);
+            exitSymbolTable();
         }
     }
 
@@ -1135,7 +1153,27 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
+    public ResultState visitYieldStatement(JPlus25Parser.YieldStatementContext ctx) {
+        if (!switchContextStack.isEmpty()) {
+            var nullState = evalRHS(ctx.expression(), currentSymbolTable);
+            switchContextStack.peek().addNullState(Utils.getTokenString(ctx.expression()), nullState);
+        }
+        return super.visitYieldStatement(ctx);
+    }
+
+    @Override
+    public ResultState visitSwitchExpression(JPlus25Parser.SwitchExpressionContext ctx) {
+
+        return processSwitchBlock(SwitchExprStmtContext.from(ctx));
+    }
+
+    @Override
     public ResultState visitSwitchStatement(JPlus25Parser.SwitchStatementContext ctx) {
+
+        return processSwitchBlock(SwitchExprStmtContext.from(ctx));
+    }
+
+    private ResultState processSwitchBlock(SwitchExprStmtContext ctx) {
 
         var selectorScope = currentSymbolTable;
 
@@ -1146,31 +1184,46 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             if (!hasNullCase(ctx) && conditionNullState != NullState.NON_NULL) {
 
                 reportIssue(
-                        ctx.start,
+                        ctx.getStart(),
                         String.format("Switch selector expression(%s) is nullable; this may cause a NullPointerException.", Utils.getTokenString(ctx.expression()))
                 );
             }
         }
 
+
+        var switchExprNullState = NullState.UNKNOWN;
         //var saved = currentSymbolTable.copy();
-        enterSymbolTable("^block$" + ctx.start.getLine(), ctx);
+        enterSymbolTable("^block$" + ctx.getStart().getLine());
 
         var switchRuleList = ctx.switchBlock().switchRule();
         if (switchRuleList != null) {
-            processSwitchRule(ctx, switchRuleList, selector, selectorScope);
+            switchExprNullState = processSwitchRule(switchRuleList, selector, selectorScope);
         }
 
         var switchBlkStmtGrpList = ctx.switchBlock().switchBlockStatementGroup();
         if (switchBlkStmtGrpList != null) {
-            processSwitchBlkStmtGrp(ctx, switchBlkStmtGrpList, selector, selectorScope);
+            processSwitchBlkStmtGrp(switchBlkStmtGrpList, selector, selectorScope);
         }
 
-        exitSymbolTable(ctx);
+        exitSymbolTable();
+
+        var symbol = "^SwitchExpression$" + + ctx.getStart().getStartIndex();
+        currentSymbolTable.declare(
+                symbol,
+                SymbolInfo.builder()
+                        .symbol(symbol)
+                        .typeInfo(TypeInfo.builder()
+                                .name("^SwitchExpression$")
+                                .type(TypeInfo.Type.Null)
+                                .build())
+                        .nullState(switchExprNullState)
+                        .build()
+        );
 
         return null;
     }
 
-    private boolean hasNullCase(JPlus25Parser.SwitchStatementContext ctx) {
+    private boolean hasNullCase(SwitchExprStmtContext ctx) {
         var switchLabelListInSwitchRule = ctx.switchBlock().switchRule().stream().map(JPlus25Parser.SwitchRuleContext::switchLabel).toList();
         var switchLabelListInswitchBlkStmtGrp = ctx.switchBlock().switchBlockStatementGroup().stream().map(JPlus25Parser.SwitchBlockStatementGroupContext::switchLabel).flatMap(switchLabelList -> switchLabelList.stream()).toList();
 
@@ -1181,10 +1234,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         return hasNullCase(switchLabelList);
     }
 
-    private void processSwitchBlkStmtGrp(JPlus25Parser.SwitchStatementContext ctx, List<JPlus25Parser.SwitchBlockStatementGroupContext> switchBlkStmtGrpList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
+    private void processSwitchBlkStmtGrp(List<JPlus25Parser.SwitchBlockStatementGroupContext> switchBlkStmtGrpList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
 
         for (var switchBlkStmtGrpCtx : switchBlkStmtGrpList) {
-            enterSymbolTable("^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")), ctx);
+            enterSymbolTable("^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")));
             System.err.println("[SwitchStatement] enclosing = " + "^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")));
 
             for (var switchLabelCtx : switchBlkStmtGrpCtx.switchLabel()) {
@@ -1201,7 +1254,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
             if (switchBlkStmtGrpCtx.blockStatements() != null) visit(switchBlkStmtGrpCtx.blockStatements());
 
-            exitSymbolTable(ctx);
+            exitSymbolTable();
         }
     }
 
@@ -1222,10 +1275,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         return false;
     }
 
-    private void processSwitchRule(JPlus25Parser.SwitchStatementContext ctx, List<JPlus25Parser.SwitchRuleContext> switchRuleList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
+    private NullState processSwitchRule(List<JPlus25Parser.SwitchRuleContext> switchRuleList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
+
+        var switchContext = new SwitchContext();
+        switchContextStack.push(switchContext);
 
         for (var switchRuleCtx : switchRuleList) {
-            enterSymbolTable("^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""), ctx);
+            enterSymbolTable("^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""));
             System.err.println("[SwitchStatement] enclosing = " + "^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""));
 
             var casePatternList = switchRuleCtx.switchLabel().casePattern();
@@ -1276,11 +1332,29 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                 updateNullState(selector, currentSymbolTable, NullState.NULL);
             }
 
-            if (switchRuleCtx.expression() != null) visit(switchRuleCtx.expression());
-            if (switchRuleCtx.block() != null) visit(switchRuleCtx.block());
-            if (switchRuleCtx.throwStatement() != null) visit(switchRuleCtx.throwStatement());
+            if (switchRuleCtx.expression() != null) {
+                visit(switchRuleCtx.expression());
 
-            exitSymbolTable(ctx);
+                var caseNullState = evalRHS(switchRuleCtx.expression(), currentSymbolTable);
+                switchContext.addNullState(Utils.getTokenString(switchRuleCtx.expression()), caseNullState);
+            }
+
+            if (switchRuleCtx.block() != null) {
+                visit(switchRuleCtx.block());
+            }
+
+            if (switchRuleCtx.throwStatement() != null) {
+                visit(switchRuleCtx.throwStatement());
+            }
+
+            exitSymbolTable();
+        }
+
+        try {
+            System.err.println("[processSwitchRule] switchContext = " + switchContext);
+            return switchContext.join();
+        } finally {
+            switchContextStack.pop();
         }
     }
 

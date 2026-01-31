@@ -35,5 +35,11 @@ public class Switch {
             default:
                 System.err.println(s.length());
         }
+
+        String result = switch(s) {
+            case "jadex" -> "null safety";
+            case null, default -> null;
+        };
     }
+
 }
