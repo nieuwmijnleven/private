@@ -1137,13 +1137,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     @Override
     public ResultState visitSwitchStatement(JPlus25Parser.SwitchStatementContext ctx) {
 
-        var saved = currentSymbolTable;
+        var selectorScope = currentSymbolTable;
 
         var selector = ctx.expression();
         if (selector != null) {
 
             var conditionNullState = evalRHS(ctx.expression(), currentSymbolTable);
-            if (conditionNullState != NullState.NON_NULL) {
+            if (!hasNullCase(ctx) && conditionNullState != NullState.NON_NULL) {
 
                 reportIssue(
                         ctx.start,
@@ -1153,13 +1153,78 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         }
 
         //var saved = currentSymbolTable.copy();
-        enterSymbolTable("^block$", ctx);
+        enterSymbolTable("^block$" + ctx.start.getLine(), ctx);
 
         var switchRuleList = ctx.switchBlock().switchRule();
+        if (switchRuleList != null) {
+            processSwitchRule(ctx, switchRuleList, selector, selectorScope);
+        }
+
+        var switchBlkStmtGrpList = ctx.switchBlock().switchBlockStatementGroup();
+        if (switchBlkStmtGrpList != null) {
+            processSwitchBlkStmtGrp(ctx, switchBlkStmtGrpList, selector, selectorScope);
+        }
+
+        exitSymbolTable(ctx);
+
+        return null;
+    }
+
+    private boolean hasNullCase(JPlus25Parser.SwitchStatementContext ctx) {
+        var switchLabelListInSwitchRule = ctx.switchBlock().switchRule().stream().map(JPlus25Parser.SwitchRuleContext::switchLabel).toList();
+        var switchLabelListInswitchBlkStmtGrp = ctx.switchBlock().switchBlockStatementGroup().stream().map(JPlus25Parser.SwitchBlockStatementGroupContext::switchLabel).flatMap(switchLabelList -> switchLabelList.stream()).toList();
+
+        var switchLabelList = new ArrayList<JPlus25Parser.SwitchLabelContext>();
+        switchLabelList.addAll(switchLabelListInSwitchRule);
+        switchLabelList.addAll(switchLabelListInswitchBlkStmtGrp);
+
+        return hasNullCase(switchLabelList);
+    }
+
+    private void processSwitchBlkStmtGrp(JPlus25Parser.SwitchStatementContext ctx, List<JPlus25Parser.SwitchBlockStatementGroupContext> switchBlkStmtGrpList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
+
+        for (var switchBlkStmtGrpCtx : switchBlkStmtGrpList) {
+            enterSymbolTable("^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")), ctx);
+            System.err.println("[SwitchStatement] enclosing = " + "^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")));
+
+            for (var switchLabelCtx : switchBlkStmtGrpCtx.switchLabel()) {
+                for (var caseConstCtx : switchLabelCtx.caseConstant()) {
+                    if (isNullLiteral(caseConstCtx)) {
+                        System.err.println("[SwitchStatement] case null");
+                        updateNullState(selector, currentSymbolTable, NullState.NULL);
+
+                        System.err.println("[SwitchStatement] currentSymbolTable = " + currentSymbolTable);
+                        break;
+                    }
+                }
+            }
+
+            if (switchBlkStmtGrpCtx.blockStatements() != null) visit(switchBlkStmtGrpCtx.blockStatements());
+
+            exitSymbolTable(ctx);
+        }
+    }
+
+    private boolean isNullLiteral(JPlus25Parser.CaseConstantContext ctx) {
+        var expr = ctx.conditionalExpression();
+        if (expr == null) return false;
+
+        // simplest safe check
+        return "null".equals(Utils.getTokenString(expr));
+    }
+
+    private boolean hasNullCase(List<JPlus25Parser.SwitchLabelContext> switchLabelCtxList) {
+        for (var switchLabelCtx : switchLabelCtxList) {
+            if (switchLabelCtx.NullLiteral() != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void processSwitchRule(JPlus25Parser.SwitchStatementContext ctx, List<JPlus25Parser.SwitchRuleContext> switchRuleList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
+
         for (var switchRuleCtx : switchRuleList) {
-
-            //var symbolTable = saved.copy();
-
             enterSymbolTable("^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""), ctx);
             System.err.println("[SwitchStatement] enclosing = " + "^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""));
 
@@ -1207,7 +1272,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             }
 
             if (switchRuleCtx.switchLabel().NullLiteral() != null) {
-                updateNullState(selector, saved, NullState.NULL);
+                //updateNullState(selector, selectorScope, NullState.NULL);
+                updateNullState(selector, currentSymbolTable, NullState.NULL);
             }
 
             if (switchRuleCtx.expression() != null) visit(switchRuleCtx.expression());
@@ -1216,10 +1282,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
             exitSymbolTable(ctx);
         }
-
-        exitSymbolTable(ctx);
-
-        return null;
     }
 
     @Override
@@ -1308,7 +1370,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
         var resolvedChainOpt = symbolTable.findResolvedChain(mappedRangeOpt.get());
         if (resolvedChainOpt.isEmpty()) {
-            return NullState.UNKNOWN;
+
+            var parent = symbolTable.getParent();
+            while(parent != null && resolvedChainOpt.isEmpty()) {
+                resolvedChainOpt = parent.findResolvedChain(mappedRangeOpt.get());
+                parent = parent.getParent();
+            }
+
+            if (parent == null) return NullState.UNKNOWN;
         }
 
         System.err.println("[updateNullState] findResolvedChain = " + resolvedChainOpt.get());

@@ -281,6 +281,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             } else {
                 visit(select, chain);
             }
+
+            for (var argument : mi.getArguments()) {
+                buildChain(argument);
+            }
         }
 
         private void addImplicitThisMethodStep(
@@ -828,57 +832,69 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         //SymbolTable switchSymbolTable = new SymbolTable(currentSymbolTable);
         //currentSymbolTable = currentSymbolTable.getEnclosingSymbolTable("^block$");
 
-        enterSymbolTable("^block$");
+        enterSymbolTable("^block$" + computeRange(node).startLine());
 
         for (CaseTree _case : node.getCases()) {
 
-            enterSymbolTable("^block$" + _case.getLabels().toString().replace(" ", ""));
+            if (_case.getBody() != null) {
 
-            for (var label : _case.getLabels()) {
-                System.err.println("label = " + label + ", " + label.getClass().getSimpleName());
-                if (label instanceof PatternCaseLabelTree patternLabel) {
-                    // BindingPatternTree로 캐스팅 가능
-                    if (patternLabel.getPattern() instanceof BindingPatternTree binding) {
-                        VariableTree var = binding.getVariable();
-                        visitVariable(var, unused);
+                enterSymbolTable("^block$" + _case.getLabels().toString().replace(" ", ""));
+
+                for (var label : _case.getLabels()) {
+                    System.err.println("label = " + label + ", " + label.getClass().getSimpleName());
+                    if (label instanceof PatternCaseLabelTree patternLabel) {
+                        // BindingPatternTree로 캐스팅 가능
+                        if (patternLabel.getPattern() instanceof BindingPatternTree binding) {
+                            VariableTree var = binding.getVariable();
+                            visitVariable(var, unused);
+                        }
+
+                        var guard = _case.getGuard();
+                        if (guard != null) buildChain(guard);
+
+                        //TreePath path = trees.getPath(ast, guard);
+                        //scan(path, null);
+
+                    } else if (label instanceof DefaultCaseLabelTree defaultLabel) {
+
+                    } else if (label instanceof ConstantCaseLabelTree constantLabel) {
+                        buildChain(constantLabel.getConstantExpression());
+                    }
+                }
+
+                // body 접근
+                Tree body = _case.getBody();
+                if (body != null) {
+                    System.err.println("body = " + body + ", " + body.getClass().getSimpleName());
+                    // TreePathScanner 기반이면
+                    //TreePath path = trees.getPath(ast, body);
+                    //scan(path, null); // scan 호출로 body AST 탐색
+                    if (body instanceof BlockTree block) {
+                        visitBlock(block, null);
                     }
 
-                    var guard = _case.getGuard();
-                    if (guard != null) buildChain(guard);
+                    if (body instanceof ExpressionStatementTree exprStmt) {
+                        visitExpressionStatement(exprStmt, null);
+                    }
+                }
+            } else {
+                var scopeName = "^block$" + (_case.getExpressions().isEmpty() ? "default" : _case.getExpressions().toString().replace(" ", ""));
 
-                    //TreePath path = trees.getPath(ast, guard);
-                    //scan(path, null);
+                System.err.println("[JavaSymbol][Switch] expressions = " + scopeName);
 
-                } else if (label instanceof DefaultCaseLabelTree defaultLabel) {
+                enterSymbolTable(scopeName);
 
-                } else if (label instanceof ConstantCaseLabelTree constantLabel) {
-                    buildChain(constantLabel.getConstantExpression());
+                _case.getExpressions().forEach(this::buildChain);
+
+                for (var statement : _case.getStatements()) {
+                    System.err.println("[JavaSymbol][Switch] statememt = " + statement.getClass().getSimpleName());
+//                    if (statement instanceof ExpressionStatementTree exprStmt) {
+//                        buildChain(exprStmt.getExpression());
+//                    }
+                    TreePath path = trees.getPath(ast, statement);
+                    scan(path, null);
                 }
             }
-
-            // body 접근
-            Tree body = _case.getBody();
-            System.err.println("body = " + body + ", " + body.getClass().getSimpleName());
-            if (body != null) {
-                // TreePathScanner 기반이면
-                //TreePath path = trees.getPath(ast, body);
-                //scan(path, null); // scan 호출로 body AST 탐색
-                if (body instanceof BlockTree block) {
-                    visitBlock(block, null);
-                }
-
-                if (body instanceof ExpressionStatementTree exprStmt) {
-                    visitExpressionStatement(exprStmt, null);
-                }
-            }
-
-            //var expressionList = _case.getExpressions();
-
-//            var statementList = _case.getStatements();
-//            for (var statementTree : statementList) {
-//
-//            }
-
 
             exitSymbolTable();
         }

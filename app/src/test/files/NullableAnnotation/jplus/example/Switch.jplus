@@ -1,0 +1,39 @@
+package jplus.example;
+
+public class Switch {
+    public static void main(String[] args) {
+
+        Object? selector = null;
+
+        switch(selector) {
+            case String s -> { if (s == null) System.err.println(s.length()); }
+            default -> System.err.println(selector);
+        }
+
+        switch(selector) {
+            case String s -> { if (s == null) System.err.println(s.length()); }
+            case null, default ->        System.err.println(selector);
+        }
+
+
+        String? s = "jadex";
+
+        switch(s) {
+            case "jadex":
+                System.err.println(s.length());
+                break;
+
+            default:
+                System.err.println(s.length());
+        }
+
+        switch(s) {
+            case null:
+                System.err.println(s.length());
+                break;
+
+            default:
+                System.err.println(s.length());
+        }
+    }
+}

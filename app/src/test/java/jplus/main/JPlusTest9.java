@@ -75,8 +75,12 @@ public class JPlusTest9 {
                 "./src/test/files/NullableAnnotation",
                 "jplus.example",
                 "Switch",
-                "Error: (line:8, column:46) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
-                        "Error: (line:9, column:41) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n"
+                "Error: (line:8, column:8) Switch selector expression(selector) is nullable; this may cause a NullPointerException.\n" +
+                        "Error: (line:9, column:46) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:10, column:23) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:14, column:46) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:15, column:41) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:32, column:16) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n"
         );
     }
 
