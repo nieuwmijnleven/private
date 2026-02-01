@@ -36,10 +36,6 @@ public class JavaSymbolResolver {
         this.types = types;
     }
 
-    /**
-     * 클래스 이름으로 TypeInfo 반환
-     * 내부 캐시 사용, 없으면 Elements에서 조회
-     */
     public SymbolInfo resolveClass(String qualifiedName) {
         if (cache.containsKey(qualifiedName)) {
             return cache.get(qualifiedName);
@@ -51,20 +47,21 @@ public class JavaSymbolResolver {
 
         TypeElement clazz = elements.getTypeElement(qualifiedName);
         if (clazz == null) {
-            return null; // classpath에 존재하지 않음
+            return null;
         }
 
-        // Class Declaration
-        // 1. 타입 파라미터 추출 (T, K, V 등)
+        boolean isJavaApi =
+                qualifiedName.startsWith("java.")
+                || qualifiedName.startsWith("javax.") //this must be changed
+                || qualifiedName.startsWith("jakarta."); //this must be changed
+
         List<String> typeParams = clazz.getTypeParameters().stream()
                 .map(TypeParameterElement::getSimpleName)
                 .map(Object::toString)
                 .toList();
 
-        // 2. 타입 인자 (Type Arguments) - 선언 시에는 비어있음
-        List<TypeInfo> typeArgs = List.of(); // 필요 시 외부 입력값이나 generic으로 채움
+        List<TypeInfo> typeArgs = List.of();
 
-        // TypeInfo 생성
         TypeInfo classTypeInfo = TypeInfo.builder()
                 .name(qualifiedName)
                 .isNullable(false)
@@ -74,7 +71,6 @@ public class JavaSymbolResolver {
                 .typeArguments(typeArgs)
                 .build();
 
-        // typeInfo 사용 가능
         System.err.println(classTypeInfo);
 
         SymbolTable topLevelSymbolTable = new SymbolTable(globalSymbolTable);
@@ -124,7 +120,7 @@ public class JavaSymbolResolver {
                     TypeMirror typeMirror = parameter.asType();
                     TypeInfo typeInfo = TypeUtils.fromTypeMirror(typeMirror, parameter);
 
-                    String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
+                    String typeNameWithNullability = typeInfo.getFullname() + (isJavaApi ? "?" : (typeInfo.isNullable() ? "?" : ""));
                     typeNameList.add(typeNameWithNullability);
 
                     // 심볼 정보 생성

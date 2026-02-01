@@ -96,7 +96,6 @@ class JPlusTest2 {
                 "Error: (line:26, column:8) The method(getStreet_ExpressionName) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:26, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:30, column:64) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
-                "Error: (line:30, column:79) The 1st argument of the java.util.Optional.orElse() is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:38, column:8) The method(getStreet_ExpressionName_AddressStreetNullsatey) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:42, column:8) The method(getStreet_FieldAccess) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:42, column:34) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
