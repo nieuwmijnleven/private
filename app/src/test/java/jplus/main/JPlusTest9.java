@@ -75,13 +75,13 @@ public class JPlusTest9 {
                 "./src/test/files/NullableAnnotation",
                 "jplus.example",
                 "Switch",
-                "Error: (line:8, column:8) Switch selector expression(selector) is nullable; this may cause a NullPointerException.\n" +
-                        "Error: (line:9, column:46) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
-                        "Error: (line:10, column:23) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
-                        "Error: (line:14, column:46) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
-                        "Error: (line:15, column:41) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
-                        "Error: (line:32, column:16) The 1st argument of the java.io.PrintStream.println() is a non-nullable variable, but a null value is assigned to it.\n" +
-                        "Error: (line:39, column:8) result is a non-nullable variable. But nullable value is assigned to it.\n"
+                "Error: (line:17, column:8) Switch selector expression(selector) is nullable; this may cause a NullPointerException.\n" +
+                        "Error: (line:18, column:46) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:19, column:23) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:24, column:46) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:25, column:41) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:42, column:16) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:49, column:8) result is a non-nullable variable. But nullable value is assigned to it.\n"
         );
     }
 

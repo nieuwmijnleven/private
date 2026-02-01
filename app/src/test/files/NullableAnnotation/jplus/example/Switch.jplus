@@ -1,18 +1,28 @@
 package jplus.example;
 
 public class Switch {
+
+    public static void println(int i) {
+        System.out.println(i);
+    }
+
+    public static void println(Object o) {
+        System.out.println(o);
+    }
+
     public static void main(String[] args) {
 
         Object? selector = null;
 
         switch(selector) {
-            case String s -> { if (s == null) System.err.println(s.length()); }
-            default -> System.err.println(selector);
+            case String s -> { if (s == null) println(s.length()); }
+            default -> println(selector);
         }
 
+
         switch(selector) {
-            case String s -> { if (s == null) System.err.println(s.length()); }
-            case null, default ->        System.err.println(selector);
+            case String s -> { if (s == null) println(s.length()); }
+            case null, default ->        println(selector);
         }
 
 
@@ -20,20 +30,20 @@ public class Switch {
 
         switch(s) {
             case "jadex":
-                System.err.println(s.length());
+                println(s.length());
                 break;
 
             default:
-                System.err.println(s.length());
+                println(s.length());
         }
 
         switch(s) {
             case null:
-                System.err.println(s.length());
+                println(s.length());
                 break;
 
             default:
-                System.err.println(s.length());
+                println(s.length());
         }
 
         String result = switch(s) {
