@@ -844,8 +844,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
                     reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
                 }
 
-                if (!typeInfo.isNullable() && rhsState == NullState.UNKNOWN) {
-                    reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But nullable value is assigned to it.");
+                if (typeInfo.getType() != TypeInfo.Type.Primitive && !typeInfo.isNullable() && rhsState == NullState.UNKNOWN) {
+                    reportIssue(ctx.getStart(), String.format("%s is a non-nullable variable. But nullable value is assigned to it. Change the type to %s? or add a null check.", symbol, CodeUtils.getSimpleName(typeInfo.getName())));
                 }
 
                 SymbolInfo updated = symbolInfo.toBuilder()
@@ -987,10 +987,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 //
 //        SymbolTable elseTable = before.copy();
 
-        var conditionResult = new ConditionVisitor(this, entry).visit(ctx.expression());
+        var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
 
         currentSymbolTable = conditionResult.whenTrue;
+        enterSymbolTable("^then$");
+
         visit(ctx.statement());
+
+        exitSymbolTable();
 
         System.err.println("[ifThenStatement] before = " + entry);
 
@@ -1033,15 +1037,23 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 //        SymbolTable elseTable = before.copy();
 
         System.err.println("[IfThenElseStatement] line(" + ctx.expression().start.getLine() + ") = " + Utils.getTokenString(ctx.expression()));
-        var conditionResult = new ConditionVisitor(this, entry).visit(ctx.expression());
+        var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
 
         currentSymbolTable = conditionResult.whenTrue;
+        enterSymbolTable("^then$");
+
         visit(ctx.statementNoShortIf());
+
+        exitSymbolTable();
+
 
         //currentSymbolTable = conditionResult.whenFalse;
         currentSymbolTable = conditionResult.whenFalse;
+        enterSymbolTable("^else$");
+
         visit(ctx.statement());
 
+        exitSymbolTable();
         //ifContextStack.push(new IfContext(currentSymbolTable));
 
         //currentSymbolTable = join(before, join(conditionResult.whenTrue, conditionResult.whenFalse));
@@ -1083,13 +1095,21 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 //
 //        SymbolTable elseTable = before.copy();
 
-        var conditionResult = new ConditionVisitor(this, entry).visit(ctx.expression());
+        var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
 
         currentSymbolTable = conditionResult.whenTrue;
+        enterSymbolTable("^then$");
+
         visit(ctx.statementNoShortIf(0));
 
+        exitSymbolTable();
+
         currentSymbolTable = conditionResult.whenFalse;
+        enterSymbolTable("^else$");
+
         visit(ctx.statementNoShortIf(1));
+
+        exitSymbolTable();
 
         //currentSymbolTable = join(before, join(conditionResult.whenTrue, conditionResult.whenFalse));
         System.err.println("[IfThenElseStatementNoShortIf] before = " + entry);
@@ -2271,8 +2291,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         for (JPlus25Parser.ExpressionNameContext ctx : expressionNameList) {
 
             var step = cursor.consume();
-            while (!Utils.getTextChangeRange(originalText, ctx).contains(step.range)) {
+            var rangeOpt = findTransformedRange(Utils.getTextChangeRange(originalText, ctx));
+            while (rangeOpt.isPresent() && !rangeOpt.get().contains(step.range)) {
                 System.err.println("[processExpressionNameContext] skip step = " + step);
+
+                System.err.println("[processExpressionNameContext] jplus range = " + rangeOpt.get());
+                System.err.println("[processExpressionNameContext] step range = " + step.range);
                 step = cursor.consume();
             }
 

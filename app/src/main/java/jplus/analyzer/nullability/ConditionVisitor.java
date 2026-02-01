@@ -299,7 +299,7 @@ class ConditionVisitor
                 visit(ctx.conditionalAndExpression());
 
         ConditionResult right =
-                new ConditionVisitor(nullabilityChecker, left.whenTrue)
+                new ConditionVisitor(nullabilityChecker, left.whenTrue.copy())
                         .visit(ctx.inclusiveOrExpression());
 
         return new ConditionResult(
@@ -320,7 +320,7 @@ class ConditionVisitor
                 visit(ctx.conditionalOrExpression());
 
         ConditionResult right =
-                new ConditionVisitor(nullabilityChecker, left.whenFalse)
+                new ConditionVisitor(nullabilityChecker, left.whenFalse.copy())
                         .visit(ctx.conditionalAndExpression());
 
         return new ConditionResult(

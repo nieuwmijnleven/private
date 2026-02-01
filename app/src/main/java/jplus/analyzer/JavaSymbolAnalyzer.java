@@ -229,6 +229,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             if (e == null) return;
 
             TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
+            System.err.println("[IdentifierTree] ti = " + ti);
+            System.err.println("[IdentifierTree] IdentifierTree = " + id.toString());
 
             chain.addStep(new ResolvedChain.Step(
                     ResolvedChain.Kind.IDENTIFIER,
@@ -247,6 +249,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             if (e == null) return;
 
             TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
+            System.err.println("[MemberSelect] ti = " + ti);
+            System.err.println("[MemberSelect] MemberSelect = " + ms.toString());
+
 
             chain.addStep(new ResolvedChain.Step(
                     ResolvedChain.Kind.FIELD,
@@ -612,7 +617,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     }
 
     private TypeInfo buildTypeInfo(TypeMirror typeMirror, Element originalElement) {
-        return TypeUtils.fromTypeMirror(typeMirror, originalElement);
+
+        TypeInfo typeInfo = TypeUtils.fromTypeMirror(typeMirror, originalElement);
+        resolver.resolveClass(typeInfo.getName());
+
+        return typeInfo;
     }
 
     private List<jplus.base.Modifier> convertModifiers(Iterable<Modifier> modifiers) {
@@ -628,7 +637,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     private TextChangeRange computeRange(Tree node) {
         int start = getSourceStartPosition(node);
         int end = getSourceEndPosition(node);
-        return Utils.computeTextChangeRange(source, start, end - 1);
+
+        try {
+            return Utils.computeTextChangeRange(source, start, end - 1);
+        } catch(IllegalArgumentException iae) {
+            System.err.println(iae.getMessage());
+            return TextChangeRange.EMPTY;
+        }
     }
 
     private String computeRangeText(Tree node) {
@@ -1131,8 +1146,23 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TreePath typePath = TreePath.getPath(ast, node.getType());
         Element element = trees.getElement(TreePath.getPath(ast, node));
         TypeMirror typeMirror = trees.getTypeMirror(typePath);
+        //TypeMirror typeMirror = element.asType();
 
         TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
+
+        boolean isNullable = node.getModifiers().getAnnotations().stream()
+                .map(a -> a.getAnnotationType().toString())
+                .anyMatch(name ->
+                        name.endsWith(".Nullable")
+                                || name.equals("org.jspecify.annotations.Nullable")
+                );
+
+        System.err.println("[handleLocalVariable] contextString = " + node.toString());
+        System.err.println("[handleLocalVariable] isNullable = " + isNullable);
+
+        typeInfo = typeInfo.toBuilder().isNullable(isNullable).build();
+        System.err.println("[handleLocalVariable] typeInfo = " + typeInfo);
+
         SymbolInfo symbolInfo = SymbolInfo.builder()
                 .symbol(node.getName().toString())
                 .typeInfo(typeInfo)
@@ -1144,7 +1174,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .build();
 
         currentSymbolTable.declare(symbolInfo.getSymbol(), symbolInfo);
-        //System.err.println("[handleLocalVariable] currentSymbolTable = " + currentSymbolTable);
+        System.err.println("[handleLocalVariable] currentSymbolTable = " + currentSymbolTable);
 
         return super.visitVariable(node, unused);
     }
@@ -1241,11 +1271,31 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitConditionalExpression(node, unused);
     }
 
-    //    @Override
-//    public Void visitIf(IfTree node, Void unused) {
-//        ExpressionTree exprTree = node.getCondition();
-//        return super.visitIf(node, unused);
-//    }
+        @Override
+    public Void visitIf(IfTree node, Void unused) {
+
+        buildChain(node.getCondition());
+
+        enterSymbolTable("^then$");
+
+        TreePath thenPath = trees.getPath(ast, node.getThenStatement());
+        scan(thenPath, null);
+
+        exitSymbolTable();
+
+        enterSymbolTable("^else$");
+
+        if (node.getElseStatement() != null) {
+            TreePath elsePath = trees.getPath(ast, node.getElseStatement());
+            scan(elsePath, null);
+        }
+
+        exitSymbolTable();
+
+        node.getElseStatement();
+
+        return null;
+    }
 
     public SymbolInfo buildResolvedChain(ExpressionTree expr) {
 

@@ -45,9 +45,13 @@ public class TypeUtils {
                 } else {
                     String referenceTypeName = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
 
+                    System.err.println("[fromTypeMirror] referenceTypeName = " + referenceTypeName);
+
                     boolean isNullable = typeMirror.getAnnotationMirrors().stream()
                             .map(annotationMirror -> annotationMirror.getAnnotationType().toString())
                             .anyMatch(annName -> annName.endsWith(".Nullable") || annName.equals("org.jspecify.annotations.Nullable"));
+
+                    System.err.println("[fromTypeMirror] isNullable = " + isNullable);
 
                     List<TypeInfo> typeArgs = declaredType.getTypeArguments()
                             .stream()

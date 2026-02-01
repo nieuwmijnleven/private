@@ -20,8 +20,14 @@ import java.util.Objects;
 
 public record TextChangeRange(int startLine, int startIndex, int endLine, int inclusiveEndIndex) {
 
+    public static final TextChangeRange EMPTY = new TextChangeRange(0, 0,Integer.MIN_VALUE, Integer.MIN_VALUE);
+
     public static TextChangeRange copyFrom(final TextChangeRange range) {
         return new TextChangeRange(range.startLine, range.startIndex, range.endLine, range.inclusiveEndIndex);
+    }
+
+    public boolean isEmpty() {
+        return endLine < startLine;
     }
 
     public boolean contains(TextChangeRange other) {
@@ -38,7 +44,7 @@ public record TextChangeRange(int startLine, int startIndex, int endLine, int in
                 (this.startLine() == other.endLine() && this.startIndex() > other.inclusiveEndIndex()));
     }
 
-    @Override
+    /*@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof TextChangeRange)) return false;
@@ -52,7 +58,7 @@ public record TextChangeRange(int startLine, int startIndex, int endLine, int in
     @Override
     public int hashCode() {
         return Objects.hash(startLine(), startIndex(), endLine(), inclusiveEndIndex());
-    }
+    }*/
 
     @Override
     public String toString() {
