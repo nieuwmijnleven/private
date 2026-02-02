@@ -513,27 +513,32 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         Element element = trees.getElement(getCurrentPath());
         if (element instanceof TypeElement typeElement) {
 
-            TypeMirror superClassMirror = typeElement.getSuperclass();
-            if (superClassMirror.getKind() == TypeKind.DECLARED) {
-                TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
-                TreePath superClassPath = trees.getPath(superClassElement);
-                //ClassTree superClassTree = (ClassTree) superClassPath.getLeaf();
-                //SymbolInfo superClassSymbol = resolver.resolveClass(superClassElement.getQualifiedName().toString());
-                if (superClassPath != null) {
-                    JavaSymbolAnalyzer superClassAnalyzer = new JavaSymbolAnalyzer(
-                            source, ast, trees, globalSymbolTable, elements, types
-                    );
+            /*if (!"java.lang.Object".equals(classSymbolInfo.getTypeInfo().getName())) {
+                TypeMirror superClassMirror = typeElement.getSuperclass();
+                if (superClassMirror.getKind() == TypeKind.DECLARED) {
+                    TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
+                    TreePath superClassPath = trees.getPath(superClassElement);
+                    //ClassTree superClassTree = (ClassTree) superClassPath.getLeaf();
+                    //SymbolInfo superClassSymbol = resolver.resolveClass(superClassElement.getQualifiedName().toString());
+                    if (superClassPath != null) {
+                        JavaSymbolAnalyzer superClassAnalyzer = new JavaSymbolAnalyzer(
+                                source, ast, trees, globalSymbolTable, elements, types
+                        );
 
-                    superClassAnalyzer.scan(superClassPath.getLeaf(), null);
+                        superClassAnalyzer.scan(superClassPath.getLeaf(), null);
 //                    var topLevelSymbolTable = superClassAnalyzer.getTopLevelSymbolTable();
 //                    var classSymInfo = topLevelSymbolTable.resolveInCurrent("^TopLevelClass$");
 //                    var classSymbolTable = topLevelSymbolTable.getEnclosingSymbolTable(classSymInfo.getSymbol());
 
-                    currentSymbolTable.setSuperClassTable(superClassAnalyzer.getTopLevelSymbolTable().getEnclosingSymbolTables().get(0));
+                        currentSymbolTable.setSuperClassTable(superClassAnalyzer.getTopLevelSymbolTable().getEnclosingSymbolTables().get(0));
+                    } else {
+                        SymbolInfo objectClassInfo = resolver.resolveClass("java.lang.Object");
+                        currentSymbolTable.setSuperClassTable(objectClassInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+                    }
                 }
-            }
+            }*/
 
-            for (TypeMirror interfaceMirror : typeElement.getInterfaces()) {
+            /*for (TypeMirror interfaceMirror : typeElement.getInterfaces()) {
 
                 if (interfaceMirror.getKind() == TypeKind.DECLARED) {
                     TypeElement interfaceElement =
@@ -556,7 +561,20 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         );
                     }
                 }
-            }
+            }*/
+
+            /*List<? extends TypeMirror> superInterfaceMirrorList = typeElement.getInterfaces();
+            for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
+
+                if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
+
+                    TypeElement superInterfaceElement = (TypeElement) types.asElement(superInterfaceMirror);
+                    processInterface(superInterfaceElement, currentSymbolTable);
+                }
+            }*/
+
+            processSuperClass(typeElement, currentSymbolTable);
+
         }
 
         for (Tree member : node.getMembers()) {
@@ -567,6 +585,66 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             return super.visitClass(node, unused);
         } finally {
             exitSymbolTable();
+        }
+    }
+
+    private void processSuperClass(TypeElement clazz, SymbolTable classSymbolTable) {
+
+        String qualifiedName = clazz.getQualifiedName().toString();
+
+        if ("java.lang.Object".equals(qualifiedName)) {
+            return;
+        }
+
+        // 슈퍼 클래스 처리
+        TypeMirror superClassMirror = clazz.getSuperclass();
+        if (superClassMirror.getKind() == TypeKind.DECLARED) {
+
+            TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
+            String superClassFQName = superClassElement.getQualifiedName().toString();
+
+            var superClassSymInfo = resolver.resolveClass(superClassFQName);
+
+            // 현재 클래스에 상위 클래스 테이블 연결
+            classSymbolTable.setSuperClassTable(
+                    superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
+            );
+
+            // 상위 클래스 재귀 처리
+            processSuperClass(superClassElement, superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+        } else {
+            SymbolInfo objectClassSymInfo = resolver.resolveClass("java.lang.Object");
+            classSymbolTable.setSuperClassTable(
+                    objectClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
+            );
+        }
+
+        // 상위 클래스가 implements 한 인터페이스 처리
+        List<? extends TypeMirror> superInterfaceMirrorList = clazz.getInterfaces();
+        for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
+            if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
+                TypeElement superInterfaceElement = (TypeElement) types.asElement(superInterfaceMirror);
+                processInterface(superInterfaceElement, classSymbolTable);
+            }
+        }
+    }
+
+    private void processInterface(TypeElement interfaceElement, SymbolTable classSymbolTable) {
+
+        String interfaceFQName = interfaceElement.getQualifiedName().toString();
+        var superInterfaceSymInfo = resolver.resolveClass(interfaceFQName);
+
+        classSymbolTable.addSuperInterfaceTable(
+                superInterfaceSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
+        );
+
+        // 상위 인터페이스 재귀 처리
+        List<? extends TypeMirror> parentInterfaces = interfaceElement.getInterfaces();
+        for (TypeMirror parentInterfaceMirror : parentInterfaces) {
+            if (parentInterfaceMirror.getKind() == TypeKind.DECLARED) {
+                TypeElement parentInterfaceElement = (TypeElement) types.asElement(parentInterfaceMirror);
+                processInterface(parentInterfaceElement, superInterfaceSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+            }
         }
     }
 
@@ -1058,9 +1136,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             type = TypeInfo.Type.Constructor;
         }
 
-        String symbolName = "^" + methodName + "$_" + String.join("_", typeNameList);
+        String symbolName = "^" + methodName + "$~" + String.join("~", typeNameList);
         //System.err.println("[method] symbolName = " + symbolName);
-        String symbolNameWithSimpleTypeName = "^" + methodName + "$_" + String.join("_", simpleTypeNameList);
+        String symbolNameWithSimpleTypeName = "^" + methodName + "$~" + String.join("~", simpleTypeNameList);
         //System.err.println("[method] symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
 
         boolean isNullableReturn = node.getModifiers().getAnnotations().stream()

@@ -37,7 +37,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         processed = true;
 
         if (ctx instanceof ApplyDeclarationContext applyDeclarationCtx) {
-            System.err.println("[ApplyDeclarationCtx] code = " + Utils.getTokenString(applyDeclarationCtx));
+            //System.err.println("[ApplyDeclarationCtx] code = " + Utils.getTokenString(applyDeclarationCtx));
             return replaceApplyStatementWithComment(applyDeclarationCtx);
         } else if (ctx instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
             return replaceNullType(unannTypeCtx);
@@ -57,14 +57,14 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     }
 
     private String processMethodInvocation(MethodInvocationContext methodInvocationCtx) {
-        System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx));
+        //System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx));
 
         ensureChildTextInitialized();
 
         if (methodInvocationCtx.primary() != null) {
             String primaryPart = methodInvocationCtx.primary().getText();
-            System.err.println("[processMethodInvocation] primaryPart = " + primaryPart);
-            System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx.primary()));
+            //System.err.println("[processMethodInvocation] primaryPart = " + primaryPart);
+            //System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx.primary()));
             String replaced = primaryPart;
             if (!ParserUtils.usesNullSafety(methodInvocationCtx.primary())) {
                 String methodPart = getMethodPart(methodInvocationCtx);
@@ -115,7 +115,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         if (ParserUtils.usesNullSafety(expressionNameCtx)) {
             replaced = processNullsafety(expressionNameCtx, expressionNameCtx.getParent());
         }
-        System.err.println("[ExpressionNameContext] replaced = " + replaced);
+        //System.err.println("[ExpressionNameContext] replaced = " + replaced);
         return updateContextString(expressionNameCtx, replaced);
     }
 
@@ -129,11 +129,11 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         ensureChildTextInitialized();
 
         String replaced = Utils.getTokenString(ctx);
-        System.err.println("[processPrimaryNoNewArray] before replaced = " + replaced);
+        //System.err.println("[processPrimaryNoNewArray] before replaced = " + replaced);
         if (ParserUtils.usesNullSafety(ctx)) {
             replaced = replaceBaseWithOptional(PrimaryNoNewArrayContextAdapter.from(ctx), Optional.ofNullable(ctx.getParent()).map(ParserRuleContext::getParent).orElse(null));
         }
-        System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
+        //System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -174,14 +174,14 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         }
 
         String identifier = Utils.getTokenString(expressionNameContextDeque.removeFirst().identifier());
-        System.err.println("[processNullSafety] identifier = " + identifier);
+        //System.err.println("[processNullSafety] identifier = " + identifier);
         String replaced = "java.util.Optional.ofNullable(" + identifier;
         int i = 0;
         while (!expressionNameContextDeque.isEmpty()) {
             String curTVar = "t" + i;
             var expressionNameContext = expressionNameContextDeque.removeFirst();
             String member = Utils.getTokenString(expressionNameContext.identifier());
-            System.err.println("[processNullSafety] member = " + member);
+            //System.err.println("[processNullSafety] member = " + member);
             if (expressionNameContext.NULLSAFE() != null) {
                 replaced += ").map(" + curTVar + " -> " + curTVar + "." + member;
                 ++i;
@@ -192,7 +192,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
 
         if (ruleCtx instanceof MethodInvocationContext miCtx) {
             String method = getMethodPart(miCtx);
-            System.err.println("[processNullsafety] method = " + method);
+            //System.err.println("[processNullsafety] method = " + method);
 
             String curTVar = "t" + i;
             replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
@@ -200,7 +200,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         } else if (ruleCtx instanceof PrimaryNoNewArrayContext pnnaCtx) {
             String contextString = Utils.getTokenString(pnnaCtx);
             String remainderPart = contextString.substring(Utils.getTokenString(ctx).length()).replaceAll("^(\\.|\\?\\.)", "");
-            System.err.println("[processNullsafety] remainderPart = " + remainderPart);
+            //System.err.println("[processNullsafety] remainderPart = " + remainderPart);
             String curTVar = "t" + i;
             var pnnaCtxAdapter = PrimaryNoNewArrayContextAdapter.from(pnnaCtx);
             if (pnnaCtxAdapter.NULLSAFE() != null) {
@@ -226,12 +226,12 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     }
 
     protected String forceUpdateContextString(ParserRuleContext ctx) {
-        System.err.println("[forceUpdateContextString] ParserRuleContext = " + ctx.getClass().getSimpleName());
+        //System.err.println("[forceUpdateContextString] ParserRuleContext = " + ctx.getClass().getSimpleName());
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         String contextString = Utils.getTokenString(ctx);
         String replaced = projectUpdatesOn(range, contextString);
-        System.err.println("[forceUpdateContextString] contextString = " + contextString);
-        System.err.println("[forceUpdateContextString] replaced = " + replaced);
+        //System.err.println("[forceUpdateContextString] contextString = " + contextString);
+        //System.err.println("[forceUpdateContextString] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -254,7 +254,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     }
 
     protected String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
-        System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
+        //System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
         ensureChildTextInitialized();
 
         Optional<String> conditionalOrExpressionString = getRangeText(ctx.conditionalOrExpression());
@@ -270,7 +270,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             replaced += ".orElseGet(() -> " + rhsExpressionString.orElse("null") + ")";
         }
 
-        System.err.println("[replaceElvisOperator] replaced = " + replaced);
+        //System.err.println("[replaceElvisOperator] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -305,16 +305,16 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         }
 
         String base = getBase(ctx);
-        System.err.println("[replaceBaseWithOptional] base = " + base);
-        System.err.println("[replaceBaseWithOptional] ruleCtx = " + ruleCtx.getClass().getSimpleName());
+        //System.err.println("[replaceBaseWithOptional] base = " + base);
+        //System.err.println("[replaceBaseWithOptional] ruleCtx = " + ruleCtx.getClass().getSimpleName());
 
         if (ctx.NULLSAFE() != null) {
             String[] tokens = base.split("\\?\\.");
             String instance = tokens[0];
             String member = tokens[1];
 
-            System.err.println("[replaceBaseWithOptional] instance = " + instance);
-            System.err.println("[replaceBaseWithOptional] member = " + member);
+            //System.err.println("[replaceBaseWithOptional] instance = " + instance);
+            //System.err.println("[replaceBaseWithOptional] member = " + member);
 
             return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
         }
@@ -336,7 +336,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
                 }
             } else if (ruleCtx instanceof MethodInvocationContext miCtx) {
                 String method = getMethodPart(miCtx);
-                System.err.println("[replacePNNAWithOptional] method = " + method);
+                //System.err.println("[replacePNNAWithOptional] method = " + method);
 
                 String curTVar = "t" + index;
                 replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
@@ -347,7 +347,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         }
 
         String member = getBase(ctx);
-        System.err.println("[replaceNullsafeOperator] member = " + member);
+        //System.err.println("[replaceNullsafeOperator] member = " + member);
 
         String curTVar = "t" + index;
         if (ctx.NULLSAFE() != null) {
@@ -363,7 +363,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         String argumentList = Optional.ofNullable(miCtx.argumentList()).map(ParserRuleContext::getText).orElse("");
 
         String methodPart = typeArgument + identifier + "(" + argumentList + ")";
-        System.err.println("[getMethodPart] methodPart = " + methodPart);
+        //System.err.println("[getMethodPart] methodPart = " + methodPart);
         return methodPart;
     }
 

@@ -322,7 +322,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
         for (var invokeDef : invokeDefCtx) {
             List<String> typeNameList = getTypeNamesFromParameterList(invokeDef.formalParameterList());
-            String methodSymbol = "^" + invokeDef.methodName() + "$_" + String.join("_", typeNameList);
+            String methodSymbol = "^" + invokeDef.methodName() + "$~" + String.join("~", typeNameList);
             methodNameToCtor.put(methodSymbol, invokeDef);
         }
 
@@ -373,7 +373,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
     private ResultState processInvocationDeclaration(InvocationDeclarationContext ctx) {
         List<String> typeNameList = getTypeNamesFromParameterList(ctx.formalParameterList());
-        String methodSymbol = "^" + ctx.methodName() + "$_" + String.join("_", typeNameList);
+        String methodSymbol = "^" + ctx.methodName() + "$~" + String.join("~", typeNameList);
 
         System.err.println("[processInvocationDeclaration] currentSymbolTable = " + currentSymbolTable);
         System.err.println("[processInvocationDeclaration] methodSymbol = " + methodSymbol);
@@ -694,8 +694,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
             SymbolInfo methodSymbolInfo
     ) {
         String methodName = resolveMethodName(info);
-        String rawParamTypes = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
-        String[] paramTypes = rawParamTypes.isEmpty() ? new String[0] : rawParamTypes.split("_");
+        //String rawParamTypes = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$_").length());
+        String rawParamTypes = methodSymbolInfo.getSymbol().substring(("^" + methodName + "$~").length());
+        String[] paramTypes = rawParamTypes.isEmpty() ? new String[0] : rawParamTypes.split("~");
 
         List<JPlus25Parser.ExpressionContext> argumentList = Optional.ofNullable(ctx.argumentList()).map(argList -> argList.expression()).orElseGet(() -> new ArrayList<>());
 
@@ -1672,10 +1673,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     private void handleExplicitConstructorInvocation(JPlus25Parser.ExplicitConstructorInvocationContext ctx, ResolvedChain chain) {
-        String methodSymbol = "^constructor$_" + String.join("_", chain.first().invocationInfo.paramTypes);
+        String methodSymbol = "^constructor$~" + String.join("~", chain.first().invocationInfo.paramTypes);
         System.err.println("[handleExplicitConstructorInvocation] methodSymbol = " + methodSymbol);
 
-        String simpleMethodSymbol = "^constructor$_" + String.join("_", chain.first().invocationInfo.paramTypes.stream().map(CodeUtils::getSimpleName).toList());
+        String simpleMethodSymbol = "^constructor$~" + String.join("~", chain.first().invocationInfo.paramTypes.stream().map(CodeUtils::getSimpleName).toList());
         System.err.println("[handleExplicitConstructorInvocation] methodSymbol = " + methodSymbol);
 
         var classContext = classContextStack.peek();

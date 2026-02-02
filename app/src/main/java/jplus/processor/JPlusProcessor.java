@@ -16,17 +16,17 @@
 
 package jplus.processor;
 
-import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.analyzer.UnresolvedReferenceScanner;
+import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.base.JPlus25Lexer;
 import jplus.base.JPlus25Parser;
 import jplus.base.Project;
 import jplus.base.SymbolTable;
+import jplus.editor.FragmentedText;
 import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.CodeGenContext;
 import jplus.generator.JPlusParserRuleContext;
 import jplus.generator.SourceMappingEntry;
-import jplus.editor.FragmentedText;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;

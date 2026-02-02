@@ -143,7 +143,7 @@ public class JavaSymbolResolver {
                     type = TypeInfo.Type.Constructor;
                 }
 
-                String symbolName = "^" + methodName + "$_" + String.join("_", typeNameList);
+                String symbolName = "^" + methodName + "$~" + String.join("~", typeNameList);
                 System.err.println("[method] symbolName = " + symbolName);
 
                 TypeInfo typeInfo = new TypeInfo(symbolName, false, type);
@@ -159,30 +159,85 @@ public class JavaSymbolResolver {
             }
         }
 
-        TypeMirror superClassMirror = clazz.getSuperclass();
+        /*TypeMirror superClassMirror = clazz.getSuperclass();
         if (superClassMirror.getKind() == TypeKind.DECLARED) {
-            TypeElement superClassElement =
-                    (TypeElement) types.asElement(superClassMirror);
 
-            String superClassFQName = superClassElement.getQualifiedName().toString();
-            var superClassSymInfo = resolveClass(superClassFQName);
-            classSymbolTable.setSuperClassTable(superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+            TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
+            processSuperClass(superClassElement, classSymbolTable);
         }
 
         List<? extends TypeMirror> superInterfaceMirrorList = clazz.getInterfaces();
         for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
 
             if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
-                TypeElement superInterfaceElement =
-                        (TypeElement) types.asElement(superInterfaceMirror);
-
-                String superInterfaceFQName = superInterfaceElement.getQualifiedName().toString();
-                var superClassSymInfo = resolveClass(superInterfaceFQName);
-                classSymbolTable.addSuperInterfaceTable(superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+                TypeElement superInterfaceElement = (TypeElement) types.asElement(superInterfaceMirror);
+                processInterface(superInterfaceElement, classSymbolTable);
             }
-        }
+        }*/
+
+        processSuperClass(clazz, classSymbolTable);
 
         return classSymbolInfo;
+    }
+
+    private void processSuperClass(TypeElement clazz, SymbolTable classSymbolTable) {
+
+        String qualifiedName = clazz.getQualifiedName().toString();
+
+        if ("java.lang.Object".equals(qualifiedName)) {
+            return;
+        }
+
+        // 슈퍼 클래스 처리
+        TypeMirror superClassMirror = clazz.getSuperclass();
+        if (superClassMirror.getKind() == TypeKind.DECLARED) {
+
+            TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
+            String superClassFQName = superClassElement.getQualifiedName().toString();
+
+            var superClassSymInfo = resolveClass(superClassFQName);
+
+            // 현재 클래스에 상위 클래스 테이블 연결
+            classSymbolTable.setSuperClassTable(
+                    superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
+            );
+
+            // 상위 클래스 재귀 처리
+            processSuperClass(superClassElement, superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+        } else {
+            SymbolInfo objectClassSymInfo = resolveClass("java.lang.Object");
+            classSymbolTable.setSuperClassTable(
+                    objectClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
+            );
+        }
+
+        // 상위 클래스가 implements 한 인터페이스 처리
+        List<? extends TypeMirror> superInterfaceMirrorList = clazz.getInterfaces();
+        for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
+            if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
+                TypeElement superInterfaceElement = (TypeElement) types.asElement(superInterfaceMirror);
+                processInterface(superInterfaceElement, classSymbolTable);
+            }
+        }
+    }
+
+    private void processInterface(TypeElement interfaceElement, SymbolTable classSymbolTable) {
+
+        String interfaceFQName = interfaceElement.getQualifiedName().toString();
+        var superInterfaceSymInfo = resolveClass(interfaceFQName);
+
+        classSymbolTable.addSuperInterfaceTable(
+                superInterfaceSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
+        );
+
+        // 상위 인터페이스 재귀 처리
+        List<? extends TypeMirror> parentInterfaces = interfaceElement.getInterfaces();
+        for (TypeMirror parentInterfaceMirror : parentInterfaces) {
+            if (parentInterfaceMirror.getKind() == TypeKind.DECLARED) {
+                TypeElement parentInterfaceElement = (TypeElement) types.asElement(parentInterfaceMirror);
+                processInterface(parentInterfaceElement, superInterfaceSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
+            }
+        }
     }
 
     private String getPackageName(TypeElement clazz) {

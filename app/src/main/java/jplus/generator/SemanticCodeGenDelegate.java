@@ -25,7 +25,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         processed = true;
 
         if (ctx instanceof ApplyDeclarationContext applyDeclarationCtx) {
-            System.err.println("[ApplyDeclarationCtx] code = " + Utils.getTokenString(applyDeclarationCtx));
+            //System.err.println("[ApplyDeclarationCtx] code = " + Utils.getTokenString(applyDeclarationCtx));
             return replaceApplyStatementWithComment(applyDeclarationCtx);
         } else if (ctx instanceof UnannTypeContext unannTypeCtx && unannTypeCtx.unannReferenceType() != null) {
             return replaceNullType(unannTypeCtx);
@@ -49,7 +49,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
 
         //String replaced = Utils.getTokenString(methodInvocationCtx).replace("?.", ".");
         String replaced = forceUpdateContextString(methodInvocationCtx).replace("?.", ".");
-        System.err.println("[processMethodInvocation] replaced = " + replaced);
+        //System.err.println("[processMethodInvocation] replaced = " + replaced);
 
         return updateContextString(methodInvocationCtx, replaced);
     }
@@ -58,7 +58,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         ensureChildTextInitialized();
 
         String replaced = Utils.getTokenString(fieldAccessCtx).replace("?.", ".");
-        System.err.println("[processFieldAccess] replaced = " + replaced);
+        //System.err.println("[processFieldAccess] replaced = " + replaced);
         return updateContextString(fieldAccessCtx, replaced);
     }
 
@@ -66,13 +66,13 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         ensureChildTextInitialized();
 
         String replaced = Utils.getTokenString(expressionNameCtx).replace("?.", ".");
-        System.err.println("[ExpressionNameContext] replaced = " + replaced);
+        //System.err.println("[ExpressionNameContext] replaced = " + replaced);
         return updateContextString(expressionNameCtx, replaced);
     }
 
     @Override
     protected String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
-        System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
+        //System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
         ensureChildTextInitialized();
 
         String conditionalOrExpressionString = Utils.getTokenString(ctx.conditionalOrExpression());
@@ -80,7 +80,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
 
         String replaced = "jext.util.JextUtils.__elvis(" + conditionalOrExpressionString + ", " + rhsExpressionString + ")";
 
-        System.err.println("[replaceElvisOperator] replaced = " + replaced);
+        //System.err.println("[replaceElvisOperator] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -88,7 +88,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         ensureChildTextInitialized();
 
         String replaced = Utils.getTokenString(ctx).replace("?.", ".");
-        System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
+        //System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -98,7 +98,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
 
         if (ctx instanceof JPlus25Parser.Start_Context) {
             FragmentedText fragmentedText = getCurrentFragmentedText();
-//            System.err.println("debugString = " + fragmentedText.debugString());
+            //System.err.println("debugString = " + fragmentedText.debugString());
 
 
             /*var contextString = fragmentedText.toString();
