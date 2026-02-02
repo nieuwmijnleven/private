@@ -992,31 +992,35 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$");
 
+        currentSymbolTable.merge(conditionResult.whenTrue);
         visit(ctx.statement());
 
         exitSymbolTable();
 
         System.err.println("[ifThenStatement] before = " + entry);
 
-        System.err.println("[ifThenStatement] whenTrue = " + conditionResult.whenTrue);
+        //System.err.println("[ifThenStatement] whenTrue = " + conditionResult.whenTrue);
         System.err.println("[ifThenStatement] whenFalse = " + conditionResult.whenFalse);
+
+        var whenTrue = conditionResult.whenTrue.getEnclosingSymbolTable("^then$");
+        System.err.println("[IfThenElseStatement] whenTrue = " + whenTrue);
 
         //currentSymbolTable = join(before, join(conditionResult.whenTrue, conditionResult.whenFalse));
         //currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
 
-        if (conditionResult.whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
+        if (whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
             //currentSymbolTable = new SymbolTable(null);
             currentSymbolTable = entry;
-        } else if (conditionResult.whenTrue.isDeadContext()) {
+        } else if (whenTrue.isDeadContext()) {
             currentSymbolTable = conditionResult.whenFalse;
         } else if (conditionResult.whenFalse.isDeadContext()) {
-            //currentSymbolTable = conditionResult.whenTrue;
+            currentSymbolTable = join(entry, whenTrue);
         } else {
             //currentSymbolTable = join(before, join(thenTable, elseTable));
             System.err.println("[ifThenStatement] conditionResult.whenTrue = " + conditionResult.whenTrue);
             System.err.println("[ifThenStatement] conditionResult.whenFalse = " + conditionResult.whenFalse);
             //currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
-            currentSymbolTable = join(currentSymbolTable, conditionResult.whenFalse);
+            currentSymbolTable = join(entry, join(whenTrue, conditionResult.whenFalse));
 
             System.err.println("[ifThenStatement] join = " + currentSymbolTable);
         }
@@ -1042,18 +1046,23 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$");
 
+        currentSymbolTable.merge(conditionResult.whenTrue);
         visit(ctx.statementNoShortIf());
 
+        //conditionResult.whenTrue = currentSymbolTable;
         exitSymbolTable();
 
 
-        //currentSymbolTable = conditionResult.whenFalse;
         currentSymbolTable = conditionResult.whenFalse;
         enterSymbolTable("^else$");
 
+        currentSymbolTable.merge(conditionResult.whenFalse);
         visit(ctx.statement());
 
+        var mergedElseContext = currentSymbolTable;
         exitSymbolTable();
+
+
         //ifContextStack.push(new IfContext(currentSymbolTable));
 
         //currentSymbolTable = join(before, join(conditionResult.whenTrue, conditionResult.whenFalse));
@@ -1063,21 +1072,25 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
         System.err.println("[IfThenElseStatement] before = " + entry);
 
-        System.err.println("[IfThenElseStatement] whenTrue = " + conditionResult.whenTrue);
-        System.err.println("[IfThenElseStatement] whenFalse = " + conditionResult.whenFalse);
+        var whenTrue = conditionResult.whenTrue.getEnclosingSymbolTable("^then$");
+        System.err.println("[IfThenElseStatement] whenTrue = " + whenTrue);
 
-        if (conditionResult.whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
+        var whenFalse = conditionResult.whenFalse.getEnclosingSymbolTable("^else$");
+        System.err.println("[IfThenElseStatement] whenFalse = " + whenFalse);
+
+        if (whenTrue.isDeadContext() && whenFalse.isDeadContext()) {
             //currentSymbolTable = new SymbolTable(null);
             currentSymbolTable = entry;
-        } else if (conditionResult.whenTrue.isDeadContext()) {
-            //currentSymbolTable = conditionResult.whenFalse;
-        } else if (conditionResult.whenFalse.isDeadContext()) {
-            currentSymbolTable = conditionResult.whenTrue;
+        } else if (whenTrue.isDeadContext()) {
+            currentSymbolTable = join(entry, whenFalse);
+        } else if (whenFalse.isDeadContext()) {
+            currentSymbolTable = join(entry, whenTrue);
         } else {
             //currentSymbolTable = join(before, join(thenTable, elseTable));
             //currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
-            currentSymbolTable = join(conditionResult.whenTrue, currentSymbolTable);
+            currentSymbolTable = join(entry, join(whenTrue, mergedElseContext));
         }
+
 
         //ifContextStack.pop();
 
@@ -1100,6 +1113,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$");
 
+        currentSymbolTable.merge(conditionResult.whenTrue);
         visit(ctx.statementNoShortIf(0));
 
         exitSymbolTable();
@@ -1107,8 +1121,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         currentSymbolTable = conditionResult.whenFalse;
         enterSymbolTable("^else$");
 
+        currentSymbolTable.merge(conditionResult.whenFalse);
         visit(ctx.statementNoShortIf(1));
 
+        var mergedElseContext = currentSymbolTable;
         exitSymbolTable();
 
         //currentSymbolTable = join(before, join(conditionResult.whenTrue, conditionResult.whenFalse));
@@ -1117,18 +1133,25 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         System.err.println("[IfThenElseStatementNoShortIf] whenTrue = " + conditionResult.whenTrue);
         System.err.println("[IfThenElseStatementNoShortIf] whenFalse = " + conditionResult.whenFalse);
 
-        if (conditionResult.whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
+        var whenTrue = conditionResult.whenTrue.getEnclosingSymbolTable("^then$");
+        System.err.println("[IfThenElseStatement] whenTrue = " + whenTrue);
+
+        var whenFalse = conditionResult.whenFalse.getEnclosingSymbolTable("^else$");
+        System.err.println("[IfThenElseStatement] whenFalse = " + whenFalse);
+
+        if (whenTrue.isDeadContext() && whenFalse.isDeadContext()) {
             //currentSymbolTable = new SymbolTable(null);
             currentSymbolTable = entry;
-        } else if (conditionResult.whenTrue.isDeadContext()) {
-            //currentSymbolTable = conditionResult.whenFalse;
-        } else if (conditionResult.whenFalse.isDeadContext()) {
-            currentSymbolTable = conditionResult.whenTrue;
+        } else if (whenTrue.isDeadContext()) {
+            currentSymbolTable = join(entry, whenFalse);
+        } else if (whenFalse.isDeadContext()) {
+            currentSymbolTable = join(entry, whenTrue);
         } else {
             //currentSymbolTable = join(before, join(thenTable, elseTable));
             //currentSymbolTable = join(conditionResult.whenTrue, conditionResult.whenFalse);
-            currentSymbolTable = join(conditionResult.whenTrue, currentSymbolTable);
+            currentSymbolTable = join(entry, join(whenTrue, mergedElseContext));
         }
+
 
         System.err.println("[IfThenElseStatementNoShortIf] currentSymbolTable = " + currentSymbolTable);
 

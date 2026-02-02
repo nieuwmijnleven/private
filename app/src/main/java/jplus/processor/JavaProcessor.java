@@ -42,6 +42,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JavaProcessor {
+
+    private static JavaCompiler cachedCompiler;
+
     private final Project project;
 
     private List<InMemoryJavaFile> javaFiles;
@@ -57,6 +60,7 @@ public class JavaProcessor {
     private Types types;
 
     private Map<String, MethodInvocationInfo> methodInvocationInfoMap;
+
 
     public JavaProcessor(Project project, String source) {
         this(project, source, new SymbolTable(null));
@@ -182,17 +186,33 @@ public class JavaProcessor {
     }
 
     private JavaCompiler loadJavaCompiler() {
+        if (cachedCompiler != null) return cachedCompiler;
+
         try {
             ClassLoader jdkClassLoader = new java.net.URLClassLoader(
                     new java.net.URL[]{new File(project.getJdkHome() + "/lib/tools.jar").toURI().toURL()},
                     ToolProvider.class.getClassLoader()
             );
             Class<?> javacClass = Class.forName("com.sun.tools.javac.api.JavacTool", true, jdkClassLoader);
-            return (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+            cachedCompiler = (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+            return cachedCompiler;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load JavacTool from JDK", e);
         }
     }
+
+//    private JavaCompiler loadJavaCompiler() {
+//        try {
+//            ClassLoader jdkClassLoader = new java.net.URLClassLoader(
+//                    new java.net.URL[]{new File(project.getJdkHome() + "/lib/tools.jar").toURI().toURL()},
+//                    ToolProvider.class.getClassLoader()
+//            );
+//            Class<?> javacClass = Class.forName("com.sun.tools.javac.api.JavacTool", true, jdkClassLoader);
+//            return (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to load JavacTool from JDK", e);
+//        }
+//    }
 
     public void analyzeSymbols() {
         if (trees == null) {

@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +50,8 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     private Map<String, SymbolTable> enclosing = new HashMap<>();
 
     private List<ResolvedChain> resolvedChains = new ArrayList<>();
+
+    private List<SymbolTable> ifContextList = new LinkedList<>();
 
     public enum ExecutionContext {
         STATIC,
@@ -233,7 +236,8 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     public void merge(SymbolTable table) {
         table.symbolMap.forEach(symbolMap::putIfAbsent);
-        table.enclosing.forEach(enclosing::putIfAbsent);
+        //table.enclosing.forEach(enclosing::putIfAbsent);
+        mergeDeadContext(table.isDeadContext());
     }
 
     public boolean isEmpty() {
@@ -442,6 +446,14 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         }
 
         return Optional.empty();
+    }
+
+    public void addIfContext(SymbolTable symbolTable) {
+        ifContextList.add(symbolTable);
+    }
+
+    public SymbolTable removeFirstIfContext() {
+        return ifContextList.removeFirst();
     }
 
     public SymbolTable findLowContextSymbolTable(String name) {

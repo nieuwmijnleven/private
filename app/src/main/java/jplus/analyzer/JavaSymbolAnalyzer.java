@@ -1271,28 +1271,52 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         return super.visitConditionalExpression(node, unused);
     }
 
-        @Override
+    @Override
     public Void visitIf(IfTree node, Void unused) {
 
-        buildChain(node.getCondition());
+        //buildChain(node.getCondition());
+        //var ifContext = currentSymbolTable.copy();
+
+        scan(node.getCondition(), null);
+
+//        var thenContext = ifContext.copy();
+//        currentSymbolTable.addIfContext(thenContext);
+//
+//        currentSymbolTable = thenContext;
 
         enterSymbolTable("^then$");
 
-        TreePath thenPath = trees.getPath(ast, node.getThenStatement());
-        scan(thenPath, null);
+        scan(node.getThenStatement(), null);
 
         exitSymbolTable();
 
+//        var elseContext = ifContext.copy();
+//        currentSymbolTable.addIfContext(elseContext);
+//
+//        currentSymbolTable = elseContext;
         enterSymbolTable("^else$");
 
-        if (node.getElseStatement() != null) {
-            TreePath elsePath = trees.getPath(ast, node.getElseStatement());
-            scan(elsePath, null);
-        }
+        scan(node.getElseStatement(), null);
 
         exitSymbolTable();
 
-        node.getElseStatement();
+        //scan(getCurrentPath(), null);
+
+        //enterSymbolTable("^then$");
+
+//        TreePath thenPath = trees.getPath(ast, node.getThenStatement());
+//        scan(thenPath, null);
+
+        //exitSymbolTable();
+
+        //enterSymbolTable("^else$");
+
+//        if (node.getElseStatement() != null) {
+//            TreePath elsePath = trees.getPath(ast, node.getElseStatement());
+//            scan(elsePath, null);
+//        }
+
+        //exitSymbolTable();
 
         return null;
     }
