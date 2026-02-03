@@ -1,4 +1,4 @@
-package jplus.analyzer.nullability.context;
+package jplus.analyzer.nullability.dataflow.context;
 
 import jplus.base.SymbolInfo;
 

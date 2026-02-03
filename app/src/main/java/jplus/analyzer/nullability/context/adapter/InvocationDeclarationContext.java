@@ -1,4 +1,4 @@
-package jplus.analyzer.nullability;
+package jplus.analyzer.nullability.context.adapter;
 
 import jplus.base.JPlus25Parser;
 import jplus.base.Modifier;
@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.EnumSet;
 
 public interface InvocationDeclarationContext {
+
     ParserRuleContext originalContext();
     JPlus25Parser.FormalParameterListContext formalParameterList();
     ParserRuleContext invocationBody();

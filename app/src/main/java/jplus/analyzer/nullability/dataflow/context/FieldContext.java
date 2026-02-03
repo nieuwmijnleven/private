@@ -1,6 +1,6 @@
-package jplus.analyzer.nullability.context;
+package jplus.analyzer.nullability.dataflow.context;
 
-import jplus.analyzer.nullability.InitState;
+import jplus.analyzer.nullability.dataflow.InitState;
 
 public class FieldContext implements Context {
 

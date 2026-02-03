@@ -54,10 +54,10 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
 
         String className = context.getTargetClass();
         SymbolTable classSymbolTable = context.getClassSymbolTable();
-        System.err.println("[processNoArgsConsturctor] classSymbolTable = " + classSymbolTable);
+        ////System.err.println("[processNoArgsConsturctor] classSymbolTable = " + classSymbolTable);
         String constructorName = "^constructor$_";
         if (classSymbolTable.resolveInCurrent(constructorName) != null) {
-            System.err.println("default constructor already exists.");
+            ////System.err.println("default constructor already exists.");
             return;
         }
 
@@ -73,13 +73,13 @@ public class ConstructorFeatureProcessor implements ApplyFeatureProcessor {
 
         List<String> fieldList = context.getFieldList();
         if (fieldList.isEmpty()) {
-            System.err.println("fieldList is empty");
+            //System.err.println("fieldList is empty");
             return;
         }
 
         boolean hasFinalField = fieldList.stream().map(classSymbolTable::resolve).anyMatch(symbolInfo -> symbolInfo.getModifierList().contains(Modifier.FINAL));
         if (hasFinalField) {
-            System.err.println("final field exists");
+            //System.err.println("final field exists");
             return;
         }
 

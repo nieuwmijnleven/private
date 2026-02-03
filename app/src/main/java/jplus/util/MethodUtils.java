@@ -28,14 +28,6 @@ import java.util.List;
 
 public class MethodUtils {
 
-    /**
-     * MethodTree가 실제 코드에 존재하는 생성자인지 확인
-     * 
-     * @param methodTree 확인할 MethodTree
-     * @param trees      Trees 인스턴스
-     * @param compilationUnit 컴파일 단위 루트
-     * @return true면 명시적 생성자, false면 자동 default constructor 후보 또는 생성자 아님
-     */
     public static boolean isExplicitConstructor(MethodTree methodTree, Trees trees, TreePath path) {
         // 생성자 이름 검사
         if (!methodTree.getName().contentEquals("<init>")) {

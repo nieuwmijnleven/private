@@ -143,10 +143,10 @@ public class BoilerplateCodeGenerator extends JPlus25ParserBaseVisitor<Void> {
                 enclosingSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(classNames[i]);
             }
 
-            System.err.println("targetClass = " + targetClass);
-            System.err.println("enclosingSymbolTable = " + enclosingSymbolTable);
+            //System.err.println("targetClass = " + targetClass);
+            //System.err.println("enclosingSymbolTable = " + enclosingSymbolTable);
             SymbolInfo targetClassSymbolInfo = enclosingSymbolTable.resolve(targetClass);
-            System.err.println("targetClassSymbolInfo = " + targetClassSymbolInfo);
+            //System.err.println("targetClassSymbolInfo = " + targetClassSymbolInfo);
             TextChangeRange range = targetClassSymbolInfo.getRange();
             String classText = targetClassSymbolInfo.getOriginalText();
             TextChangeRange methodRange = new TextChangeRange(
@@ -155,7 +155,7 @@ public class BoilerplateCodeGenerator extends JPlus25ParserBaseVisitor<Void> {
             );
 
             SymbolTable classSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(targetClass);
-            System.err.println("[CodeGenerator] classSymbolTable = " + classSymbolTable);
+            //System.err.println("[CodeGenerator] classSymbolTable = " + classSymbolTable);
 
             List<String> fieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive, TypeInfo.Type.Reference, TypeInfo.Type.TypeParameter));
             List<String> primitiveTypeFieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive));

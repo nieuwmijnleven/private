@@ -71,7 +71,7 @@ public class JavaSymbolResolver {
                 .typeArguments(typeArgs)
                 .build();
 
-        System.err.println(classTypeInfo);
+        //System.err.println(classTypeInfo);
 
         SymbolTable topLevelSymbolTable = new SymbolTable(globalSymbolTable);
         SymbolInfo classSymbolInfo = SymbolInfo.builder()
@@ -123,7 +123,6 @@ public class JavaSymbolResolver {
                     String typeNameWithNullability = typeInfo.getFullname() + (isJavaApi ? "?" : (typeInfo.isNullable() ? "?" : ""));
                     typeNameList.add(typeNameWithNullability);
 
-                    // 심볼 정보 생성
                     SymbolInfo symbolInfo = SymbolInfo.builder()
                             .symbol(parameter.getSimpleName().toString())
                             .typeInfo(typeInfo)
@@ -131,10 +130,9 @@ public class JavaSymbolResolver {
                             .symbolTable(methodSymbolTable)
                             .build();
 
-                    // 파라미터 심볼 등록
                     methodSymbolTable.declare(symbolInfo.getSymbol(), symbolInfo);
                 }
-                // ---------- method/constructor symbol name 구성 ----------
+
                 //String methodName = methodElement.toString();
                 String methodName = methodElement.getSimpleName().toString();
                 TypeInfo.Type type = TypeInfo.Type.Method;
@@ -144,7 +142,7 @@ public class JavaSymbolResolver {
                 }
 
                 String symbolName = "^" + methodName + "$~" + String.join("~", typeNameList);
-                System.err.println("[method] symbolName = " + symbolName);
+                //System.err.println("[method] symbolName = " + symbolName);
 
                 TypeInfo typeInfo = new TypeInfo(symbolName, false, type);
                 SymbolInfo symbolInfo = SymbolInfo.builder()
@@ -158,22 +156,6 @@ public class JavaSymbolResolver {
                 classSymbolTable.addEnclosingSymbolTable(symbolName, methodSymbolTable);
             }
         }
-
-        /*TypeMirror superClassMirror = clazz.getSuperclass();
-        if (superClassMirror.getKind() == TypeKind.DECLARED) {
-
-            TypeElement superClassElement = (TypeElement) types.asElement(superClassMirror);
-            processSuperClass(superClassElement, classSymbolTable);
-        }
-
-        List<? extends TypeMirror> superInterfaceMirrorList = clazz.getInterfaces();
-        for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
-
-            if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
-                TypeElement superInterfaceElement = (TypeElement) types.asElement(superInterfaceMirror);
-                processInterface(superInterfaceElement, classSymbolTable);
-            }
-        }*/
 
         processSuperClass(clazz, classSymbolTable);
 
@@ -197,12 +179,10 @@ public class JavaSymbolResolver {
 
             var superClassSymInfo = resolveClass(superClassFQName);
 
-            // 현재 클래스에 상위 클래스 테이블 연결
             classSymbolTable.setSuperClassTable(
                     superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
             );
 
-            // 상위 클래스 재귀 처리
             processSuperClass(superClassElement, superClassSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0));
         } else {
             SymbolInfo objectClassSymInfo = resolveClass("java.lang.Object");
@@ -211,7 +191,6 @@ public class JavaSymbolResolver {
             );
         }
 
-        // 상위 클래스가 implements 한 인터페이스 처리
         List<? extends TypeMirror> superInterfaceMirrorList = clazz.getInterfaces();
         for (TypeMirror superInterfaceMirror : superInterfaceMirrorList) {
             if (superInterfaceMirror.getKind() == TypeKind.DECLARED) {
@@ -230,7 +209,6 @@ public class JavaSymbolResolver {
                 superInterfaceSymInfo.getSymbolTable().getEnclosingSymbolTables().get(0)
         );
 
-        // 상위 인터페이스 재귀 처리
         List<? extends TypeMirror> parentInterfaces = interfaceElement.getInterfaces();
         for (TypeMirror parentInterfaceMirror : parentInterfaces) {
             if (parentInterfaceMirror.getKind() == TypeKind.DECLARED) {

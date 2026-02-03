@@ -1,7 +1,7 @@
-package jplus.analyzer.nullability.context;
+package jplus.analyzer.nullability.dataflow.context;
 
-import jplus.analyzer.nullability.InitState;
-import jplus.analyzer.nullability.InvocationDeclarationContext;
+import jplus.analyzer.nullability.dataflow.InitState;
+import jplus.analyzer.nullability.context.adapter.InvocationDeclarationContext;
 import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
@@ -39,10 +39,10 @@ public class ClassContext implements Context {
         SymbolTable mergedSymbolTable = getMergedInstanceAndStaticSymbolTable();
         mergedSymbolTable.findSymbolInfoByType(List.of(TypeInfo.Type.Reference)).stream()
                 .filter(fieldInfo -> !fieldInfo.getTypeInfo().isNullable() && fieldInfo.getNullState() != NullState.NON_NULL)
-                .peek(fieldInfo -> System.err.println("[ClassContext] fieldInfo = " + fieldInfo))
+                //.peek(fieldInfo -> System.err.println("[ClassContext] fieldInfo = " + fieldInfo))
                 .forEach(symbolInfo -> fieldCtorInitState.put(symbolInfo, InitState.INIT));
 
-        System.err.println("[ClassContext] fieldCtorInitState = " + fieldCtorInitState);
+        //System.err.println("[ClassContext] fieldCtorInitState = " + fieldCtorInitState);
     }
 
     private SymbolTable getMergedInstanceAndStaticSymbolTable() {
@@ -98,12 +98,6 @@ public class ClassContext implements Context {
     }
 
     public boolean hasUninitializedNonNullField() {
-//        SymbolTable mergedSymbolTable = getMergedInstanceAndStaticSymbolTable();
-//        return mergedSymbolTable.findSymbolInfoByType(List.of(TypeInfo.Type.Reference)).stream()
-//                .filter(fieldInfo -> !fieldInfo.getTypeInfo().isNullable() && fieldInfo.getNullState() != NullState.NON_NULL)
-//                .anyMatch(fieldInfo -> {
-//                    return fieldCtorNullState.getOrDefault(fieldInfo.getSymbol(), InitState.UNINIT) == InitState.UNINIT;
-//                });
         return fieldCtorInitState.entrySet().stream()
                 .anyMatch(entry -> entry.getValue() == InitState.UNINIT);
     }

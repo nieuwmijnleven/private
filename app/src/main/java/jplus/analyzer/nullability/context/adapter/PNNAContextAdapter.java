@@ -1,4 +1,4 @@
-package jplus.analyzer.nullability;
+package jplus.analyzer.nullability.context.adapter;
 
 import jplus.base.JPlus25Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public interface PNNAContextAdapter {
+
     ParserRuleContext originalContext();
     JPlus25Parser.ExpressionContext expression();
     ParserRuleContext identifier();

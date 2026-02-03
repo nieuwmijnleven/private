@@ -76,21 +76,11 @@ class ConditionVisitor
             recv = t.typeName();
         }
 
-        // 필요시 array / super / qualified 확장
-        //primaryNoNewArraySuperMethodInvocation
-        //primaryNoNewArrayQualifiedSuperMethodInvocation
-
         if (recv != null) {
             nullabilityChecker.updateNullState(recv, thenTable, NullState.NON_NULL);
         }
     }
 
-    /**
-     * extractLValue
-     *
-     * ParseTree에서 "단일 reference 식"만 추출합니다.
-     * - 단일식: SymbolTable에서 null/non-null 상태를 추적할 수 있는 참조 타입 식
-     */
     ParserRuleContext extractLValue(ParseTree expr) {
         System.err.println("[extractLValue] expr = " + expr.getClass().getSimpleName());
         if (expr == null) return null;
@@ -115,9 +105,6 @@ class ConditionVisitor
             return extractLValue(me.unaryExpression(0));
         }
 
-        // -------------------------------
-        // UnaryExpression → !x, -x 등은 단일식 아님
-        // -------------------------------
         if (expr instanceof JPlus25Parser.UnaryExpressionContext ue) {
             if (ue.unaryExpression() != null) return null;
             return extractLValue(ue.unaryExpressionNotPlusMinus());
@@ -131,9 +118,6 @@ class ConditionVisitor
             return exprNm;
         }
 
-        // -------------------------------
-        // Primary
-        // -------------------------------
         if (expr instanceof JPlus25Parser.PrimaryContext primary) {
             // primaryNoNewArray
             if (primary.primaryNoNewArray() != null)
@@ -144,19 +128,15 @@ class ConditionVisitor
                 return primary.arrayCreationExpression();
         }
 
-        // -------------------------------
-        // PrimaryNoNewArray
-        // -------------------------------
         if (expr instanceof JPlus25Parser.PrimaryNoNewArrayContext p) {
             // this / Type.this
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayThisContext) return p;
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext) return p;
 
-            // expressionName → 변수 / 필드
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayLiteralContext literal) {
                 if (literal.literal() != null && literal.literal().NullLiteral() != null)
-                    return literal; // null literal만 단일식
-                return null; // primitive literal은 제외
+                    return literal;
+                return null;
             }
 
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext
@@ -167,10 +147,9 @@ class ConditionVisitor
                     || p instanceof JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext
                     || p instanceof JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext
                     || p instanceof JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext) {
-                return p; // 안전하게 단일식 처리
+                return p;
             }
 
-            // method / constructor reference → 반환 타입이 reference인지 확인
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext m) {
                 if (returnsReferenceType(m)) return m;
                 return null;
@@ -196,7 +175,6 @@ class ConditionVisitor
                 return null;
             }
 
-            // Method / Constructor Reference (::) → 항상 단일식
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext
                     || p instanceof JPlus25Parser.PrimaryNoNewArrayArrayMethodReferenceContext
                     || p instanceof JPlus25Parser.PrimaryNoNewArrayTypeMethodReferenceContext
@@ -207,40 +185,25 @@ class ConditionVisitor
                 return p;
             }
 
-            // 괄호 식 → 재귀 검사
             if (p instanceof JPlus25Parser.PrimaryNoNewArrayParenExpressionContext paren) {
                 return extractLValue(paren.expression());
             }
         }
 
-        // -------------------------------
-        // PostfixExpression → primary 재귀
-        // -------------------------------
         if (expr instanceof JPlus25Parser.PostfixExpressionContext post) {
             if (post.expressionName() != null) return extractLValue(post.expressionName());
             if (post.primary() != null) return extractLValue(post.primary());
-            return null; // ++/-- 등은 단일식 아님
+            return null;
         }
 
-        // -------------------------------
-        // ArrayCreationExpression → new Type[]
-        // -------------------------------
         if (expr instanceof JPlus25Parser.ArrayCreationExpressionContext array) {
             return array;
         }
 
-        // -------------------------------
-        // Equality / Relational / Boolean 식 → 단일식 아님
-        // -------------------------------
-        // 여기서는 모두 null 반환
         return null;
     }
 
-    /**
-     * returnsReferenceType
-     *
-     * 주어진 MethodInvocationContext의 반환 타입이 reference인지 확인
-     */
+
     boolean returnsReferenceType(ParserRuleContext methodCall) {
         //Type returnType = resolveMethodType(methodCall);
         //return returnType != null && !returnType.isPrimitive();
@@ -264,17 +227,14 @@ class ConditionVisitor
             return new ConditionResult(t, f);
         }
 
-        // <, >, <=, >=
         if (ctx.LT() != null || ctx.GT() != null
                 || ctx.LE() != null || ctx.GE() != null) {
 
             SymbolTable t = before.copy();
             SymbolTable f = before.copy();
 
-            // 좌변에서 receiver 추출
             var lhs = extractLValue(ctx.relationalExpression());
             if (lhs != null) {
-                // 비교가 평가되었다는 사실 자체가 NON_NULL 보장
                 nullabilityChecker.updateNullState(lhs, t, NullState.NON_NULL);
                 nullabilityChecker.updateNullState(lhs, f, NullState.NON_NULL);
 

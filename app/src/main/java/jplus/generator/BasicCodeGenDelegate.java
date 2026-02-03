@@ -1,7 +1,7 @@
 package jplus.generator;
 
-import jplus.analyzer.nullability.PNNAContextAdapter;
-import jplus.analyzer.nullability.PrimaryNoNewArrayContextAdapter;
+import jplus.analyzer.nullability.context.adapter.PNNAContextAdapter;
+import jplus.analyzer.nullability.context.adapter.PrimaryNoNewArrayContextAdapter;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25Parser.ApplyDeclarationContext;
 import jplus.base.JPlus25Parser.ExpressionNameContext;

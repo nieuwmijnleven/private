@@ -1,8 +1,6 @@
-package jplus.analyzer.nullability;
+package jplus.analyzer.nullability.context.adapter;
 
 import jplus.base.JPlus25Parser;
-import jplus.generator.TextChangeRange;
-import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public interface InvocationContext {

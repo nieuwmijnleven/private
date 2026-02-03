@@ -16,7 +16,6 @@ public class DefaultBufferManager implements BufferManager {
         this(original, 0);
     }
 
-    // 문자열 추가 (ADD buffer)
     @Override
     public int add(String text) {
         int start = absStart + addBuffer.length();
@@ -29,7 +28,6 @@ public class DefaultBufferManager implements BufferManager {
         return originalBuffer.toString();
     }
 
-    // 단일 문자 접근
     @Override
     public char charAt(BufferType buffer, int start) {
         int relStart = start - absStart;
@@ -47,7 +45,6 @@ public class DefaultBufferManager implements BufferManager {
         return originalBuffer.charAt(relStart);
     }
 
-    // 부분 문자열 접근
     @Override
     public String substring(BufferType buffer, int start, int length) {
         int relStart = start - absStart;

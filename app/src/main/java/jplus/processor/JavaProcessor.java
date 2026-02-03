@@ -92,7 +92,7 @@ public class JavaProcessor {
     public void process() throws Exception {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
-            //System.err.println("No system Java compiler available (JDK required)");
+            ////System.err.println("No system Java compiler available (JDK required)");
             //throw new IllegalStateException("No system Java compiler available (JDK required)");
 
             if (project.getJdkHome() != null) {
@@ -101,16 +101,13 @@ public class JavaProcessor {
         }
 
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
-        System.err.println("fileManager");
-
-        /*task = (JavacTask) compiler.getTask(
-                null, fileManager, null,
-                List.of("-XDcompilePolicy=simple"), null,
-                javaFiles
-        );*/
 
         List<String> options = new ArrayList<>();
         options.add("-XDcompilePolicy=simple");
+        options.add("-proc:none");
+        options.add("-g:none");
+        options.add("-implicit:none");
+        options.add("-Xlint:none");
 
         if (project != null) {
             // source path
@@ -129,7 +126,7 @@ public class JavaProcessor {
 
                 fileManager.getLocation(javax.tools.StandardLocation.CLASS_PATH).forEach(mergedClassPathDirs::add);
                 mergedClassPathDirs.addAll(classPathDirs);
-                System.err.println("classPathDirs = " + mergedClassPathDirs);
+                ////System.err.println("classPathDirs = " + mergedClassPathDirs);
 
                 fileManager.setLocation(javax.tools.StandardLocation.CLASS_PATH, mergedClassPathDirs);
             }
@@ -162,7 +159,7 @@ public class JavaProcessor {
             }
         }*/
 
-        System.err.println("task before");
+        //System.err.println("task before");
         task = (JavacTask) compiler.getTask(
                 null,
                 fileManager,
@@ -172,17 +169,21 @@ public class JavaProcessor {
                 javaFiles
         );
 
-        System.err.println("task after");
+        //System.err.println("task after");
 
-        System.err.println("task.parse()");
+        //System.err.println("task.parse()");
         asts = task.parse();
-        System.err.println("task.analyze()");
+        
+        //System.err.println("task.analyze()");
         task.analyze();
-        System.err.println("Trees.instance(task)");
+        
+        //System.err.println("Trees.instance(task)");
         trees = Trees.instance(task);
-        System.err.println("task.getElements()");
+        
+        //System.err.println("task.getElements()");
         elements = task.getElements();
-        System.err.println("task.getTypes()");
+        
+        //System.err.println("task.getTypes()");
         types = task.getTypes();
     }
 

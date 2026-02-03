@@ -166,7 +166,7 @@ public class JPlusProcessor {
 
     private void runInitialJavaProcessing() throws Exception {
         String javaCode = generateJavaCodeForSemanticMode();
-        System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaCode = " + javaCode);
+        //System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaCode = " + javaCode);
         CodeGenContext ctx = CodeGenContext.current();
         sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
 
@@ -176,7 +176,7 @@ public class JPlusProcessor {
                 "\n" +
                 "    private JextUtils() {}\n" +
                 "\n" +
-                "    static <T> T __elvis(T... args) { return null; }\n" +
+                "    public static <T> T __elvis(T... args) { return null; }\n" +
                 "}";
 
         List<InMemoryJavaFile> inMemoryJavaFiles = new ArrayList<>();
@@ -185,7 +185,7 @@ public class JPlusProcessor {
 
         //javaProcessor = new JavaProcessor(javaCode, globalSymbolTable);
         javaProcessor = new JavaProcessor(project, inMemoryJavaFiles, globalSymbolTable);
-        System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaProcessor.process()");
+        //System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaProcessor.process()");
         javaProcessor.process();
     }
 
@@ -226,7 +226,7 @@ public class JPlusProcessor {
         for (SymbolTable symbolTable : symbolTableList) {
             UnresolvedReferenceScanner scanner = new UnresolvedReferenceScanner(symbolTable);
             List<UnresolvedReferenceScanner.UnresolvedReferenceInfo> unresolvedReferenceInfoList = scanner.findUnresolvedReference();
-            unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
+            //unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
             allUnresolvedReferenceInfoList.addAll(unresolvedReferenceInfoList);
         }
         return allUnresolvedReferenceInfoList;
@@ -246,7 +246,7 @@ public class JPlusProcessor {
                 dependency.process();
                 //String javaCode = dependency.generateJavaCodeForSemanticMode();
                 String javaCode = dependency.getProcessedJavaCode();
-                //System.err.println("[resolveAllUnresolvedReferences] javaCode = " + javaCode);
+                ////System.err.println("[resolveAllUnresolvedReferences] javaCode = " + javaCode);
                 inMemoryJavaFiles.add(new InMemoryJavaFile(unresolved.getFullyQualifiedName(), javaCode));
             }
 
@@ -283,12 +283,12 @@ public class JPlusProcessor {
             CodeGenContext.pop();
         }
 
-        System.err.println("[generateJavaCode] javaCode = " + generated);
+        //System.err.println("[generateJavaCode] javaCode = " + generated);
 
         int startIndex = parseTree.start.getStartIndex();
         String startWhiteSpace = originalText.substring(0, startIndex);
         String fullyGenerated = startWhiteSpace + generated;
-        //System.err.println("fullyGenerated = " + fullyGenerated);
+        ////System.err.println("fullyGenerated = " + fullyGenerated);
 
         FragmentedText fragmentedText = new FragmentedText(fullyGenerated);
         BoilerplateCodeGenerator generator = new BoilerplateCodeGenerator(symbolTable, fragmentedText);
