@@ -104,7 +104,7 @@ class ConditionVisitor
         }
 
         if (expr instanceof JPlus25Parser.ShiftExpressionContext se) {
-            return extractLValue(se.additiveExpression());
+            return extractLValue(se.additiveExpression(0));
         }
 
         if (expr instanceof JPlus25Parser.AdditiveExpressionContext ae) {
@@ -112,7 +112,7 @@ class ConditionVisitor
         }
 
         if (expr instanceof JPlus25Parser.MultiplicativeExpressionContext me) {
-            return extractLValue(me.unaryExpression());
+            return extractLValue(me.unaryExpression(0));
         }
 
         // -------------------------------
@@ -291,16 +291,17 @@ class ConditionVisitor
     @Override
     public ConditionResult visitConditionalAndExpression(JPlus25Parser.ConditionalAndExpressionContext ctx
     ) {
-        if (ctx.conditionalAndExpression() == null) {
-            return visit(ctx.inclusiveOrExpression());
+        //if (ctx.conditionalAndExpression() == null) {
+        if (ctx.inclusiveOrExpression(1) == null) {
+            return visit(ctx.inclusiveOrExpression(0));
         }
 
         ConditionResult left =
-                visit(ctx.conditionalAndExpression());
+                visit(ctx.inclusiveOrExpression(0));
 
         ConditionResult right =
                 new ConditionVisitor(nullabilityChecker, left.whenTrue.copy())
-                        .visit(ctx.inclusiveOrExpression());
+                        .visit(ctx.inclusiveOrExpression(1));
 
         return new ConditionResult(
                 right.whenTrue,
@@ -312,16 +313,16 @@ class ConditionVisitor
     @Override
     public ConditionResult visitConditionalOrExpression(JPlus25Parser.ConditionalOrExpressionContext ctx
     ) {
-        if (ctx.conditionalOrExpression() == null) {
-            return visit(ctx.conditionalAndExpression());
+        if (ctx.conditionalAndExpression(1) == null) {
+            return visit(ctx.conditionalAndExpression(0));
         }
 
         ConditionResult left =
-                visit(ctx.conditionalOrExpression());
+                visit(ctx.conditionalAndExpression(0));
 
         ConditionResult right =
                 new ConditionVisitor(nullabilityChecker, left.whenFalse.copy())
-                        .visit(ctx.conditionalAndExpression());
+                        .visit(ctx.conditionalAndExpression(1));
 
         return new ConditionResult(
                 nullabilityChecker.join(left.whenTrue, right.whenTrue),

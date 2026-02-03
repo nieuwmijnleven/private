@@ -1620,11 +1620,15 @@ castExpression
 // Paragraph 15.17
 // ---------------
 
+//multiplicativeExpression
+//    : unaryExpression
+//    | multiplicativeExpression '*' unaryExpression
+//    | multiplicativeExpression '/' unaryExpression
+//    | multiplicativeExpression '%' unaryExpression
+//    ;
+
 multiplicativeExpression
-    : unaryExpression
-    | multiplicativeExpression '*' unaryExpression
-    | multiplicativeExpression '/' unaryExpression
-    | multiplicativeExpression '%' unaryExpression
+    : unaryExpression (('*'|'/'|'%') unaryExpression)*
     ;
 
 // Paragraph 15.18
@@ -1639,11 +1643,15 @@ additiveExpression
 // Paragraph 15.19
 // ---------------
 
+//shiftExpression
+//    : additiveExpression
+//    | shiftExpression '<' '<' additiveExpression
+//    | shiftExpression '>' '>' additiveExpression
+//    | shiftExpression '>' '>' '>' additiveExpression
+//    ;
+
 shiftExpression
-    : additiveExpression
-    | shiftExpression '<' '<' additiveExpression
-    | shiftExpression '>' '>' additiveExpression
-    | shiftExpression '>' '>' '>' additiveExpression
+    : additiveExpression (('<' '<' | '>' '>' | '>' '>' '>') additiveExpression)*
     ;
 
 // Paragraph 15.20
@@ -1677,50 +1685,79 @@ equalityExpression
 // Paragraph 15.22
 // ---------------
 
+//andExpression
+//    : equalityExpression
+//    | andExpression '&' equalityExpression
+//    ;
+
 andExpression
-    : equalityExpression
-    | andExpression '&' equalityExpression
+    : equalityExpression ('&' equalityExpression)*
     ;
+
+//exclusiveOrExpression
+//    : andExpression
+//    | exclusiveOrExpression '^' andExpression
+//    ;
 
 exclusiveOrExpression
-    : andExpression
-    | exclusiveOrExpression '^' andExpression
+    : andExpression ('^' andExpression)*
     ;
 
+//inclusiveOrExpression
+//    : exclusiveOrExpression
+//    | inclusiveOrExpression '|' exclusiveOrExpression
+//    ;
+
 inclusiveOrExpression
-    : exclusiveOrExpression
-    | inclusiveOrExpression '|' exclusiveOrExpression
+    : exclusiveOrExpression ('|' exclusiveOrExpression)*
     ;
 
 // Paragraph 15.23
 // ---------------
 
+//conditionalAndExpression
+//    : inclusiveOrExpression
+//    | conditionalAndExpression '&&' inclusiveOrExpression
+//    ;
+
 conditionalAndExpression
-    : inclusiveOrExpression
-    | conditionalAndExpression '&&' inclusiveOrExpression
+    : inclusiveOrExpression ('&&' inclusiveOrExpression)*
     ;
 
 // Paragraph 15.24
 // ---------------
 
+//conditionalOrExpression
+//    : conditionalAndExpression
+//    | conditionalOrExpression '||' conditionalAndExpression
+//    ;
+
 conditionalOrExpression
-    : conditionalAndExpression
-    | conditionalOrExpression '||' conditionalAndExpression
+    : conditionalAndExpression ('||' conditionalAndExpression)*
     ;
 
 // Paragraph 15.25
 // ---------------
 
+//nullCoalescingExpression
+//    : conditionalOrExpression
+//    | conditionalOrExpression '?:' nullCoalescingExpression
+//    | conditionalOrExpression '?:' lambdaExpression
+//    ;
+
 nullCoalescingExpression
-    : conditionalOrExpression
-    | conditionalOrExpression '?:' nullCoalescingExpression
-    | conditionalOrExpression '?:' lambdaExpression
+    : conditionalOrExpression ('?:' (nullCoalescingExpression | lambdaExpression))?
     ;
 
+//conditionalExpression
+//    : nullCoalescingExpression
+//    | nullCoalescingExpression '?' expression ':' conditionalExpression
+//    | nullCoalescingExpression '?' expression ':' lambdaExpression
+//    ;
+
+
 conditionalExpression
-    : nullCoalescingExpression
-    | nullCoalescingExpression '?' expression ':' conditionalExpression
-    | nullCoalescingExpression '?' expression ':' lambdaExpression
+    : nullCoalescingExpression ('?' expression ':' (conditionalExpression | lambdaExpression))?
     ;
 
 // Paragraph 15.26

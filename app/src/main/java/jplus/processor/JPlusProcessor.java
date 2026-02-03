@@ -30,6 +30,8 @@ import jplus.generator.SourceMappingEntry;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
+import org.antlr.v4.runtime.atn.PredictionMode;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

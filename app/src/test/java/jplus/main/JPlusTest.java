@@ -191,17 +191,17 @@ class JPlusTest {
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "iDf9RtgNUOoBl7GfrM55QEaSlhs=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "/4y4rcMiJuXYHyV3FT/jy83/2vU=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "Yu6yPh8yYjEmT92kla2unqTv86k=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "SQ/+NbTZ7tNs2QkTNIkIdXRs21c=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "i+TWiKfsFj+HeucjWAi1TbfVLXE=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "Nu4CSpg8Fsb+GfxmBRar/f7cTmI=");
     }
 
     @Test
@@ -226,12 +226,12 @@ class JPlusTest {
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jplus", "OuTw2q0GiXId0x6cj2x3OnZLq2g=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jplus", "yZtUmt/+VIn8dxshd7pNCR0wJ/8=");
     }
 
     @Test
     void testApplyConstructorWithNoInSingleClass() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jplus", "YSbXEa58QeEOGSZ4HHRbKeJPrmE=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jplus", "zoZLXdvFb0B6uUySG3mgm+d2/lo=");
     }
 
     @Test
