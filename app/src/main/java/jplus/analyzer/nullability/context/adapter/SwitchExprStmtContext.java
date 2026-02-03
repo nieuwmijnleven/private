@@ -1,10 +1,11 @@
-package jplus.analyzer.nullability.adapter;
+package jplus.analyzer.nullability.context.adapter;
 
 import jplus.base.JPlus25Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
 public interface SwitchExprStmtContext {
+
     ParserRuleContext originalContext();
     JPlus25Parser.ExpressionContext expression();
     JPlus25Parser.SwitchBlockContext switchBlock();

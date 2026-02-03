@@ -1,10 +1,8 @@
-package jplus.analyzer.nullability.context;
+package jplus.analyzer.nullability.dataflow.context;
 
 import jplus.analyzer.nullability.dataflow.NullState;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SwitchContext implements Context {

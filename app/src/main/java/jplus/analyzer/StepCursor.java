@@ -66,17 +66,15 @@ public final class StepCursor {
         CursorState current = stack.peek();
         ResolvedChain.Step step = current.next();
 
-        // CHAIN step은 반환하지 않고 childChain 탐색만
         if (step.kind == ResolvedChain.Kind.CHAIN) {
             if (step.childChain != null && !step.childChain.getSteps().isEmpty()) {
                 stack.push(new CursorState(step.childChain.getSteps()));
             }
-            return consume(); // 재귀 호출로 다음 실제 step 반환
+            return consume();
         }
 
         lastConsumed = step;
 
-        // childChain이 있어도 CHAIN 타입이 아니면 그대로 탐색
         if (step.childChain != null && !step.childChain.getSteps().isEmpty()) {
             stack.push(new CursorState(step.childChain.getSteps()));
         }
@@ -90,7 +88,6 @@ public final class StepCursor {
         return pos;
     }
 
-    // CHAIN 타입 step을 peek/consume에서 건너뛰기
     private void skipChainSteps() {
         while (!stack.isEmpty()) {
             CursorState current = stack.peek();

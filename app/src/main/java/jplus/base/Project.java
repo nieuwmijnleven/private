@@ -17,22 +17,12 @@ public class Project {
 
     private String jdkHome;
 
-    /* ------------------------------------------------------------
-     * Constructors
-     * ------------------------------------------------------------ */
-
-    /**
-     * 단일 소스 디렉토리용 생성자 (기존 코드 호환)
-     */
     public Project(Path srcDir) {
         Objects.requireNonNull(srcDir, "srcDir");
         this.sourceDirs = List.of(srcDir);
         this.javaClassPath = List.of();
     }
 
-    /**
-     * 복수 소스 디렉토리용 생성자
-     */
     public Project(List<Path> sourceDirs) {
         Objects.requireNonNull(sourceDirs, "sourceDirs");
         if (sourceDirs.isEmpty()) {
@@ -43,9 +33,6 @@ public class Project {
         this.javaClassPath = List.of();
     }
 
-    /**
-     * 전체 생성자 (source + classpath)
-     */
     public Project(List<Path> sourceDirs, List<Path> javaClassPath) {
         Objects.requireNonNull(sourceDirs, "sourceDirs");
         Objects.requireNonNull(javaClassPath, "javaClassPath");
@@ -57,11 +44,6 @@ public class Project {
         this.sourceDirs = List.copyOf(sourceDirs);
         this.javaClassPath = List.copyOf(javaClassPath);
     }
-
-    /* ------------------------------------------------------------
-     * Source dirs
-     * ------------------------------------------------------------ */
-
 
     public void setJdkHome(String jdkHome) {
         this.jdkHome = jdkHome;
@@ -94,10 +76,6 @@ public class Project {
                 .collect(Collectors.joining(File.pathSeparator));
     }
 
-    /* ------------------------------------------------------------
-     * Java classpath
-     * ------------------------------------------------------------ */
-
     public List<Path> getJavaClassPath() {
         return javaClassPath;
     }
@@ -110,9 +88,6 @@ public class Project {
         return new Project(this.sourceDirs, newCp);
     }
 
-    /**
-     * Build javac-compatible classpath string
-     */
     public String buildJavaClassPath() {
         return javaClassPath.stream()
                 .map(Path::toAbsolutePath)

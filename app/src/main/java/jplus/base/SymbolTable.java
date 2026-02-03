@@ -191,10 +191,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
         if (!isClassContext()) return null;
 
-        System.err.println("[resolve] symbol = " + name);
+        //System.err.println("[resolve] symbol = " + name);
         if (context == ExecutionContext.INSTANCE) {
             SymbolTable instanceNS = enclosing.get(INSTANCE_NS);
-            System.err.println("[resolve][instance] isClassContext symbol = " + name);
+            //System.err.println("[resolve][instance] isClassContext symbol = " + name);
             if (instanceNS != null) {
                 SymbolInfo inst = instanceNS.resolveInCurrent(name);
                 if (inst != null) return inst;
@@ -203,7 +203,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
         SymbolTable staticNS = enclosing.get(STATIC_NS);
         if (staticNS != null) {
-            System.err.println("[resolve][static] isClassContext symbol = " + name);
+            //System.err.println("[resolve][static] isClassContext symbol = " + name);
             SymbolInfo stat = staticNS.resolveInCurrent(name);
             if (stat != null) return stat;
         }
