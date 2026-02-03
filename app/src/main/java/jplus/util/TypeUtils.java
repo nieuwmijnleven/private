@@ -24,14 +24,13 @@ public class TypeUtils {
             case DECLARED:
                 DeclaredType declaredType = (DeclaredType) typeMirror;
                 Element declaration = declaredType.asElement();
-                // originElement가 클래스/인터페이스 자체인지 확인
+
                 boolean isClassDecl = originalElement != null && (originalElement.getKind().isClass() || originalElement.getKind().isInterface());
 
                 if (isClassDecl) {
-                    // 클래스/인터페이스 선언 그 자체를 나타냄
+
                     String className = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
 
-                    // ✔ 선언부의 타입 파라미터 추출 (T, K, V 등)
                     List<String> typeParams = ((TypeElement) declaration)
                             .getTypeParameters()
                             .stream()
@@ -45,13 +44,13 @@ public class TypeUtils {
                 } else {
                     String referenceTypeName = ((TypeElement) declaredType.asElement()).getQualifiedName().toString();
 
-                    System.err.println("[fromTypeMirror] referenceTypeName = " + referenceTypeName);
+                    //System.err.println("[fromTypeMirror] referenceTypeName = " + referenceTypeName);
 
                     boolean isNullable = typeMirror.getAnnotationMirrors().stream()
                             .map(annotationMirror -> annotationMirror.getAnnotationType().toString())
                             .anyMatch(annName -> annName.endsWith(".Nullable") || annName.equals("org.jspecify.annotations.Nullable"));
 
-                    System.err.println("[fromTypeMirror] isNullable = " + isNullable);
+                    //System.err.println("[fromTypeMirror] isNullable = " + isNullable);
 
                     List<TypeInfo> typeArgs = declaredType.getTypeArguments()
                             .stream()
@@ -99,7 +98,6 @@ public class TypeUtils {
     }
 
 
-    // TypeMirror에서 타입명을 얻는 일반적인 방법
     public static String getTypeName(TypeMirror type) {
         switch (type.getKind()) {
             case DECLARED:
@@ -129,7 +127,6 @@ public class TypeUtils {
         }
     }
 
-    // TypeMirror에서 제너릭 타입 파라미터만 추출
     public static List<String> getTypeParameters(TypeMirror type) {
         if (type.getKind() == TypeKind.DECLARED) {
             DeclaredType declared = (DeclaredType) type;

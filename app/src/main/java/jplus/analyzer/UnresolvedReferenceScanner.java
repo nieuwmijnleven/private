@@ -66,7 +66,7 @@ public class UnresolvedReferenceScanner {
     public UnresolvedReferenceScanner(SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
         this.packageName = symbolTable.resolve("^PackageName$").getSymbol();
-        System.err.println("[UnresolvedReferenceScanner] packageName = " + this.packageName);
+        //System.err.println("[UnresolvedReferenceScanner] packageName = " + this.packageName);
     }
 
     public List<UnresolvedReferenceInfo> findUnresolvedReference() {
@@ -77,7 +77,7 @@ public class UnresolvedReferenceScanner {
             info.packageName = this.packageName;
             unresolvedReferenceInfoList.add(info);
         }
-        System.err.println("[UnresolvedReferenceScanner] unresolvedReferenceInfoList = " + unresolvedReferenceInfoList);
+        //System.err.println("[UnresolvedReferenceScanner] unresolvedReferenceInfoList = " + unresolvedReferenceInfoList);
         return unresolvedReferenceInfoList.stream().toList();
     }
 
@@ -89,7 +89,7 @@ public class UnresolvedReferenceScanner {
             SymbolTable table = deque.removeFirst();
             for (SymbolInfo symbolInfo : table) {
                 if (checkUnresolvedSymbol(symbolInfo)) {
-                    System.err.println("[UnresolvedReferenceScanner] symbolInfo = " + symbolInfo);
+                    //System.err.println("[UnresolvedReferenceScanner] symbolInfo = " + symbolInfo);
                     unresolved.add(symbolInfo);
                 }
             }
