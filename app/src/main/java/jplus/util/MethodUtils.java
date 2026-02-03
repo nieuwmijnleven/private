@@ -59,7 +59,7 @@ public class MethodUtils {
     public static List<String> getCandidates(String methodName, List<String> paramTypes) {
         List<String> candidates = new ArrayList<>();
         if (paramTypes.isEmpty()) {
-            return List.of("^" + methodName + "$_");
+            return List.of("^" + methodName + "$~");
         }
 
         generateCandidates(paramTypes, 0, "^"+ methodName + "$", candidates);
@@ -73,7 +73,7 @@ public class MethodUtils {
         }
 
         String paramType = paramTypes.get(index);
-        generateCandidates(paramTypes, index + 1, generated + "_" + paramType, candidates);
-        generateCandidates(paramTypes, index + 1, generated + "_" + paramType + "?", candidates);
+        generateCandidates(paramTypes, index + 1, generated + "~" + paramType, candidates);
+        generateCandidates(paramTypes, index + 1, generated + "~" + paramType + "?", candidates);
     }
 }

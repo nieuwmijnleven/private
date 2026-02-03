@@ -2147,12 +2147,22 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
         if (ctx.pNNA() != null) {
 
-            String stepSymbol = Utils.getTokenString(ctx.pNNA()).replaceAll("^\\.", "");
-            log("[handleExpressionWithParenthesis] stepSymbol = " + stepSymbol);
+            String pnnaSymbol = Utils.getTokenString(ctx.pNNA()).replaceAll("^\\.", "");
+            log("[handleExpressionWithParenthesis] pnnaSymbol = " + pnnaSymbol);
 
             while(cursor.hasNext()) {
-                if (Objects.equals(stepSymbol, cursor.peek().orElseThrow(IllegalStateException::new).symbol)) break;
+
+                var step = cursor.peek().orElseThrow(IllegalStateException::new);
+
+                var isMethodStep = step.kind == ResolvedChain.Kind.METHOD;
+                if (isMethodStep) {
+                    if (pnnaSymbol.startsWith(step.symbol)) break;
+                } else {
+                    if (Objects.equals(pnnaSymbol, step.symbol)) break;
+                }
+
                 log("[handleExpressionWithParenthesis] cursor.peek() = " + cursor.peek().orElseThrow(IllegalStateException::new).symbol);
+
                 cursor.consume();
             }
 

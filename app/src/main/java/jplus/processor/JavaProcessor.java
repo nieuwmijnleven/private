@@ -32,6 +32,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
 
 public class JavaProcessor {
 
-    private static JavaCompiler cachedCompiler;
+    private static WeakReference<JavaCompiler> cachedCompilerRef;
 
     private final Project project;
 
@@ -186,7 +187,12 @@ public class JavaProcessor {
     }
 
     private JavaCompiler loadJavaCompiler() {
-        if (cachedCompiler != null) return cachedCompiler;
+        if (cachedCompilerRef != null) {
+            JavaCompiler cached = cachedCompilerRef.get();
+            if (cached != null) {
+                return cached;
+            }
+        }
 
         try {
             ClassLoader jdkClassLoader = new java.net.URLClassLoader(
@@ -194,8 +200,12 @@ public class JavaProcessor {
                     ToolProvider.class.getClassLoader()
             );
             Class<?> javacClass = Class.forName("com.sun.tools.javac.api.JavacTool", true, jdkClassLoader);
-            cachedCompiler = (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
-            return cachedCompiler;
+            JavaCompiler compiler = (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+
+            // WeakReference로 저장
+            cachedCompilerRef = new WeakReference<>(compiler);
+
+            return compiler;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load JavacTool from JDK", e);
         }
