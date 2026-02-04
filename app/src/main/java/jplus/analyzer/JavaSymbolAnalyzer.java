@@ -1267,14 +1267,14 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         scan(node.getCondition(), null);
 
 
-        enterSymbolTable("^then$");
+        enterSymbolTable("^then$" + computeRange(node).startLine());
 
         scan(node.getThenStatement(), null);
 
         exitSymbolTable();
 
 
-        enterSymbolTable("^else$");
+        enterSymbolTable("^else$" + computeRange(node).startLine());
 
         scan(node.getElseStatement(), null);
 

@@ -106,7 +106,7 @@ public class JavaProcessor {
         options.add("-XDcompilePolicy=simple");
         options.add("-proc:none");
         options.add("-g:none");
-        options.add("-implicit:none");
+        //options.add("-implicit:none");
         options.add("-Xlint:none");
 
         if (project != null) {
@@ -131,33 +131,6 @@ public class JavaProcessor {
                 fileManager.setLocation(javax.tools.StandardLocation.CLASS_PATH, mergedClassPathDirs);
             }
         }
-
-        /*if (project != null && !project.getSourceDirs().isEmpty()) {
-            List<File> sourcePathDirs = project.getSourceDirs().stream()
-                    .map(Path::toFile)
-                    .toList();
-
-            fileManager.setLocation(
-                    javax.tools.StandardLocation.SOURCE_PATH,
-                    sourcePathDirs
-            );
-
-            String sourcePath = project.getSourceDirs().stream()
-                    .map(Path::toAbsolutePath)
-                    .map(Path::toString)
-                    .collect(Collectors.joining(File.pathSeparator));
-
-            options.add("-sourcepath");
-            options.add(sourcePath);
-        }*/
-
-        /*if (project != null) {
-            String classPath = project.buildJavaClassPath();
-            if (!classPath.isEmpty()) {
-                options.add("-classpath");
-                options.add(classPath);
-            }
-        }*/
 
         //System.err.println("task before");
         task = (JavacTask) compiler.getTask(
@@ -212,19 +185,6 @@ public class JavaProcessor {
         }
     }
 
-//    private JavaCompiler loadJavaCompiler() {
-//        try {
-//            ClassLoader jdkClassLoader = new java.net.URLClassLoader(
-//                    new java.net.URL[]{new File(project.getJdkHome() + "/lib/tools.jar").toURI().toURL()},
-//                    ToolProvider.class.getClassLoader()
-//            );
-//            Class<?> javacClass = Class.forName("com.sun.tools.javac.api.JavacTool", true, jdkClassLoader);
-//            return (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
-//        } catch (Exception e) {
-//            throw new RuntimeException("Failed to load JavacTool from JDK", e);
-//        }
-//    }
-
     public void analyzeSymbols() {
         if (trees == null) {
             throw new IllegalStateException("Call process() first.");
@@ -238,12 +198,6 @@ public class JavaProcessor {
             symbolAnalyzerList.add(javaSymbolAnalyzer);
             ++k;
         }
-
-//        String source = javaFiles.get(0).getContent();
-//        CompilationUnitTree ast = asts.iterator().next();
-//        symbolAnalyzer = new JavaSymbolAnalyzer(source, ast, trees, globalSymbolTable);
-//        symbolAnalyzer.scan(ast, null);
-//        symbolsAnalyzed = false;
     }
 
     public String getSource() {

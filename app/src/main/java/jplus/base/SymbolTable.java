@@ -80,25 +80,35 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         SymbolTable parent = parentCopy ? this.parent.copy() : this.parent;
         SymbolTable replica = new SymbolTable(parent, this.context);
 
-        // 1. symbolMap deep copy (상태)
         replica.symbolMap = new HashMap<>();
         for (var e : this.symbolMap.entrySet()) {
             replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().symbolTable(replica).build());
         }
 
-        // 2. resolvedChains deep copy
         replica.resolvedChains = new ArrayList<>(this.resolvedChains);
 //        for (ResolvedChain chain : this.resolvedChains) {
 //            copy.resolvedChains.add(chain.deepCopy());
 //        }
 
-        // 3. enclosing은 새로 만들되, child만 복제
         replica.enclosing = new HashMap<>();
         for (var e : this.enclosing.entrySet()) {
             SymbolTable childCopy = e.getValue().copy();
-            childCopy.parent = replica;          // ⭐ 중요
+            childCopy.parent = replica;
             replica.enclosing.put(e.getKey(), childCopy);
         }
+
+        return replica;
+    }
+
+    public SymbolTable promoteLocalSymbols() {
+        SymbolTable replica = parent.copy();
+
+        replica.symbolMap = new HashMap<>();
+        for (var e : this.symbolMap.entrySet()) {
+            replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().symbolTable(replica).build());
+        }
+
+        replica.setDeadContext(isDeadContext());
 
         return replica;
     }
@@ -156,6 +166,78 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     public SymbolInfo resolve(String name) {
 
+        SymbolInfo symbolInfo = resolveInCurrentContextPath(name);
+        if (symbolInfo != null) {
+            return symbolInfo;
+        }
+
+        symbolInfo = resolveInSuperContextPath(name);
+        if (symbolInfo != null) {
+            return symbolInfo;
+        }
+
+        return null;
+    }
+
+    public SymbolInfo resolveInCurrentContextPath(String name) {
+
+        SymbolInfo symbolInfo = resolveInCurrentContextPathInternal(name);
+        if (symbolInfo != null) {
+            return symbolInfo;
+        }
+
+        if (parent != null) {
+            return parent.resolveInCurrentContextPath(name);
+        }
+
+        return null;
+    }
+
+    public SymbolInfo resolveInCurrentContextPathInternal(String name) {
+        SymbolInfo local = symbolMap.get(name);
+        if (local != null) return local;
+
+        if (!isClassContext()) return null;
+
+        //System.err.println("[resolve] symbol = " + name);
+        if (context == ExecutionContext.INSTANCE) {
+            SymbolTable instanceNS = enclosing.get(INSTANCE_NS);
+            //System.err.println("[resolve][instance] isClassContext symbol = " + name);
+            if (instanceNS != null) {
+                SymbolInfo inst = instanceNS.resolveInCurrent(name);
+                if (inst != null) return inst;
+            }
+        }
+
+        SymbolTable staticNS = enclosing.get(STATIC_NS);
+        if (staticNS != null) {
+            //System.err.println("[resolve][static] isClassContext symbol = " + name);
+            SymbolInfo stat = staticNS.resolveInCurrent(name);
+            if (stat != null) return stat;
+        }
+
+        return null;
+    }
+
+    public SymbolInfo resolveInSuperContextPath(String name) {
+
+        if (superClassTable != null) {
+            var symbolInfo = superClassTable.resolve(name);
+            if (symbolInfo != null) return symbolInfo;
+        }
+
+        if (!superInterfaceTables.isEmpty()) {
+            for (var superInterfaceTable : superInterfaceTables) {
+                var symbolInfo = superInterfaceTable.resolve(name);
+                if (symbolInfo != null) return symbolInfo;
+            }
+        }
+
+        return null;
+    }
+
+    /*public SymbolInfo resolve(String name) {
+
         SymbolInfo symbolInfo = resolveInCurrent(name);
         if (symbolInfo != null) {
             return symbolInfo;
@@ -171,7 +253,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         }
 
         return null;
-    }
+    }*/
 
     public SymbolInfo resolveInCurrent(String name) {
         SymbolInfo local = symbolMap.get(name);
@@ -235,9 +317,9 @@ public class SymbolTable implements Iterable<SymbolInfo> {
     }
 
     public void merge(SymbolTable table) {
-        table.symbolMap.forEach(symbolMap::putIfAbsent);
+        table.symbolMap.forEach((symbol, symbolInfo) -> symbolMap.put(symbol, symbolInfo.toBuilder().symbolTable(this).build()));
         //table.enclosing.forEach(enclosing::putIfAbsent);
-        mergeDeadContext(table.isDeadContext());
+        //mergeDeadContext(table.isDeadContext());
     }
 
     public boolean isEmpty() {

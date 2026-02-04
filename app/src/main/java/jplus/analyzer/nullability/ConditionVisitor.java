@@ -4,6 +4,7 @@ import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.SymbolTable;
+import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -40,7 +41,7 @@ class ConditionVisitor
         }
 
         var lhs = extractLValue(ctx.equalityExpression());
-        System.err.println("[ConditionVisitor][visitEqualityExpression] lhs = " + lhs);
+        System.err.println("[ConditionVisitor][visitEqualityExpression] lhs = " + Utils.getTokenString(lhs));
         if (lhs == null) {
             return new ConditionResult(thenTable, elseTable);
         }
