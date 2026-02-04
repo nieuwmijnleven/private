@@ -6,8 +6,8 @@ import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
-import jplus.base.JPlus20Lexer;
-import jplus.base.JPlus20Parser;
+import jplus.base.JPlus25Lexer;
+import jplus.base.JPlus25Parser;
 import jplus.plugin.intellij.adapter.JPlusLexerAdapter;
 import jplus.plugin.intellij.psi.MethodPsiElement;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
@@ -47,18 +47,18 @@ public class JPlusSyntaxHighlighter extends SyntaxHighlighterBase {
 //
 //        if (tokenType instanceof RuleIElementType ruleIElementType) {
 //            switch(ruleIElementType.getRuleIndex()) {
-//                case JPlus20Parser.RULE_methodDeclarator ->
+//                case JPlus25Parser.RULE_methodDeclarator ->
 //            }
 //        }
 
 
-        if (tokenType == JPlusTokenTypes.TOKEN_ELEMENT_TYPES.get(JPlus20Lexer.StringLiteral)) {
+        if (tokenType == JPlusTokenTypes.TOKEN_ELEMENT_TYPES.get(JPlus25Lexer.StringLiteral)) {
             return STRING_KEYS;
         }
-        else if (tokenType == JPlusTokenTypes.TOKEN_ELEMENT_TYPES.get(JPlus20Lexer.COMMENT)) {
+        else if (tokenType == JPlusTokenTypes.TOKEN_ELEMENT_TYPES.get(JPlus25Lexer.COMMENT)) {
             return COMMENT_KEYS;
         }
-        else if (tokenType == JPlusTokenTypes.TOKEN_ELEMENT_TYPES.get(JPlus20Lexer.LINE_COMMENT)) {
+        else if (tokenType == JPlusTokenTypes.TOKEN_ELEMENT_TYPES.get(JPlus25Lexer.LINE_COMMENT)) {
             return COMMENT_KEYS;
         }
         else if (tokenType == JPlusTokenTypes.BAD_TOKEN_TYPE) {

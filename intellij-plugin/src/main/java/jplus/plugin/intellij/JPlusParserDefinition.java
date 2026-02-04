@@ -11,13 +11,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
-import jplus.base.JPlus20Lexer;
-import jplus.base.JPlus20Parser;
+import jplus.base.JPlus25Parser;
 import jplus.plugin.intellij.adapter.JPlusLexerAdapter;
 import jplus.plugin.intellij.adapter.JPlusParserAdapter;
 import jplus.plugin.intellij.psi.ApplyBlockPsiElement;
 import jplus.plugin.intellij.psi.ApplyStatementPsiElement;
-import jplus.plugin.intellij.psi.IdentifierPsiElement;
 import jplus.plugin.intellij.psi.MethodPsiElement;
 import jplus.plugin.intellij.psi.NormalClassDeclarationPsiElement;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
@@ -77,13 +75,13 @@ public class JPlusParserDefinition implements ParserDefinition {
 
         RuleIElementType ruleElementType = (RuleIElementType)iElementType;
         switch (ruleElementType.getRuleIndex()) {
-            case JPlus20Parser.RULE_applyBlock:
+            case JPlus25Parser.RULE_applyBlock:
                 return new ApplyBlockPsiElement(node);
-            case JPlus20Parser.RULE_applyStatement:
+            case JPlus25Parser.RULE_applyStatement:
                 return new ApplyStatementPsiElement(node);
-            case JPlus20Parser.RULE_methodDeclaration:
+            case JPlus25Parser.RULE_methodDeclaration:
                 return new MethodPsiElement(node, ruleElementType);
-            case JPlus20Parser.RULE_normalClassDeclaration:
+            case JPlus25Parser.RULE_normalClassDeclaration:
                 return new NormalClassDeclarationPsiElement(node);
         }
 
