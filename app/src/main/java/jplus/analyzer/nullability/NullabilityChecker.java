@@ -642,10 +642,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, MethodInvocationInfo info) {
-        System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
-        System.err.println("[resolveMethod] classSymbolTable.hasSuperClassTable() = " + classSymbolTable.hasSuperClassTable());
-        System.err.println("[resolveMethod] classSymbolTable.superClassTable() = " + classSymbolTable.getSuperClassTable());
-        System.err.println("[resolveMethod] classSymbolTable.superIntefaceTable() = " + classSymbolTable.getSuperInterfaceTables());
+//        System.err.println("[resolveMethod] classSymbolTable = " + classSymbolTable);
+//        System.err.println("[resolveMethod] classSymbolTable.hasSuperClassTable() = " + classSymbolTable.hasSuperClassTable());
+//        System.err.println("[resolveMethod] classSymbolTable.superClassTable() = " + classSymbolTable.getSuperClassTable());
+//        System.err.println("[resolveMethod] classSymbolTable.superIntefaceTable() = " + classSymbolTable.getSuperInterfaceTables());
 
         String methodName = resolveMethodName(info);
         List<String> candidates = MethodUtils.getCandidates(methodName, info.paramTypes);
@@ -657,7 +657,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             //var methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
             var methodSymbolInfo = classSymbolTable.resolve(candidate);
-            System.err.println("[resolveMethod] methodSymbolInfo = " + methodSymbolInfo);
+            //System.err.println("[resolveMethod] methodSymbolInfo = " + methodSymbolInfo);
             
             if (methodSymbolInfo != null) return Optional.of(methodSymbolInfo);
         }
@@ -733,7 +733,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
 
     private void log(String msg) {
-        System.err.println(msg);
+        //System.err.println(msg);
     }
 
     @Override
