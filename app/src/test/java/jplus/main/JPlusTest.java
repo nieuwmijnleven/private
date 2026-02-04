@@ -35,7 +35,7 @@ class JPlusTest {
 
     @Test
     void testNullableType1() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullableType1.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType1.jplus"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -51,7 +51,7 @@ class JPlusTest {
 
     @Test
     void testNullableType2() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullableType2.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType2.jplus"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -70,7 +70,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityChecker() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullabilityChecker.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityChecker.jplus"));
         processor.process();
         System.err.println("[ParseTreeString] " + processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -95,7 +95,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithDataflow() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullabilityCheckerWithDataflow.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithDataflow.jplus"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -116,7 +116,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithAssignNullableToNonNullable() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullabilityCheckerWithAssignNullableToNonNullable.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithAssignNullableToNonNullable.jplus"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -134,7 +134,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithNonInitializeLocalVariable() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jplus"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -279,7 +279,7 @@ class JPlusTest {
 
         String generatedJavaCode = processor.generateJavaCode();
         System.err.println("[BoilerplateCodeGeneration] = " + generatedJavaCode);
-        processor = new JPlusProcessor(generatedJavaCode);
+        processor = new JPlusProcessor(null, generatedJavaCode);
         processor.process();
 
         String parseTreeString = processor.getParseTreeString();

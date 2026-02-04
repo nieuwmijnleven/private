@@ -4,6 +4,9 @@ import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
@@ -45,7 +48,10 @@ public class JPlusExternalAnnotator
     public @Nullable JPlusAnnotationResult doAnnotate(
             JPlusAnnotationInput input
     ) {
+        ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+
         try {
+
             JPlusProcessor processor =
                     new JPlusProcessor(
                             input.project(),
@@ -53,13 +59,38 @@ public class JPlusExternalAnnotator
                             input.className()
                     );
 
+            if (indicator != null) {
+                indicator.setText("Jadex: Processing");
+                indicator.setIndeterminate(false);
+                indicator.setFraction(0.1);
+            }
+
             processor.process();
+
+            if (indicator != null) {
+                indicator.checkCanceled();
+                indicator.setText("Jadex: Analyzing symbols");
+                indicator.setFraction(0.4);
+            }
+
             processor.analyzeSymbols();
+
+            if (indicator != null) {
+                indicator.checkCanceled();
+                indicator.setText("Jadex: Checking nullability");
+                indicator.setFraction(0.6);
+            }
 
             List<NullabilityChecker.NullabilityIssue> issues =
                     processor.checkNullability();
 
+            if (indicator != null) {
+                indicator.setFraction(1.0);
+            }
+
             return new JPlusAnnotationResult(issues);
+        } catch (ProcessCanceledException pce) {
+            throw pce;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

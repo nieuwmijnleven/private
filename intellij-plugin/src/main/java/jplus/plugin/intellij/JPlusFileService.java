@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,7 +27,7 @@ public class JPlusFileService {
         this.project = project;
     }
 
-    public void compileAndWriteToJava(VirtualFile jplusFile, String jplusCode) {
+    public void compileAndWriteToJava(VirtualFile jplusFile, String jplusCode, ProgressIndicator indicator) {
 
         try {
 
@@ -46,8 +47,10 @@ public class JPlusFileService {
             //JPlusProcessor processor = new JPlusProcessor(jplusCode);
             JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusCode);
 
+            indicator.setText("Parsing");
             processor.process();
 
+            indicator.setText("Analyzing Symbols");
             processor.analyzeSymbols();
 
             //var issues = processor.checkNullability();
@@ -56,8 +59,11 @@ public class JPlusFileService {
 //                return;
 //            }
 
+            indicator.setText("Generating Java");
             String javaCode = processor.generateJavaCode();
             //System.out.println("javaCode = " + javaCode);
+
+            indicator.setText("Writing file");
 
             Path jplusPath = Paths.get(jplusFile.getPath());
             String javaFileName = jplusPath.getFileName().toString().replaceFirst("\\.jplus$", ".java");
