@@ -45,7 +45,7 @@ public class ProjectProcessor {
             .forEach(path -> {
                 JPlusProcessor jPlusProcessor = null;
                 try {
-                    jPlusProcessor = new JPlusProcessor(path, globalSymbolTable);
+                    jPlusProcessor = new JPlusProcessor(null, path, globalSymbolTable);
                     jPlusProcessor.process();
                     jPlusProcessor.analyzeSymbols();
                     jPlusProcessorMap.put(path, jPlusProcessor);

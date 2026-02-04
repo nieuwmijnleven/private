@@ -223,7 +223,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     reportIssue(
                             fieldInfo.getRange().startLine(),
                             fieldInfo.getRange().startIndex(),
-                            Utils.getIndexFromLineColumn(originalText, fieldInfo.getRange(), 0, 0),
+                            Utils.getIndexFromLineColumn(originalText, Utils.computeTextChangeRange(originalText, 0, originalText.length() - 1), fieldInfo.getRange().startLine(), fieldInfo.getRange().startIndex()),
                             String.format("Non-null field '%s' is not initialized in one or more constructors of class '%s'", fieldInfo.getSymbol(), typeName)
                     );
                 }
@@ -733,7 +733,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
 
     private void log(String msg) {
-        //System.err.println(msg);
+        System.err.println(msg);
     }
 
     @Override
@@ -1960,26 +1960,41 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         var prevStep = cursor.peekPrev().orElseThrow(() -> new IllegalStateException("A TypeName rule needed."));
         var currentStep = cursor.consume();
 
-        //System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] prevStep = " + prevStep);
-        //System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] currentStep = " + currentStep);
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] prevStep = " + prevStep);
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] currentStep = " + currentStep);
 
         String methodName = Utils.getTokenString(ctx.identifier());
-        //System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] methodName = " + methodName);
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] methodName = " + methodName);
 
         if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
 
-        //System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] methodInvocationInfo = " + currentStep.invocationInfo);
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] methodInvocationInfo = " + currentStep.invocationInfo);
 
         TypeInfo receiverTypeInfo = prevStep.typeInfo;
-        //System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] receiverTypeInfo = " + receiverTypeInfo);
+        System.err.println("[handlePrimaryNoNewArrayTypeMethodInvocation] receiverTypeInfo = " + receiverTypeInfo);
 
         //check instance nullability
         boolean useNullsafeOperator = (ctx.NULLSAFE() != null);
-        if (receiverTypeInfo.isNullable() && !useNullsafeOperator) {
-            reportIssue(
-                    ctx.getStart(),
-                    String.format("%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.).", prevStep.symbol, methodName)
-            );
+        boolean isReceiverNullable = receiverTypeInfo.isNullable();
+
+        var receiverSymInfo = currentSymbolTable.resolve(prevStep.symbol);
+
+        if (receiverSymInfo != null) {  //NullState
+
+            if (receiverSymInfo.getNullState() != NullState.NON_NULL && !useNullsafeOperator) {
+                reportIssue(
+                        ctx.getStart(),
+                        String.format("%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.).", prevStep.symbol, methodName)
+                );
+            }
+        } else {  //TypeCheck
+
+            if (isReceiverNullable && !useNullsafeOperator) {
+                reportIssue(
+                        ctx.getStart(),
+                        String.format("%s is a nullable variable. But it directly accesses %s(). Consider using null-safe operator(?.).", prevStep.symbol, methodName)
+                );
+            }
         }
 
         validateMethodArgumentNullability(ctx, receiverTypeInfo.getName(), currentStep);
@@ -2245,34 +2260,19 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             var step = cursor.consume();
             var rangeOpt = findTransformedRange(Utils.getTextChangeRange(originalText, ctx));
             while (rangeOpt.isPresent() && !rangeOpt.get().contains(step.range)) {
-                //System.err.println("[processExpressionNameContext] skip step = " + step);
+                System.err.println("[processExpressionNameContext] skip step = " + step);
 
                 //System.err.println("[processExpressionNameContext] jplus range = " + rangeOpt.get());
-                //System.err.println("[processExpressionNameContext] step range = " + step.range);
+                System.err.println("[processExpressionNameContext] step range = " + step.range);
                 step = cursor.consume();
             }
 
             String identifier = Utils.getTokenString(ctx.identifier());
-            //System.err.println("[processExpressionNameContext] identifier = " + identifier);
-            //System.err.println("[processExpressionNameContext] step.symbol = " + step.symbol);
+            System.err.println("[processExpressionNameContext] step.symbol = " + step.symbol);
             if (!identifier.equals(step.symbol)) throw new IllegalStateException();
 
-            //System.err.println("[processExpressionNameContext] line(" + ctx.start.getLine() + ")" );
+            System.err.println("[processExpressionNameContext] line(" + ctx.start.getLine() + ")" );
 
-
-
-
-            /*NullState nullState = NullState.UNKNOWN;
-            if (prevStep != null) {
-                SymbolInfo symbolInfo = currentSymbolTable.resolve(prevStep.symbol);
-                if (symbolInfo != null) {
-                    //System.err.println("[processExpressionNameContext] symbolInfo = " + symbolInfo);
-                    nullState = symbolInfo.getNullState();
-                }
-                //System.err.println("[processExpressionNameContext] nullState = " + nullState);
-            }*/
-
-            //if (prevStep != null && prevStep.typeInfo.isNullable() && nullState != NullState.NON_NULL && ctx.NULLSAFE() == null) {
 
             if (step.kind == ResolvedChain.Kind.IDENTIFIER || step.kind == ResolvedChain.Kind.FIELD) {
                 log("[processExpressionNameContext] symbolTable = " + symbolTable);

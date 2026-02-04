@@ -3,13 +3,16 @@ package jplus.plugin.intellij;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import jplus.plugin.intellij.annotator.JPlusIntelliJProjectUtil;
 import jplus.processor.JPlusProcessor;
+import com.intellij.openapi.module.Module;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,25 +26,39 @@ public class JPlusFileService {
         this.project = project;
     }
 
-    /**
-     * .jplus 파일을 분석하여 대응되는 .java 파일 생성
-     */
     public void compileAndWriteToJava(VirtualFile jplusFile, String jplusCode) {
+
         try {
-            JPlusProcessor processor = new JPlusProcessor(jplusCode);
+
+            PsiFile file = PsiManager.getInstance(project).findFile(jplusFile);
+            if (file == null) return;
+
+            Project ideaProject = file.getProject();
+
+            Module module = ModuleUtilCore.findModuleForFile(file.getVirtualFile(), ideaProject);
+            jplus.base.Project jplusProject = JPlusIntelliJProjectUtil.buildJPlusProject(ideaProject, module);
+
+            //String className = file.getVirtualFile().getNameWithoutExtension();
+
+            //String packageName = JPlusIntelliJProjectUtil.resolvePackageName(ideaProject, file);
+
+
+            //JPlusProcessor processor = new JPlusProcessor(jplusCode);
+            JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusCode);
+
             processor.process();
+
             processor.analyzeSymbols();
 
-            var issues = processor.checkNullability();
-            if (!issues.isEmpty()) {
-                System.err.println("❌ Nullability check failed.");
-                return;
-            }
+            //var issues = processor.checkNullability();
+//            if (!issues.isEmpty()) {
+//                System.err.println("Nullability check failed.");
+//                return;
+//            }
 
             String javaCode = processor.generateJavaCode();
-            System.out.println("javaCode = " + javaCode);
+            //System.out.println("javaCode = " + javaCode);
 
-            // Step 2: IDE 내부에서 안전하게 파일 생성
             Path jplusPath = Paths.get(jplusFile.getPath());
             String javaFileName = jplusPath.getFileName().toString().replaceFirst("\\.jplus$", ".java");
             Path javaFilePath = jplusPath.resolveSibling(javaFileName);
@@ -68,7 +85,7 @@ public class JPlusFileService {
                         }
 
 //                    FileDocumentManager.getInstance().saveAllDocuments();
-                        System.out.println("✅ JPlus compiled → " + javaFilePath);
+                        System.out.println("JPlus compiled → " + javaFilePath);
 
                     } catch (IOException e) {
                         e.printStackTrace();

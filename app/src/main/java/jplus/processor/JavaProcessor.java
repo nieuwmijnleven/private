@@ -62,7 +62,6 @@ public class JavaProcessor {
 
     private Map<String, MethodInvocationInfo> methodInvocationInfoMap;
 
-
     public JavaProcessor(Project project, String source) {
         this(project, source, new SymbolTable(null));
     }
@@ -89,16 +88,30 @@ public class JavaProcessor {
         this(project, Files.readString(filePath, StandardCharsets.UTF_8));
     }
 
-    public void process() throws Exception {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            ////System.err.println("No system Java compiler available (JDK required)");
-            //throw new IllegalStateException("No system Java compiler available (JDK required)");
+    private synchronized JavaCompiler getCachedJavaCompiler() {
+        if (cachedCompilerRef != null) {
+            JavaCompiler cached = cachedCompilerRef.get();
+            if (cached != null) return cached;
+        }
 
-            if (project.getJdkHome() != null) {
-                compiler = loadJavaCompiler();
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler != null) {
+            cachedCompilerRef = new WeakReference<>(compiler);
+        }
+        return compiler;
+    }
+
+    public void process() throws Exception {
+
+        JavaCompiler compiler = getCachedJavaCompiler();
+        if (compiler == null && project.getJdkHome() != null) {
+
+            compiler = loadJavaCompiler();
+            if (compiler == null) {
+                throw new IllegalStateException("No system Java compiler available (JDK required)");
             }
         }
+
 
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
@@ -160,7 +173,7 @@ public class JavaProcessor {
         types = task.getTypes();
     }
 
-    private JavaCompiler loadJavaCompiler() {
+    private synchronized JavaCompiler loadJavaCompiler() {
         if (cachedCompilerRef != null) {
             JavaCompiler cached = cachedCompilerRef.get();
             if (cached != null) {

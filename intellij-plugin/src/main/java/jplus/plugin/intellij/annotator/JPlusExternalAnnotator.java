@@ -1,10 +1,9 @@
 package jplus.plugin.intellij.annotator;
 
-import com.intellij.execution.CantRunException;
-import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.lang.annotation.ExternalAnnotator;
-import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
@@ -29,42 +28,6 @@ public class JPlusExternalAnnotator
 
         Module module = ModuleUtilCore.findModuleForFile(file.getVirtualFile(), ideaProject);
         jplus.base.Project jplusProject = JPlusIntelliJProjectUtil.buildJPlusProject(ideaProject, module);
-        //jplusProject = jplusProject.withJavaClassPathEntry(resolveJSpecifyJarPath());
-
-//        if (module != null) {
-//            JavaParameters params = new JavaParameters();
-//            try {
-//                params.configureByModule(module, JavaParameters.JDK_AND_CLASSES_AND_PROVIDED);
-//                List<String> classPathList = params.getClassPath().getPathList();
-//                System.err.println("classPathList = " + classPathList);
-//
-//                // 2️⃣ JPlusProject에 클래스패스 추가
-//                // jplusProject = jplusProject.withJavaClassPathEntry(classPathList);
-//
-//            } catch (CantRunException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-        /*Module[] modules = ModuleManager.getInstance(ideaProject).getModules();
-
-        if (modules.length > 0) {
-            Module module = modules[0]; // 첫 번째 모듈
-
-            JavaParameters params = new JavaParameters();
-            try {
-                params.configureByModule(
-                        module,
-                        JavaParameters.JDK_AND_CLASSES
-                );
-            } catch (CantRunException e) {
-                throw new RuntimeException(e);
-            }
-
-            List<String> classPathList = params.getClassPath().getPathList();
-            System.err.println("classPathList = " + classPathList);
-        }*/
-
 
         String className = file.getVirtualFile().getNameWithoutExtension();
 
@@ -98,7 +61,7 @@ public class JPlusExternalAnnotator
 
             return new JPlusAnnotationResult(issues);
         } catch (Exception e) {
-            throw new RuntimeException(e); // 분석 실패 → IDE 크래시 방지
+            throw new RuntimeException(e);
         }
     }
 
@@ -112,7 +75,7 @@ public class JPlusExternalAnnotator
 
         for (NullabilityChecker.NullabilityIssue issue : result.issues()) {
             holder.newAnnotation(
-                            com.intellij.lang.annotation.HighlightSeverity.ERROR,
+                            HighlightSeverity.WARNING,
                             issue.message()
                     )
                     .range(TextRange.create(issue.offset(), issue.offset()))

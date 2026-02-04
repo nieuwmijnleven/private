@@ -85,20 +85,16 @@ public class JPlusProcessor {
         );
     }
 
-    public JPlusProcessor(String originalText) {
-        this(null, originalText, new SymbolTable(null));
+    public JPlusProcessor(Project project, String originalText) {
+        this(project, originalText, new SymbolTable(null));
     }
 
-    public JPlusProcessor(String originalText, SymbolTable globalSymbolTable) {
-        this(null, originalText, globalSymbolTable);
+    public JPlusProcessor(Project project, Path filePath) throws Exception {
+        this(project, Files.readString(filePath, StandardCharsets.UTF_8), new SymbolTable(null));
     }
 
-    public JPlusProcessor(Path filePath) throws Exception {
-        this(Files.readString(filePath, StandardCharsets.UTF_8), new SymbolTable(null));
-    }
-
-    public JPlusProcessor(Path filePath, SymbolTable globalSymbolTable) throws Exception {
-        this(Files.readString(filePath, StandardCharsets.UTF_8), globalSymbolTable);
+    public JPlusProcessor(Project project, Path filePath, SymbolTable globalSymbolTable) throws Exception {
+        this(project, Files.readString(filePath, StandardCharsets.UTF_8), globalSymbolTable);
     }
 
     private static Path resolveSourceFile(Project project, String packageName, String className) {
@@ -268,8 +264,10 @@ public class JPlusProcessor {
     }
 
     public String generateJavaCode() {
-        if (!symbolsAnalyzed || !nullabilityChecked) {
-            throw new IllegalStateException("Must perform nullability check and symbol analysis first.");
+        //if (!symbolsAnalyzed || !nullabilityChecked) {
+        if (!symbolsAnalyzed) {
+            //throw new IllegalStateException("Must perform nullability check and symbol analysis first.");
+            throw new IllegalStateException("Must perform symbol analysis first.");
         }
 
         CodeGenContext.push();
