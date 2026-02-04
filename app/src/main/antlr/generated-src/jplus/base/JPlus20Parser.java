@@ -1,6 +1,5 @@
 // Generated from JPlus20Parser.g4 by ANTLR 4.12.0
 package jplus.base;
-import jplus.generator.JPlusParserRuleContext;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -300,7 +299,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class Start_Context extends JPlusParserRuleContext {
+	public static class Start_Context extends ParserRuleContext {
 		public CompilationUnitContext compilationUnit() {
 			return getRuleContext(CompilationUnitContext.class,0);
 		}
@@ -348,7 +347,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class IdentifierContext extends JPlusParserRuleContext {
+	public static class IdentifierContext extends ParserRuleContext {
 		public TerminalNode Identifier() { return getToken(JPlus20Parser.Identifier, 0); }
 		public ContextualKeywordContext contextualKeyword() {
 			return getRuleContext(ContextualKeywordContext.class,0);
@@ -424,7 +423,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeIdentifierContext extends JPlusParserRuleContext {
+	public static class TypeIdentifierContext extends ParserRuleContext {
 		public TerminalNode Identifier() { return getToken(JPlus20Parser.Identifier, 0); }
 		public ContextualKeywordMinusForTypeIdentifierContext contextualKeywordMinusForTypeIdentifier() {
 			return getRuleContext(ContextualKeywordMinusForTypeIdentifierContext.class,0);
@@ -495,7 +494,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnqualifiedMethodIdentifierContext extends JPlusParserRuleContext {
+	public static class UnqualifiedMethodIdentifierContext extends ParserRuleContext {
 		public TerminalNode Identifier() { return getToken(JPlus20Parser.Identifier, 0); }
 		public ContextualKeywordMinusForUnqualifiedMethodIdentifierContext contextualKeywordMinusForUnqualifiedMethodIdentifier() {
 			return getRuleContext(ContextualKeywordMinusForUnqualifiedMethodIdentifierContext.class,0);
@@ -570,7 +569,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ContextualKeywordContext extends JPlusParserRuleContext {
+	public static class ContextualKeywordContext extends ParserRuleContext {
 		public TerminalNode EXPORTS() { return getToken(JPlus20Parser.EXPORTS, 0); }
 		public TerminalNode MODULE() { return getToken(JPlus20Parser.MODULE, 0); }
 		public TerminalNode NONSEALED() { return getToken(JPlus20Parser.NONSEALED, 0); }
@@ -637,7 +636,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ContextualKeywordMinusForTypeIdentifierContext extends JPlusParserRuleContext {
+	public static class ContextualKeywordMinusForTypeIdentifierContext extends ParserRuleContext {
 		public TerminalNode EXPORTS() { return getToken(JPlus20Parser.EXPORTS, 0); }
 		public TerminalNode MODULE() { return getToken(JPlus20Parser.MODULE, 0); }
 		public TerminalNode NONSEALED() { return getToken(JPlus20Parser.NONSEALED, 0); }
@@ -699,7 +698,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ContextualKeywordMinusForUnqualifiedMethodIdentifierContext extends JPlusParserRuleContext {
+	public static class ContextualKeywordMinusForUnqualifiedMethodIdentifierContext extends ParserRuleContext {
 		public TerminalNode EXPORTS() { return getToken(JPlus20Parser.EXPORTS, 0); }
 		public TerminalNode MODULE() { return getToken(JPlus20Parser.MODULE, 0); }
 		public TerminalNode NONSEALED() { return getToken(JPlus20Parser.NONSEALED, 0); }
@@ -765,7 +764,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LiteralContext extends JPlusParserRuleContext {
+	public static class LiteralContext extends ParserRuleContext {
 		public TerminalNode IntegerLiteral() { return getToken(JPlus20Parser.IntegerLiteral, 0); }
 		public TerminalNode FloatingPointLiteral() { return getToken(JPlus20Parser.FloatingPointLiteral, 0); }
 		public TerminalNode BooleanLiteral() { return getToken(JPlus20Parser.BooleanLiteral, 0); }
@@ -823,7 +822,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PrimitiveTypeContext extends JPlusParserRuleContext {
+	public static class PrimitiveTypeContext extends ParserRuleContext {
 		public NumericTypeContext numericType() {
 			return getRuleContext(NumericTypeContext.class,0);
 		}
@@ -912,7 +911,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class NumericTypeContext extends JPlusParserRuleContext {
+	public static class NumericTypeContext extends ParserRuleContext {
 		public IntegralTypeContext integralType() {
 			return getRuleContext(IntegralTypeContext.class,0);
 		}
@@ -980,7 +979,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class IntegralTypeContext extends JPlusParserRuleContext {
+	public static class IntegralTypeContext extends ParserRuleContext {
 		public TerminalNode BYTE() { return getToken(JPlus20Parser.BYTE, 0); }
 		public TerminalNode SHORT() { return getToken(JPlus20Parser.SHORT, 0); }
 		public TerminalNode INT() { return getToken(JPlus20Parser.INT, 0); }
@@ -1036,7 +1035,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FloatingPointTypeContext extends JPlusParserRuleContext {
+	public static class FloatingPointTypeContext extends ParserRuleContext {
 		public TerminalNode FLOAT() { return getToken(JPlus20Parser.FLOAT, 0); }
 		public TerminalNode DOUBLE() { return getToken(JPlus20Parser.DOUBLE, 0); }
 		public FloatingPointTypeContext(ParserRuleContext parent, int invokingState) {
@@ -1089,7 +1088,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ReferenceTypeContext extends JPlusParserRuleContext {
+	public static class ReferenceTypeContext extends ParserRuleContext {
 		public ClassOrInterfaceTypeContext classOrInterfaceType() {
 			return getRuleContext(ClassOrInterfaceTypeContext.class,0);
 		}
@@ -1160,7 +1159,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CoitContext extends JPlusParserRuleContext {
+	public static class CoitContext extends ParserRuleContext {
 		public TerminalNode DOT() { return getToken(JPlus20Parser.DOT, 0); }
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
@@ -1255,7 +1254,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassOrInterfaceTypeContext extends JPlusParserRuleContext {
+	public static class ClassOrInterfaceTypeContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -1363,7 +1362,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassTypeContext extends JPlusParserRuleContext {
+	public static class ClassTypeContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -1525,7 +1524,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceTypeContext extends JPlusParserRuleContext {
+	public static class InterfaceTypeContext extends ParserRuleContext {
 		public ClassTypeContext classType() {
 			return getRuleContext(ClassTypeContext.class,0);
 		}
@@ -1570,7 +1569,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeVariableContext extends JPlusParserRuleContext {
+	public static class TypeVariableContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -1636,7 +1635,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArrayTypeContext extends JPlusParserRuleContext {
+	public static class ArrayTypeContext extends ParserRuleContext {
 		public PrimitiveTypeContext primitiveType() {
 			return getRuleContext(PrimitiveTypeContext.class,0);
 		}
@@ -1716,7 +1715,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class DimsContext extends JPlusParserRuleContext {
+	public static class DimsContext extends ParserRuleContext {
 		public List<TerminalNode> LBRACK() { return getTokens(JPlus20Parser.LBRACK); }
 		public TerminalNode LBRACK(int i) {
 			return getToken(JPlus20Parser.LBRACK, i);
@@ -1822,7 +1821,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeParameterContext extends JPlusParserRuleContext {
+	public static class TypeParameterContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -1901,7 +1900,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeParameterModifierContext extends JPlusParserRuleContext {
+	public static class TypeParameterModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -1946,7 +1945,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeBoundContext extends JPlusParserRuleContext {
+	public static class TypeBoundContext extends ParserRuleContext {
 		public TerminalNode EXTENDS() { return getToken(JPlus20Parser.EXTENDS, 0); }
 		public TypeVariableContext typeVariable() {
 			return getRuleContext(TypeVariableContext.class,0);
@@ -2032,7 +2031,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AdditionalBoundContext extends JPlusParserRuleContext {
+	public static class AdditionalBoundContext extends ParserRuleContext {
 		public TerminalNode BITAND() { return getToken(JPlus20Parser.BITAND, 0); }
 		public InterfaceTypeContext interfaceType() {
 			return getRuleContext(InterfaceTypeContext.class,0);
@@ -2080,7 +2079,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeArgumentsContext extends JPlusParserRuleContext {
+	public static class TypeArgumentsContext extends ParserRuleContext {
 		public TerminalNode LT() { return getToken(JPlus20Parser.LT, 0); }
 		public TypeArgumentListContext typeArgumentList() {
 			return getRuleContext(TypeArgumentListContext.class,0);
@@ -2131,7 +2130,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeArgumentListContext extends JPlusParserRuleContext {
+	public static class TypeArgumentListContext extends ParserRuleContext {
 		public List<TypeArgumentContext> typeArgument() {
 			return getRuleContexts(TypeArgumentContext.class);
 		}
@@ -2200,7 +2199,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeArgumentContext extends JPlusParserRuleContext {
+	public static class TypeArgumentContext extends ParserRuleContext {
 		public ReferenceTypeContext referenceType() {
 			return getRuleContext(ReferenceTypeContext.class,0);
 		}
@@ -2261,7 +2260,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class WildcardContext extends JPlusParserRuleContext {
+	public static class WildcardContext extends ParserRuleContext {
 		public TerminalNode QUESTION() { return getToken(JPlus20Parser.QUESTION, 0); }
 		public List<AnnotationContext> annotation() {
 			return getRuleContexts(AnnotationContext.class);
@@ -2338,7 +2337,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class WildcardBoundsContext extends JPlusParserRuleContext {
+	public static class WildcardBoundsContext extends ParserRuleContext {
 		public TerminalNode EXTENDS() { return getToken(JPlus20Parser.EXTENDS, 0); }
 		public ReferenceTypeContext referenceType() {
 			return getRuleContext(ReferenceTypeContext.class,0);
@@ -2404,7 +2403,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ModuleNameContext extends JPlusParserRuleContext {
+	public static class ModuleNameContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -2466,7 +2465,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PackageNameContext extends JPlusParserRuleContext {
+	public static class PackageNameContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -2527,7 +2526,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeNameContext extends JPlusParserRuleContext {
+	public static class TypeNameContext extends ParserRuleContext {
 		public PackageNameContext packageName() {
 			return getRuleContext(PackageNameContext.class,0);
 		}
@@ -2588,7 +2587,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PackageOrTypeNameContext extends JPlusParserRuleContext {
+	public static class PackageOrTypeNameContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -2649,7 +2648,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExpressionNameContext extends JPlusParserRuleContext {
+	public static class ExpressionNameContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -2744,7 +2743,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodNameContext extends JPlusParserRuleContext {
+	public static class MethodNameContext extends ParserRuleContext {
 		public UnqualifiedMethodIdentifierContext unqualifiedMethodIdentifier() {
 			return getRuleContext(UnqualifiedMethodIdentifierContext.class,0);
 		}
@@ -2789,7 +2788,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CompilationUnitContext extends JPlusParserRuleContext {
+	public static class CompilationUnitContext extends ParserRuleContext {
 		public OrdinaryCompilationUnitContext ordinaryCompilationUnit() {
 			return getRuleContext(OrdinaryCompilationUnitContext.class,0);
 		}
@@ -2850,7 +2849,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class OrdinaryCompilationUnitContext extends JPlusParserRuleContext {
+	public static class OrdinaryCompilationUnitContext extends ParserRuleContext {
 		public PackageDeclarationContext packageDeclaration() {
 			return getRuleContext(PackageDeclarationContext.class,0);
 		}
@@ -2964,7 +2963,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ModularCompilationUnitContext extends JPlusParserRuleContext {
+	public static class ModularCompilationUnitContext extends ParserRuleContext {
 		public ModuleDeclarationContext moduleDeclaration() {
 			return getRuleContext(ModuleDeclarationContext.class,0);
 		}
@@ -3030,7 +3029,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PackageDeclarationContext extends JPlusParserRuleContext {
+	public static class PackageDeclarationContext extends ParserRuleContext {
 		public TerminalNode PACKAGE() { return getToken(JPlus20Parser.PACKAGE, 0); }
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
@@ -3125,7 +3124,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PackageModifierContext extends JPlusParserRuleContext {
+	public static class PackageModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -3170,7 +3169,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ImportDeclarationContext extends JPlusParserRuleContext {
+	public static class ImportDeclarationContext extends ParserRuleContext {
 		public SingleTypeImportDeclarationContext singleTypeImportDeclaration() {
 			return getRuleContext(SingleTypeImportDeclarationContext.class,0);
 		}
@@ -3251,7 +3250,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SingleTypeImportDeclarationContext extends JPlusParserRuleContext {
+	public static class SingleTypeImportDeclarationContext extends ParserRuleContext {
 		public TerminalNode IMPORT() { return getToken(JPlus20Parser.IMPORT, 0); }
 		public TypeNameContext typeName() {
 			return getRuleContext(TypeNameContext.class,0);
@@ -3302,7 +3301,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeImportOnDemandDeclarationContext extends JPlusParserRuleContext {
+	public static class TypeImportOnDemandDeclarationContext extends ParserRuleContext {
 		public TerminalNode IMPORT() { return getToken(JPlus20Parser.IMPORT, 0); }
 		public PackageOrTypeNameContext packageOrTypeName() {
 			return getRuleContext(PackageOrTypeNameContext.class,0);
@@ -3359,7 +3358,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SingleStaticImportDeclarationContext extends JPlusParserRuleContext {
+	public static class SingleStaticImportDeclarationContext extends ParserRuleContext {
 		public TerminalNode IMPORT() { return getToken(JPlus20Parser.IMPORT, 0); }
 		public TerminalNode STATIC() { return getToken(JPlus20Parser.STATIC, 0); }
 		public TypeNameContext typeName() {
@@ -3421,7 +3420,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StaticImportOnDemandDeclarationContext extends JPlusParserRuleContext {
+	public static class StaticImportOnDemandDeclarationContext extends ParserRuleContext {
 		public TerminalNode IMPORT() { return getToken(JPlus20Parser.IMPORT, 0); }
 		public TerminalNode STATIC() { return getToken(JPlus20Parser.STATIC, 0); }
 		public TypeNameContext typeName() {
@@ -3481,7 +3480,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyDeclarationContext extends JPlusParserRuleContext {
+	public static class ApplyDeclarationContext extends ParserRuleContext {
 		public ApplyStatementContext applyStatement() {
 			return getRuleContext(ApplyStatementContext.class,0);
 		}
@@ -3545,7 +3544,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyStatementContext extends JPlusParserRuleContext {
+	public static class ApplyStatementContext extends ParserRuleContext {
 		public TerminalNode APPLY() { return getToken(JPlus20Parser.APPLY, 0); }
 		public ApplyFeatureListContext applyFeatureList() {
 			return getRuleContext(ApplyFeatureListContext.class,0);
@@ -3593,7 +3592,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyBlockContext extends JPlusParserRuleContext {
+	public static class ApplyBlockContext extends ParserRuleContext {
 		public TerminalNode APPLY() { return getToken(JPlus20Parser.APPLY, 0); }
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public List<ApplyBlockEntryContext> applyBlockEntry() {
@@ -3665,7 +3664,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyFeatureListContext extends JPlusParserRuleContext {
+	public static class ApplyFeatureListContext extends ParserRuleContext {
 		public List<ApplyFeatureContext> applyFeature() {
 			return getRuleContexts(ApplyFeatureContext.class);
 		}
@@ -3734,7 +3733,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyFeatureContext extends JPlusParserRuleContext {
+	public static class ApplyFeatureContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -3799,7 +3798,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyFeatureArgsContext extends JPlusParserRuleContext {
+	public static class ApplyFeatureArgsContext extends ParserRuleContext {
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
 		}
@@ -3868,7 +3867,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ApplyBlockEntryContext extends JPlusParserRuleContext {
+	public static class ApplyBlockEntryContext extends ParserRuleContext {
 		public QualifiedNameContext qualifiedName() {
 			return getRuleContext(QualifiedNameContext.class,0);
 		}
@@ -3924,7 +3923,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class QualifiedNameContext extends JPlusParserRuleContext {
+	public static class QualifiedNameContext extends ParserRuleContext {
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
 		}
@@ -3993,7 +3992,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TopLevelClassOrInterfaceDeclarationContext extends JPlusParserRuleContext {
+	public static class TopLevelClassOrInterfaceDeclarationContext extends ParserRuleContext {
 		public ClassDeclarationContext classDeclaration() {
 			return getRuleContext(ClassDeclarationContext.class,0);
 		}
@@ -4062,7 +4061,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ModuleDeclarationContext extends JPlusParserRuleContext {
+	public static class ModuleDeclarationContext extends ParserRuleContext {
 		public TerminalNode MODULE() { return getToken(JPlus20Parser.MODULE, 0); }
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
@@ -4191,7 +4190,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ModuleDirectiveContext extends JPlusParserRuleContext {
+	public static class ModuleDirectiveContext extends ParserRuleContext {
 		public TerminalNode REQUIRES() { return getToken(JPlus20Parser.REQUIRES, 0); }
 		public List<ModuleNameContext> moduleName() {
 			return getRuleContexts(ModuleNameContext.class);
@@ -4416,7 +4415,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RequiresModifierContext extends JPlusParserRuleContext {
+	public static class RequiresModifierContext extends ParserRuleContext {
 		public TerminalNode TRANSITIVE() { return getToken(JPlus20Parser.TRANSITIVE, 0); }
 		public TerminalNode STATIC() { return getToken(JPlus20Parser.STATIC, 0); }
 		public RequiresModifierContext(ParserRuleContext parent, int invokingState) {
@@ -4469,7 +4468,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassDeclarationContext extends JPlusParserRuleContext {
+	public static class ClassDeclarationContext extends ParserRuleContext {
 		public NormalClassDeclarationContext normalClassDeclaration() {
 			return getRuleContext(NormalClassDeclarationContext.class,0);
 		}
@@ -4540,7 +4539,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class NormalClassDeclarationContext extends JPlusParserRuleContext {
+	public static class NormalClassDeclarationContext extends ParserRuleContext {
 		public TerminalNode CLASS() { return getToken(JPlus20Parser.CLASS, 0); }
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
@@ -4666,7 +4665,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassModifierContext extends JPlusParserRuleContext {
+	public static class ClassModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -4791,7 +4790,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeParametersContext extends JPlusParserRuleContext {
+	public static class TypeParametersContext extends ParserRuleContext {
 		public TerminalNode LT() { return getToken(JPlus20Parser.LT, 0); }
 		public TypeParameterListContext typeParameterList() {
 			return getRuleContext(TypeParameterListContext.class,0);
@@ -4842,7 +4841,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeParameterListContext extends JPlusParserRuleContext {
+	public static class TypeParameterListContext extends ParserRuleContext {
 		public List<TypeParameterContext> typeParameter() {
 			return getRuleContexts(TypeParameterContext.class);
 		}
@@ -4911,7 +4910,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassExtendsContext extends JPlusParserRuleContext {
+	public static class ClassExtendsContext extends ParserRuleContext {
 		public TerminalNode EXTENDS() { return getToken(JPlus20Parser.EXTENDS, 0); }
 		public ClassTypeContext classType() {
 			return getRuleContext(ClassTypeContext.class,0);
@@ -4959,7 +4958,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassImplementsContext extends JPlusParserRuleContext {
+	public static class ClassImplementsContext extends ParserRuleContext {
 		public TerminalNode IMPLEMENTS() { return getToken(JPlus20Parser.IMPLEMENTS, 0); }
 		public InterfaceTypeListContext interfaceTypeList() {
 			return getRuleContext(InterfaceTypeListContext.class,0);
@@ -5007,7 +5006,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceTypeListContext extends JPlusParserRuleContext {
+	public static class InterfaceTypeListContext extends ParserRuleContext {
 		public List<InterfaceTypeContext> interfaceType() {
 			return getRuleContexts(InterfaceTypeContext.class);
 		}
@@ -5076,7 +5075,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassPermitsContext extends JPlusParserRuleContext {
+	public static class ClassPermitsContext extends ParserRuleContext {
 		public TerminalNode PERMITS() { return getToken(JPlus20Parser.PERMITS, 0); }
 		public List<TypeNameContext> typeName() {
 			return getRuleContexts(TypeNameContext.class);
@@ -5148,7 +5147,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassBodyContext extends JPlusParserRuleContext {
+	public static class ClassBodyContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public List<ClassBodyDeclarationContext> classBodyDeclaration() {
@@ -5215,7 +5214,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassBodyDeclarationContext extends JPlusParserRuleContext {
+	public static class ClassBodyDeclarationContext extends ParserRuleContext {
 		public ClassMemberDeclarationContext classMemberDeclaration() {
 			return getRuleContext(ClassMemberDeclarationContext.class,0);
 		}
@@ -5296,7 +5295,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassMemberDeclarationContext extends JPlusParserRuleContext {
+	public static class ClassMemberDeclarationContext extends ParserRuleContext {
 		public FieldDeclarationContext fieldDeclaration() {
 			return getRuleContext(FieldDeclarationContext.class,0);
 		}
@@ -5385,7 +5384,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FieldDeclarationContext extends JPlusParserRuleContext {
+	public static class FieldDeclarationContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -5459,7 +5458,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FieldModifierContext extends JPlusParserRuleContext {
+	public static class FieldModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -5568,7 +5567,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableDeclaratorListContext extends JPlusParserRuleContext {
+	public static class VariableDeclaratorListContext extends ParserRuleContext {
 		public List<VariableDeclaratorContext> variableDeclarator() {
 			return getRuleContexts(VariableDeclaratorContext.class);
 		}
@@ -5639,7 +5638,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableDeclaratorContext extends JPlusParserRuleContext {
+	public static class VariableDeclaratorContext extends ParserRuleContext {
 		public VariableDeclaratorIdContext variableDeclaratorId() {
 			return getRuleContext(VariableDeclaratorIdContext.class,0);
 		}
@@ -5700,7 +5699,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableDeclaratorIdContext extends JPlusParserRuleContext {
+	public static class VariableDeclaratorIdContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -5758,7 +5757,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableInitializerContext extends JPlusParserRuleContext {
+	public static class VariableInitializerContext extends ParserRuleContext {
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
@@ -5865,7 +5864,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannTypeContext extends JPlusParserRuleContext {
+	public static class UnannTypeContext extends ParserRuleContext {
 		public UnannPrimitiveTypeContext unannPrimitiveType() {
 			return getRuleContext(UnannPrimitiveTypeContext.class,0);
 		}
@@ -5938,7 +5937,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannPrimitiveTypeContext extends JPlusParserRuleContext {
+	public static class UnannPrimitiveTypeContext extends ParserRuleContext {
 		public NumericTypeContext numericType() {
 			return getRuleContext(NumericTypeContext.class,0);
 		}
@@ -6005,7 +6004,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannReferenceTypeContext extends JPlusParserRuleContext {
+	public static class UnannReferenceTypeContext extends ParserRuleContext {
 		public UnannClassOrInterfaceTypeContext unannClassOrInterfaceType() {
 			return getRuleContext(UnannClassOrInterfaceTypeContext.class,0);
 		}
@@ -6076,7 +6075,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannClassOrInterfaceTypeContext extends JPlusParserRuleContext {
+	public static class UnannClassOrInterfaceTypeContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -6184,7 +6183,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UCOITContext extends JPlusParserRuleContext {
+	public static class UCOITContext extends ParserRuleContext {
 		public TerminalNode DOT() { return getToken(JPlus20Parser.DOT, 0); }
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
@@ -6279,7 +6278,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannClassTypeContext extends JPlusParserRuleContext {
+	public static class UnannClassTypeContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -6406,7 +6405,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannInterfaceTypeContext extends JPlusParserRuleContext {
+	public static class UnannInterfaceTypeContext extends ParserRuleContext {
 		public UnannClassTypeContext unannClassType() {
 			return getRuleContext(UnannClassTypeContext.class,0);
 		}
@@ -6451,7 +6450,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannTypeVariableContext extends JPlusParserRuleContext {
+	public static class UnannTypeVariableContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -6496,7 +6495,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnannArrayTypeContext extends JPlusParserRuleContext {
+	public static class UnannArrayTypeContext extends ParserRuleContext {
 		public DimsContext dims() {
 			return getRuleContext(DimsContext.class,0);
 		}
@@ -6572,7 +6571,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodDeclarationContext extends JPlusParserRuleContext {
+	public static class MethodDeclarationContext extends ParserRuleContext {
 		public MethodHeaderContext methodHeader() {
 			return getRuleContext(MethodHeaderContext.class,0);
 		}
@@ -6643,7 +6642,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodModifierContext extends JPlusParserRuleContext {
+	public static class MethodModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -6768,7 +6767,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodHeaderContext extends JPlusParserRuleContext {
+	public static class MethodHeaderContext extends ParserRuleContext {
 		public ResultContext result() {
 			return getRuleContext(ResultContext.class,0);
 		}
@@ -6865,7 +6864,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ResultContext extends JPlusParserRuleContext {
+	public static class ResultContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -6950,7 +6949,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodDeclaratorContext extends JPlusParserRuleContext {
+	public static class MethodDeclaratorContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -7044,7 +7043,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ReceiverParameterContext extends JPlusParserRuleContext {
+	public static class ReceiverParameterContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -7129,7 +7128,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FormalParameterListContext extends JPlusParserRuleContext {
+	public static class FormalParameterListContext extends ParserRuleContext {
 		public List<FormalParameterContext> formalParameter() {
 			return getRuleContexts(FormalParameterContext.class);
 		}
@@ -7198,7 +7197,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FormalParameterContext extends JPlusParserRuleContext {
+	public static class FormalParameterContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -7285,7 +7284,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableArityParameterContext extends JPlusParserRuleContext {
+	public static class VariableArityParameterContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -7379,7 +7378,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableModifierContext extends JPlusParserRuleContext {
+	public static class VariableModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -7440,7 +7439,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ThrowsTContext extends JPlusParserRuleContext {
+	public static class ThrowsTContext extends ParserRuleContext {
 		public TerminalNode THROWS() { return getToken(JPlus20Parser.THROWS, 0); }
 		public ExceptionTypeListContext exceptionTypeList() {
 			return getRuleContext(ExceptionTypeListContext.class,0);
@@ -7488,7 +7487,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExceptionTypeListContext extends JPlusParserRuleContext {
+	public static class ExceptionTypeListContext extends ParserRuleContext {
 		public List<ExceptionTypeContext> exceptionType() {
 			return getRuleContexts(ExceptionTypeContext.class);
 		}
@@ -7557,7 +7556,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExceptionTypeContext extends JPlusParserRuleContext {
+	public static class ExceptionTypeContext extends ParserRuleContext {
 		public ClassTypeContext classType() {
 			return getRuleContext(ClassTypeContext.class,0);
 		}
@@ -7618,7 +7617,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodBodyContext extends JPlusParserRuleContext {
+	public static class MethodBodyContext extends ParserRuleContext {
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
@@ -7679,7 +7678,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InstanceInitializerContext extends JPlusParserRuleContext {
+	public static class InstanceInitializerContext extends ParserRuleContext {
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
@@ -7724,7 +7723,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StaticInitializerContext extends JPlusParserRuleContext {
+	public static class StaticInitializerContext extends ParserRuleContext {
 		public TerminalNode STATIC() { return getToken(JPlus20Parser.STATIC, 0); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
@@ -7772,7 +7771,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstructorDeclarationContext extends JPlusParserRuleContext {
+	public static class ConstructorDeclarationContext extends ParserRuleContext {
 		public ConstructorDeclaratorContext constructorDeclarator() {
 			return getRuleContext(ConstructorDeclaratorContext.class,0);
 		}
@@ -7856,7 +7855,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstructorModifierContext extends JPlusParserRuleContext {
+	public static class ConstructorModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -7933,7 +7932,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstructorDeclaratorContext extends JPlusParserRuleContext {
+	public static class ConstructorDeclaratorContext extends ParserRuleContext {
 		public SimpleTypeNameContext simpleTypeName() {
 			return getRuleContext(SimpleTypeNameContext.class,0);
 		}
@@ -8027,7 +8026,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SimpleTypeNameContext extends JPlusParserRuleContext {
+	public static class SimpleTypeNameContext extends ParserRuleContext {
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
 		}
@@ -8072,7 +8071,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstructorBodyContext extends JPlusParserRuleContext {
+	public static class ConstructorBodyContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public ExplicitConstructorInvocationContext explicitConstructorInvocation() {
@@ -8145,7 +8144,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExplicitConstructorInvocationContext extends JPlusParserRuleContext {
+	public static class ExplicitConstructorInvocationContext extends ParserRuleContext {
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public TerminalNode RPAREN() { return getToken(JPlus20Parser.RPAREN, 0); }
 		public TerminalNode SEMI() { return getToken(JPlus20Parser.SEMI, 0); }
@@ -8297,7 +8296,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnumDeclarationContext extends JPlusParserRuleContext {
+	public static class EnumDeclarationContext extends ParserRuleContext {
 		public TerminalNode ENUM() { return getToken(JPlus20Parser.ENUM, 0); }
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
@@ -8384,7 +8383,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnumBodyContext extends JPlusParserRuleContext {
+	public static class EnumBodyContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public EnumConstantListContext enumConstantList() {
@@ -8468,7 +8467,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnumConstantListContext extends JPlusParserRuleContext {
+	public static class EnumConstantListContext extends ParserRuleContext {
 		public List<EnumConstantContext> enumConstant() {
 			return getRuleContexts(EnumConstantContext.class);
 		}
@@ -8539,7 +8538,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnumConstantContext extends JPlusParserRuleContext {
+	public static class EnumConstantContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -8645,7 +8644,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnumConstantModifierContext extends JPlusParserRuleContext {
+	public static class EnumConstantModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -8690,7 +8689,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnumBodyDeclarationsContext extends JPlusParserRuleContext {
+	public static class EnumBodyDeclarationsContext extends ParserRuleContext {
 		public TerminalNode SEMI() { return getToken(JPlus20Parser.SEMI, 0); }
 		public List<ClassBodyDeclarationContext> classBodyDeclaration() {
 			return getRuleContexts(ClassBodyDeclarationContext.class);
@@ -8754,7 +8753,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordDeclarationContext extends JPlusParserRuleContext {
+	public static class RecordDeclarationContext extends ParserRuleContext {
 		public TerminalNode RECORD() { return getToken(JPlus20Parser.RECORD, 0); }
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
@@ -8859,7 +8858,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordHeaderContext extends JPlusParserRuleContext {
+	public static class RecordHeaderContext extends ParserRuleContext {
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public TerminalNode RPAREN() { return getToken(JPlus20Parser.RPAREN, 0); }
 		public RecordComponentListContext recordComponentList() {
@@ -8919,7 +8918,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordComponentListContext extends JPlusParserRuleContext {
+	public static class RecordComponentListContext extends ParserRuleContext {
 		public List<RecordComponentContext> recordComponent() {
 			return getRuleContexts(RecordComponentContext.class);
 		}
@@ -8988,7 +8987,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordComponentContext extends JPlusParserRuleContext {
+	public static class RecordComponentContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -9075,7 +9074,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableArityRecordComponentContext extends JPlusParserRuleContext {
+	public static class VariableArityRecordComponentContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -9169,7 +9168,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordComponentModifierContext extends JPlusParserRuleContext {
+	public static class RecordComponentModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -9214,7 +9213,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordBodyContext extends JPlusParserRuleContext {
+	public static class RecordBodyContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public List<RecordBodyDeclarationContext> recordBodyDeclaration() {
@@ -9281,7 +9280,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RecordBodyDeclarationContext extends JPlusParserRuleContext {
+	public static class RecordBodyDeclarationContext extends ParserRuleContext {
 		public ClassBodyDeclarationContext classBodyDeclaration() {
 			return getRuleContext(ClassBodyDeclarationContext.class,0);
 		}
@@ -9342,7 +9341,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CompactConstructorDeclarationContext extends JPlusParserRuleContext {
+	public static class CompactConstructorDeclarationContext extends ParserRuleContext {
 		public SimpleTypeNameContext simpleTypeName() {
 			return getRuleContext(SimpleTypeNameContext.class,0);
 		}
@@ -9413,7 +9412,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceDeclarationContext extends JPlusParserRuleContext {
+	public static class InterfaceDeclarationContext extends ParserRuleContext {
 		public NormalInterfaceDeclarationContext normalInterfaceDeclaration() {
 			return getRuleContext(NormalInterfaceDeclarationContext.class,0);
 		}
@@ -9474,7 +9473,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class NormalInterfaceDeclarationContext extends JPlusParserRuleContext {
+	public static class NormalInterfaceDeclarationContext extends ParserRuleContext {
 		public TerminalNode INTERFACE() { return getToken(JPlus20Parser.INTERFACE, 0); }
 		public TypeIdentifierContext typeIdentifier() {
 			return getRuleContext(TypeIdentifierContext.class,0);
@@ -9587,7 +9586,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceModifierContext extends JPlusParserRuleContext {
+	public static class InterfaceModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -9704,7 +9703,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceExtendsContext extends JPlusParserRuleContext {
+	public static class InterfaceExtendsContext extends ParserRuleContext {
 		public TerminalNode EXTENDS() { return getToken(JPlus20Parser.EXTENDS, 0); }
 		public InterfaceTypeListContext interfaceTypeList() {
 			return getRuleContext(InterfaceTypeListContext.class,0);
@@ -9752,7 +9751,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfacePermitsContext extends JPlusParserRuleContext {
+	public static class InterfacePermitsContext extends ParserRuleContext {
 		public TerminalNode PERMITS() { return getToken(JPlus20Parser.PERMITS, 0); }
 		public List<TypeNameContext> typeName() {
 			return getRuleContexts(TypeNameContext.class);
@@ -9824,7 +9823,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceBodyContext extends JPlusParserRuleContext {
+	public static class InterfaceBodyContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public List<InterfaceMemberDeclarationContext> interfaceMemberDeclaration() {
@@ -9891,7 +9890,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceMemberDeclarationContext extends JPlusParserRuleContext {
+	public static class InterfaceMemberDeclarationContext extends ParserRuleContext {
 		public ConstantDeclarationContext constantDeclaration() {
 			return getRuleContext(ConstantDeclarationContext.class,0);
 		}
@@ -9980,7 +9979,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstantDeclarationContext extends JPlusParserRuleContext {
+	public static class ConstantDeclarationContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -10054,7 +10053,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstantModifierContext extends JPlusParserRuleContext {
+	public static class ConstantModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -10131,7 +10130,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceMethodDeclarationContext extends JPlusParserRuleContext {
+	public static class InterfaceMethodDeclarationContext extends ParserRuleContext {
 		public MethodHeaderContext methodHeader() {
 			return getRuleContext(MethodHeaderContext.class,0);
 		}
@@ -10202,7 +10201,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InterfaceMethodModifierContext extends JPlusParserRuleContext {
+	public static class InterfaceMethodModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -10303,7 +10302,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AnnotationInterfaceDeclarationContext extends JPlusParserRuleContext {
+	public static class AnnotationInterfaceDeclarationContext extends ParserRuleContext {
 		public TerminalNode AT() { return getToken(JPlus20Parser.AT, 0); }
 		public TerminalNode INTERFACE() { return getToken(JPlus20Parser.INTERFACE, 0); }
 		public TypeIdentifierContext typeIdentifier() {
@@ -10382,7 +10381,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AnnotationInterfaceBodyContext extends JPlusParserRuleContext {
+	public static class AnnotationInterfaceBodyContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public List<AnnotationInterfaceMemberDeclarationContext> annotationInterfaceMemberDeclaration() {
@@ -10449,7 +10448,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AnnotationInterfaceMemberDeclarationContext extends JPlusParserRuleContext {
+	public static class AnnotationInterfaceMemberDeclarationContext extends ParserRuleContext {
 		public AnnotationInterfaceElementDeclarationContext annotationInterfaceElementDeclaration() {
 			return getRuleContext(AnnotationInterfaceElementDeclarationContext.class,0);
 		}
@@ -10538,7 +10537,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AnnotationInterfaceElementDeclarationContext extends JPlusParserRuleContext {
+	public static class AnnotationInterfaceElementDeclarationContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -10644,7 +10643,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AnnotationInterfaceElementModifierContext extends JPlusParserRuleContext {
+	public static class AnnotationInterfaceElementModifierContext extends ParserRuleContext {
 		public AnnotationContext annotation() {
 			return getRuleContext(AnnotationContext.class,0);
 		}
@@ -10713,7 +10712,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class DefaultValueContext extends JPlusParserRuleContext {
+	public static class DefaultValueContext extends ParserRuleContext {
 		public TerminalNode DEFAULT() { return getToken(JPlus20Parser.DEFAULT, 0); }
 		public ElementValueContext elementValue() {
 			return getRuleContext(ElementValueContext.class,0);
@@ -10761,7 +10760,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AnnotationContext extends JPlusParserRuleContext {
+	public static class AnnotationContext extends ParserRuleContext {
 		public NormalAnnotationContext normalAnnotation() {
 			return getRuleContext(NormalAnnotationContext.class,0);
 		}
@@ -10832,7 +10831,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class NormalAnnotationContext extends JPlusParserRuleContext {
+	public static class NormalAnnotationContext extends ParserRuleContext {
 		public TerminalNode AT() { return getToken(JPlus20Parser.AT, 0); }
 		public TypeNameContext typeName() {
 			return getRuleContext(TypeNameContext.class,0);
@@ -10900,7 +10899,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ElementValuePairListContext extends JPlusParserRuleContext {
+	public static class ElementValuePairListContext extends ParserRuleContext {
 		public List<ElementValuePairContext> elementValuePair() {
 			return getRuleContexts(ElementValuePairContext.class);
 		}
@@ -10969,7 +10968,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ElementValuePairContext extends JPlusParserRuleContext {
+	public static class ElementValuePairContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -11022,7 +11021,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ElementValueContext extends JPlusParserRuleContext {
+	public static class ElementValueContext extends ParserRuleContext {
 		public ConditionalExpressionContext conditionalExpression() {
 			return getRuleContext(ConditionalExpressionContext.class,0);
 		}
@@ -11093,7 +11092,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ElementValueArrayInitializerContext extends JPlusParserRuleContext {
+	public static class ElementValueArrayInitializerContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public ElementValueListContext elementValueList() {
@@ -11164,7 +11163,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ElementValueListContext extends JPlusParserRuleContext {
+	public static class ElementValueListContext extends ParserRuleContext {
 		public List<ElementValueContext> elementValue() {
 			return getRuleContexts(ElementValueContext.class);
 		}
@@ -11235,7 +11234,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MarkerAnnotationContext extends JPlusParserRuleContext {
+	public static class MarkerAnnotationContext extends ParserRuleContext {
 		public TerminalNode AT() { return getToken(JPlus20Parser.AT, 0); }
 		public TypeNameContext typeName() {
 			return getRuleContext(TypeNameContext.class,0);
@@ -11283,7 +11282,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SingleElementAnnotationContext extends JPlusParserRuleContext {
+	public static class SingleElementAnnotationContext extends ParserRuleContext {
 		public TerminalNode AT() { return getToken(JPlus20Parser.AT, 0); }
 		public TypeNameContext typeName() {
 			return getRuleContext(TypeNameContext.class,0);
@@ -11342,7 +11341,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArrayInitializerContext extends JPlusParserRuleContext {
+	public static class ArrayInitializerContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public VariableInitializerListContext variableInitializerList() {
@@ -11413,7 +11412,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableInitializerListContext extends JPlusParserRuleContext {
+	public static class VariableInitializerListContext extends ParserRuleContext {
 		public List<VariableInitializerContext> variableInitializer() {
 			return getRuleContexts(VariableInitializerContext.class);
 		}
@@ -11484,7 +11483,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class BlockContext extends JPlusParserRuleContext {
+	public static class BlockContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(JPlus20Parser.RBRACE, 0); }
 		public BlockStatementsContext blockStatements() {
@@ -11544,7 +11543,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class BlockStatementsContext extends JPlusParserRuleContext {
+	public static class BlockStatementsContext extends ParserRuleContext {
 		public List<BlockStatementContext> blockStatement() {
 			return getRuleContexts(BlockStatementContext.class);
 		}
@@ -11607,7 +11606,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class BlockStatementContext extends JPlusParserRuleContext {
+	public static class BlockStatementContext extends ParserRuleContext {
 		public LocalClassOrInterfaceDeclarationContext localClassOrInterfaceDeclaration() {
 			return getRuleContext(LocalClassOrInterfaceDeclarationContext.class,0);
 		}
@@ -11678,7 +11677,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LocalClassOrInterfaceDeclarationContext extends JPlusParserRuleContext {
+	public static class LocalClassOrInterfaceDeclarationContext extends ParserRuleContext {
 		public ClassDeclarationContext classDeclaration() {
 			return getRuleContext(ClassDeclarationContext.class,0);
 		}
@@ -11739,7 +11738,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LocalVariableDeclarationContext extends JPlusParserRuleContext {
+	public static class LocalVariableDeclarationContext extends ParserRuleContext {
 		public LocalVariableTypeContext localVariableType() {
 			return getRuleContext(LocalVariableTypeContext.class,0);
 		}
@@ -11810,7 +11809,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LocalVariableTypeContext extends JPlusParserRuleContext {
+	public static class LocalVariableTypeContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -11869,7 +11868,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LocalVariableDeclarationStatementContext extends JPlusParserRuleContext {
+	public static class LocalVariableDeclarationStatementContext extends ParserRuleContext {
 		public LocalVariableDeclarationContext localVariableDeclaration() {
 			return getRuleContext(LocalVariableDeclarationContext.class,0);
 		}
@@ -11917,7 +11916,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StatementContext extends JPlusParserRuleContext {
+	public static class StatementContext extends ParserRuleContext {
 		public StatementWithoutTrailingSubstatementContext statementWithoutTrailingSubstatement() {
 			return getRuleContext(StatementWithoutTrailingSubstatementContext.class,0);
 		}
@@ -12018,7 +12017,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class StatementNoShortIfContext extends ParserRuleContext {
 		public StatementWithoutTrailingSubstatementContext statementWithoutTrailingSubstatement() {
 			return getRuleContext(StatementWithoutTrailingSubstatementContext.class,0);
 		}
@@ -12109,7 +12108,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StatementWithoutTrailingSubstatementContext extends JPlusParserRuleContext {
+	public static class StatementWithoutTrailingSubstatementContext extends ParserRuleContext {
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
@@ -12280,7 +12279,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EmptyStatement_Context extends JPlusParserRuleContext {
+	public static class EmptyStatement_Context extends ParserRuleContext {
 		public TerminalNode SEMI() { return getToken(JPlus20Parser.SEMI, 0); }
 		public EmptyStatement_Context(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -12323,7 +12322,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LabeledStatementContext extends JPlusParserRuleContext {
+	public static class LabeledStatementContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -12376,7 +12375,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LabeledStatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class LabeledStatementNoShortIfContext extends ParserRuleContext {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
@@ -12429,7 +12428,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExpressionStatementContext extends JPlusParserRuleContext {
+	public static class ExpressionStatementContext extends ParserRuleContext {
 		public StatementExpressionContext statementExpression() {
 			return getRuleContext(StatementExpressionContext.class,0);
 		}
@@ -12477,7 +12476,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StatementExpressionContext extends JPlusParserRuleContext {
+	public static class StatementExpressionContext extends ParserRuleContext {
 		public AssignmentContext assignment() {
 			return getRuleContext(AssignmentContext.class,0);
 		}
@@ -12588,7 +12587,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class IfThenStatementContext extends JPlusParserRuleContext {
+	public static class IfThenStatementContext extends ParserRuleContext {
 		public TerminalNode IF() { return getToken(JPlus20Parser.IF, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -12647,7 +12646,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class IfThenElseStatementContext extends JPlusParserRuleContext {
+	public static class IfThenElseStatementContext extends ParserRuleContext {
 		public TerminalNode IF() { return getToken(JPlus20Parser.IF, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -12714,7 +12713,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class IfThenElseStatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class IfThenElseStatementNoShortIfContext extends ParserRuleContext {
 		public TerminalNode IF() { return getToken(JPlus20Parser.IF, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -12781,7 +12780,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AssertStatementContext extends JPlusParserRuleContext {
+	public static class AssertStatementContext extends ParserRuleContext {
 		public TerminalNode ASSERT() { return getToken(JPlus20Parser.ASSERT, 0); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
@@ -12849,7 +12848,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SwitchStatementContext extends JPlusParserRuleContext {
+	public static class SwitchStatementContext extends ParserRuleContext {
 		public TerminalNode SWITCH() { return getToken(JPlus20Parser.SWITCH, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -12908,7 +12907,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SwitchBlockContext extends JPlusParserRuleContext {
+	public static class SwitchBlockContext extends ParserRuleContext {
 		public TerminalNode LBRACE() { return getToken(JPlus20Parser.LBRACE, 0); }
 		public List<SwitchRuleContext> switchRule() {
 			return getRuleContexts(SwitchRuleContext.class);
@@ -13041,7 +13040,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SwitchRuleContext extends JPlusParserRuleContext {
+	public static class SwitchRuleContext extends ParserRuleContext {
 		public SwitchLabelContext switchLabel() {
 			return getRuleContext(SwitchLabelContext.class,0);
 		}
@@ -13169,7 +13168,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SwitchBlockStatementGroupContext extends JPlusParserRuleContext {
+	public static class SwitchBlockStatementGroupContext extends ParserRuleContext {
 		public List<SwitchLabelContext> switchLabel() {
 			return getRuleContexts(SwitchLabelContext.class);
 		}
@@ -13245,7 +13244,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SwitchLabelContext extends JPlusParserRuleContext {
+	public static class SwitchLabelContext extends ParserRuleContext {
 		public TerminalNode CASE() { return getToken(JPlus20Parser.CASE, 0); }
 		public List<CaseConstantContext> caseConstant() {
 			return getRuleContexts(CaseConstantContext.class);
@@ -13333,7 +13332,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CaseConstantContext extends JPlusParserRuleContext {
+	public static class CaseConstantContext extends ParserRuleContext {
 		public ConditionalExpressionContext conditionalExpression() {
 			return getRuleContext(ConditionalExpressionContext.class,0);
 		}
@@ -13378,7 +13377,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class WhileStatementContext extends JPlusParserRuleContext {
+	public static class WhileStatementContext extends ParserRuleContext {
 		public TerminalNode WHILE() { return getToken(JPlus20Parser.WHILE, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -13437,7 +13436,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class WhileStatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class WhileStatementNoShortIfContext extends ParserRuleContext {
 		public TerminalNode WHILE() { return getToken(JPlus20Parser.WHILE, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -13496,7 +13495,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class DoStatementContext extends JPlusParserRuleContext {
+	public static class DoStatementContext extends ParserRuleContext {
 		public TerminalNode DO() { return getToken(JPlus20Parser.DO, 0); }
 		public StatementContext statement() {
 			return getRuleContext(StatementContext.class,0);
@@ -13561,7 +13560,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ForStatementContext extends JPlusParserRuleContext {
+	public static class ForStatementContext extends ParserRuleContext {
 		public BasicForStatementContext basicForStatement() {
 			return getRuleContext(BasicForStatementContext.class,0);
 		}
@@ -13622,7 +13621,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ForStatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class ForStatementNoShortIfContext extends ParserRuleContext {
 		public BasicForStatementNoShortIfContext basicForStatementNoShortIf() {
 			return getRuleContext(BasicForStatementNoShortIfContext.class,0);
 		}
@@ -13683,7 +13682,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class BasicForStatementContext extends JPlusParserRuleContext {
+	public static class BasicForStatementContext extends ParserRuleContext {
 		public TerminalNode FOR() { return getToken(JPlus20Parser.FOR, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public List<TerminalNode> SEMI() { return getTokens(JPlus20Parser.SEMI); }
@@ -13785,7 +13784,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class BasicForStatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class BasicForStatementNoShortIfContext extends ParserRuleContext {
 		public TerminalNode FOR() { return getToken(JPlus20Parser.FOR, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public List<TerminalNode> SEMI() { return getTokens(JPlus20Parser.SEMI); }
@@ -13887,7 +13886,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ForInitContext extends JPlusParserRuleContext {
+	public static class ForInitContext extends ParserRuleContext {
 		public StatementExpressionListContext statementExpressionList() {
 			return getRuleContext(StatementExpressionListContext.class,0);
 		}
@@ -13948,7 +13947,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ForUpdateContext extends JPlusParserRuleContext {
+	public static class ForUpdateContext extends ParserRuleContext {
 		public StatementExpressionListContext statementExpressionList() {
 			return getRuleContext(StatementExpressionListContext.class,0);
 		}
@@ -13993,7 +13992,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class StatementExpressionListContext extends JPlusParserRuleContext {
+	public static class StatementExpressionListContext extends ParserRuleContext {
 		public List<StatementExpressionContext> statementExpression() {
 			return getRuleContexts(StatementExpressionContext.class);
 		}
@@ -14062,7 +14061,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnhancedForStatementContext extends JPlusParserRuleContext {
+	public static class EnhancedForStatementContext extends ParserRuleContext {
 		public TerminalNode FOR() { return getToken(JPlus20Parser.FOR, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public LocalVariableDeclarationContext localVariableDeclaration() {
@@ -14129,7 +14128,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EnhancedForStatementNoShortIfContext extends JPlusParserRuleContext {
+	public static class EnhancedForStatementNoShortIfContext extends ParserRuleContext {
 		public TerminalNode FOR() { return getToken(JPlus20Parser.FOR, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public LocalVariableDeclarationContext localVariableDeclaration() {
@@ -14196,7 +14195,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class BreakStatementContext extends JPlusParserRuleContext {
+	public static class BreakStatementContext extends ParserRuleContext {
 		public TerminalNode BREAK() { return getToken(JPlus20Parser.BREAK, 0); }
 		public TerminalNode SEMI() { return getToken(JPlus20Parser.SEMI, 0); }
 		public IdentifierContext identifier() {
@@ -14256,7 +14255,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ContinueStatementContext extends JPlusParserRuleContext {
+	public static class ContinueStatementContext extends ParserRuleContext {
 		public TerminalNode CONTINUE() { return getToken(JPlus20Parser.CONTINUE, 0); }
 		public TerminalNode SEMI() { return getToken(JPlus20Parser.SEMI, 0); }
 		public IdentifierContext identifier() {
@@ -14316,7 +14315,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ReturnStatementContext extends JPlusParserRuleContext {
+	public static class ReturnStatementContext extends ParserRuleContext {
 		public TerminalNode RETURN() { return getToken(JPlus20Parser.RETURN, 0); }
 		public TerminalNode SEMI() { return getToken(JPlus20Parser.SEMI, 0); }
 		public ExpressionContext expression() {
@@ -14376,7 +14375,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ThrowStatementContext extends JPlusParserRuleContext {
+	public static class ThrowStatementContext extends ParserRuleContext {
 		public TerminalNode THROW() { return getToken(JPlus20Parser.THROW, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
@@ -14427,7 +14426,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SynchronizedStatementContext extends JPlusParserRuleContext {
+	public static class SynchronizedStatementContext extends ParserRuleContext {
 		public TerminalNode SYNCHRONIZED() { return getToken(JPlus20Parser.SYNCHRONIZED, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -14486,7 +14485,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TryStatementContext extends JPlusParserRuleContext {
+	public static class TryStatementContext extends ParserRuleContext {
 		public TerminalNode TRY() { return getToken(JPlus20Parser.TRY, 0); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
@@ -14591,7 +14590,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CatchesContext extends JPlusParserRuleContext {
+	public static class CatchesContext extends ParserRuleContext {
 		public List<CatchClauseContext> catchClause() {
 			return getRuleContexts(CatchClauseContext.class);
 		}
@@ -14654,7 +14653,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CatchClauseContext extends JPlusParserRuleContext {
+	public static class CatchClauseContext extends ParserRuleContext {
 		public TerminalNode CATCH() { return getToken(JPlus20Parser.CATCH, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public CatchFormalParameterContext catchFormalParameter() {
@@ -14713,7 +14712,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CatchFormalParameterContext extends JPlusParserRuleContext {
+	public static class CatchFormalParameterContext extends ParserRuleContext {
 		public CatchTypeContext catchType() {
 			return getRuleContext(CatchTypeContext.class,0);
 		}
@@ -14784,7 +14783,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CatchTypeContext extends JPlusParserRuleContext {
+	public static class CatchTypeContext extends ParserRuleContext {
 		public UnannClassTypeContext unannClassType() {
 			return getRuleContext(UnannClassTypeContext.class,0);
 		}
@@ -14856,7 +14855,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FinallyBlockContext extends JPlusParserRuleContext {
+	public static class FinallyBlockContext extends ParserRuleContext {
 		public TerminalNode FINALLY() { return getToken(JPlus20Parser.FINALLY, 0); }
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
@@ -14904,7 +14903,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TryWithResourcesStatementContext extends JPlusParserRuleContext {
+	public static class TryWithResourcesStatementContext extends ParserRuleContext {
 		public TerminalNode TRY() { return getToken(JPlus20Parser.TRY, 0); }
 		public ResourceSpecificationContext resourceSpecification() {
 			return getRuleContext(ResourceSpecificationContext.class,0);
@@ -14984,7 +14983,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ResourceSpecificationContext extends JPlusParserRuleContext {
+	public static class ResourceSpecificationContext extends ParserRuleContext {
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ResourceListContext resourceList() {
 			return getRuleContext(ResourceListContext.class,0);
@@ -15047,7 +15046,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ResourceListContext extends JPlusParserRuleContext {
+	public static class ResourceListContext extends ParserRuleContext {
 		public List<ResourceContext> resource() {
 			return getRuleContexts(ResourceContext.class);
 		}
@@ -15118,7 +15117,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ResourceContext extends JPlusParserRuleContext {
+	public static class ResourceContext extends ParserRuleContext {
 		public LocalVariableDeclarationContext localVariableDeclaration() {
 			return getRuleContext(LocalVariableDeclarationContext.class,0);
 		}
@@ -15179,7 +15178,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableAccessContext extends JPlusParserRuleContext {
+	public static class VariableAccessContext extends ParserRuleContext {
 		public ExpressionNameContext expressionName() {
 			return getRuleContext(ExpressionNameContext.class,0);
 		}
@@ -15240,7 +15239,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class YieldStatementContext extends JPlusParserRuleContext {
+	public static class YieldStatementContext extends ParserRuleContext {
 		public TerminalNode YIELD() { return getToken(JPlus20Parser.YIELD, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
@@ -15291,7 +15290,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PatternContext extends JPlusParserRuleContext {
+	public static class PatternContext extends ParserRuleContext {
 		public TypePatternContext typePattern() {
 			return getRuleContext(TypePatternContext.class,0);
 		}
@@ -15336,7 +15335,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypePatternContext extends JPlusParserRuleContext {
+	public static class TypePatternContext extends ParserRuleContext {
 		public LocalVariableDeclarationContext localVariableDeclaration() {
 			return getRuleContext(LocalVariableDeclarationContext.class,0);
 		}
@@ -15381,7 +15380,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExpressionContext extends JPlusParserRuleContext {
+	public static class ExpressionContext extends ParserRuleContext {
 		public LambdaExpressionContext lambdaExpression() {
 			return getRuleContext(LambdaExpressionContext.class,0);
 		}
@@ -15442,7 +15441,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PrimaryContext extends JPlusParserRuleContext {
+	public static class PrimaryContext extends ParserRuleContext {
 		public PrimaryNoNewArrayContext primaryNoNewArray() {
 			return getRuleContext(PrimaryNoNewArrayContext.class,0);
 		}
@@ -15503,7 +15502,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PrimaryNoNewArrayContext extends JPlusParserRuleContext {
+	public static class PrimaryNoNewArrayContext extends ParserRuleContext {
 		public LiteralContext literal() {
 			return getRuleContext(LiteralContext.class,0);
 		}
@@ -16358,7 +16357,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PNNAContext extends JPlusParserRuleContext {
+	public static class PNNAContext extends ParserRuleContext {
 		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
 			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
 		}
@@ -16580,7 +16579,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassLiteralContext extends JPlusParserRuleContext {
+	public static class ClassLiteralContext extends ParserRuleContext {
 		public TypeNameContext typeName() {
 			return getRuleContext(TypeNameContext.class,0);
 		}
@@ -16756,7 +16755,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassInstanceCreationExpressionContext extends JPlusParserRuleContext {
+	public static class ClassInstanceCreationExpressionContext extends ParserRuleContext {
 		public UnqualifiedClassInstanceCreationExpressionContext unqualifiedClassInstanceCreationExpression() {
 			return getRuleContext(UnqualifiedClassInstanceCreationExpressionContext.class,0);
 		}
@@ -16836,7 +16835,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnqualifiedClassInstanceCreationExpressionContext extends JPlusParserRuleContext {
+	public static class UnqualifiedClassInstanceCreationExpressionContext extends ParserRuleContext {
 		public TerminalNode NEW() { return getToken(JPlus20Parser.NEW, 0); }
 		public ClassOrInterfaceTypeToInstantiateContext classOrInterfaceTypeToInstantiate() {
 			return getRuleContext(ClassOrInterfaceTypeToInstantiateContext.class,0);
@@ -16930,7 +16929,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassOrInterfaceTypeToInstantiateContext extends JPlusParserRuleContext {
+	public static class ClassOrInterfaceTypeToInstantiateContext extends ParserRuleContext {
 		public List<IdentifierContext> identifier() {
 			return getRuleContexts(IdentifierContext.class);
 		}
@@ -17046,7 +17045,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class TypeArgumentsOrDiamondContext extends JPlusParserRuleContext {
+	public static class TypeArgumentsOrDiamondContext extends ParserRuleContext {
 		public TypeArgumentsContext typeArguments() {
 			return getRuleContext(TypeArgumentsContext.class,0);
 		}
@@ -17107,7 +17106,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArrayCreationExpressionContext extends JPlusParserRuleContext {
+	public static class ArrayCreationExpressionContext extends ParserRuleContext {
 		public ArrayCreationExpressionWithoutInitializerContext arrayCreationExpressionWithoutInitializer() {
 			return getRuleContext(ArrayCreationExpressionWithoutInitializerContext.class,0);
 		}
@@ -17168,7 +17167,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArrayCreationExpressionWithoutInitializerContext extends JPlusParserRuleContext {
+	public static class ArrayCreationExpressionWithoutInitializerContext extends ParserRuleContext {
 		public TerminalNode NEW() { return getToken(JPlus20Parser.NEW, 0); }
 		public PrimitiveTypeContext primitiveType() {
 			return getRuleContext(PrimitiveTypeContext.class,0);
@@ -17264,7 +17263,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArrayCreationExpressionWithInitializerContext extends JPlusParserRuleContext {
+	public static class ArrayCreationExpressionWithInitializerContext extends ParserRuleContext {
 		public TerminalNode NEW() { return getToken(JPlus20Parser.NEW, 0); }
 		public PrimitiveTypeContext primitiveType() {
 			return getRuleContext(PrimitiveTypeContext.class,0);
@@ -17344,7 +17343,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class DimExprsContext extends JPlusParserRuleContext {
+	public static class DimExprsContext extends ParserRuleContext {
 		public List<DimExprContext> dimExpr() {
 			return getRuleContexts(DimExprContext.class);
 		}
@@ -17409,7 +17408,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class DimExprContext extends JPlusParserRuleContext {
+	public static class DimExprContext extends ParserRuleContext {
 		public TerminalNode LBRACK() { return getToken(JPlus20Parser.LBRACK, 0); }
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
@@ -17481,7 +17480,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArrayAccessContext extends JPlusParserRuleContext {
+	public static class ArrayAccessContext extends ParserRuleContext {
 		public ExpressionNameContext expressionName() {
 			return getRuleContext(ExpressionNameContext.class,0);
 		}
@@ -17575,7 +17574,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FieldAccessContext extends JPlusParserRuleContext {
+	public static class FieldAccessContext extends ParserRuleContext {
 		public PrimaryContext primary() {
 			return getRuleContext(PrimaryContext.class,0);
 		}
@@ -17693,7 +17692,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodInvocationContext extends JPlusParserRuleContext {
+	public static class MethodInvocationContext extends ParserRuleContext {
 		public MethodNameContext methodName() {
 			return getRuleContext(MethodNameContext.class,0);
 		}
@@ -17980,7 +17979,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ArgumentListContext extends JPlusParserRuleContext {
+	public static class ArgumentListContext extends ParserRuleContext {
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
@@ -18049,7 +18048,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MethodReferenceContext extends JPlusParserRuleContext {
+	public static class MethodReferenceContext extends ParserRuleContext {
 		public ExpressionNameContext expressionName() {
 			return getRuleContext(ExpressionNameContext.class,0);
 		}
@@ -18260,7 +18259,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PostfixExpressionContext extends JPlusParserRuleContext {
+	public static class PostfixExpressionContext extends ParserRuleContext {
 		public PrimaryContext primary() {
 			return getRuleContext(PrimaryContext.class,0);
 		}
@@ -18344,7 +18343,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PfEContext extends JPlusParserRuleContext {
+	public static class PfEContext extends ParserRuleContext {
 		public TerminalNode INC() { return getToken(JPlus20Parser.INC, 0); }
 		public PfEContext pfE() {
 			return getRuleContext(PfEContext.class,0);
@@ -18426,7 +18425,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PostIncrementExpressionContext extends JPlusParserRuleContext {
+	public static class PostIncrementExpressionContext extends ParserRuleContext {
 		public PostfixExpressionContext postfixExpression() {
 			return getRuleContext(PostfixExpressionContext.class,0);
 		}
@@ -18474,7 +18473,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PostDecrementExpressionContext extends JPlusParserRuleContext {
+	public static class PostDecrementExpressionContext extends ParserRuleContext {
 		public PostfixExpressionContext postfixExpression() {
 			return getRuleContext(PostfixExpressionContext.class,0);
 		}
@@ -18522,7 +18521,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnaryExpressionContext extends JPlusParserRuleContext {
+	public static class UnaryExpressionContext extends ParserRuleContext {
 		public PreIncrementExpressionContext preIncrementExpression() {
 			return getRuleContext(PreIncrementExpressionContext.class,0);
 		}
@@ -18658,7 +18657,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PreIncrementExpressionContext extends JPlusParserRuleContext {
+	public static class PreIncrementExpressionContext extends ParserRuleContext {
 		public TerminalNode INC() { return getToken(JPlus20Parser.INC, 0); }
 		public UnaryExpressionContext unaryExpression() {
 			return getRuleContext(UnaryExpressionContext.class,0);
@@ -18706,7 +18705,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class PreDecrementExpressionContext extends JPlusParserRuleContext {
+	public static class PreDecrementExpressionContext extends ParserRuleContext {
 		public TerminalNode DEC() { return getToken(JPlus20Parser.DEC, 0); }
 		public UnaryExpressionContext unaryExpression() {
 			return getRuleContext(UnaryExpressionContext.class,0);
@@ -18754,7 +18753,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class UnaryExpressionNotPlusMinusContext extends JPlusParserRuleContext {
+	public static class UnaryExpressionNotPlusMinusContext extends ParserRuleContext {
 		public PostfixExpressionContext postfixExpression() {
 			return getRuleContext(PostfixExpressionContext.class,0);
 		}
@@ -18848,7 +18847,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class CastExpressionContext extends JPlusParserRuleContext {
+	public static class CastExpressionContext extends ParserRuleContext {
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public PrimitiveTypeContext primitiveType() {
 			return getRuleContext(PrimitiveTypeContext.class,0);
@@ -18980,7 +18979,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class MultiplicativeExpressionContext extends JPlusParserRuleContext {
+	public static class MultiplicativeExpressionContext extends ParserRuleContext {
 		public UnaryExpressionContext unaryExpression() {
 			return getRuleContext(UnaryExpressionContext.class,0);
 		}
@@ -19097,7 +19096,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AdditiveExpressionContext extends JPlusParserRuleContext {
+	public static class AdditiveExpressionContext extends ParserRuleContext {
 		public MultiplicativeExpressionContext multiplicativeExpression() {
 			return getRuleContext(MultiplicativeExpressionContext.class,0);
 		}
@@ -19201,7 +19200,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ShiftExpressionContext extends JPlusParserRuleContext {
+	public static class ShiftExpressionContext extends ParserRuleContext {
 		public AdditiveExpressionContext additiveExpression() {
 			return getRuleContext(AdditiveExpressionContext.class,0);
 		}
@@ -19331,7 +19330,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class RelationalExpressionContext extends JPlusParserRuleContext {
+	public static class RelationalExpressionContext extends ParserRuleContext {
 		public ShiftExpressionContext shiftExpression() {
 			return getRuleContext(ShiftExpressionContext.class,0);
 		}
@@ -19494,7 +19493,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class EqualityExpressionContext extends JPlusParserRuleContext {
+	public static class EqualityExpressionContext extends ParserRuleContext {
 		public RelationalExpressionContext relationalExpression() {
 			return getRuleContext(RelationalExpressionContext.class,0);
 		}
@@ -19598,7 +19597,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AndExpressionContext extends JPlusParserRuleContext {
+	public static class AndExpressionContext extends ParserRuleContext {
 		public EqualityExpressionContext equalityExpression() {
 			return getRuleContext(EqualityExpressionContext.class,0);
 		}
@@ -19683,7 +19682,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ExclusiveOrExpressionContext extends JPlusParserRuleContext {
+	public static class ExclusiveOrExpressionContext extends ParserRuleContext {
 		public AndExpressionContext andExpression() {
 			return getRuleContext(AndExpressionContext.class,0);
 		}
@@ -19768,7 +19767,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class InclusiveOrExpressionContext extends JPlusParserRuleContext {
+	public static class InclusiveOrExpressionContext extends ParserRuleContext {
 		public ExclusiveOrExpressionContext exclusiveOrExpression() {
 			return getRuleContext(ExclusiveOrExpressionContext.class,0);
 		}
@@ -19853,7 +19852,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConditionalAndExpressionContext extends JPlusParserRuleContext {
+	public static class ConditionalAndExpressionContext extends ParserRuleContext {
 		public InclusiveOrExpressionContext inclusiveOrExpression() {
 			return getRuleContext(InclusiveOrExpressionContext.class,0);
 		}
@@ -19938,7 +19937,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConditionalOrExpressionContext extends JPlusParserRuleContext {
+	public static class ConditionalOrExpressionContext extends ParserRuleContext {
 		public ConditionalAndExpressionContext conditionalAndExpression() {
 			return getRuleContext(ConditionalAndExpressionContext.class,0);
 		}
@@ -20023,7 +20022,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class NullCoalescingExpressionContext extends JPlusParserRuleContext {
+	public static class NullCoalescingExpressionContext extends ParserRuleContext {
 		public ConditionalOrExpressionContext conditionalOrExpression() {
 			return getRuleContext(ConditionalOrExpressionContext.class,0);
 		}
@@ -20103,7 +20102,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConditionalExpressionContext extends JPlusParserRuleContext {
+	public static class ConditionalExpressionContext extends ParserRuleContext {
 		public NullCoalescingExpressionContext nullCoalescingExpression() {
 			return getRuleContext(NullCoalescingExpressionContext.class,0);
 		}
@@ -20195,7 +20194,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AssignmentExpressionContext extends JPlusParserRuleContext {
+	public static class AssignmentExpressionContext extends ParserRuleContext {
 		public ConditionalExpressionContext conditionalExpression() {
 			return getRuleContext(ConditionalExpressionContext.class,0);
 		}
@@ -20256,7 +20255,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AssignmentContext extends JPlusParserRuleContext {
+	public static class AssignmentContext extends ParserRuleContext {
 		public LeftHandSideContext leftHandSide() {
 			return getRuleContext(LeftHandSideContext.class,0);
 		}
@@ -20311,7 +20310,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LeftHandSideContext extends JPlusParserRuleContext {
+	public static class LeftHandSideContext extends ParserRuleContext {
 		public ExpressionNameContext expressionName() {
 			return getRuleContext(ExpressionNameContext.class,0);
 		}
@@ -20382,7 +20381,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class AssignmentOperatorContext extends JPlusParserRuleContext {
+	public static class AssignmentOperatorContext extends ParserRuleContext {
 		public TerminalNode ASSIGN() { return getToken(JPlus20Parser.ASSIGN, 0); }
 		public TerminalNode MUL_ASSIGN() { return getToken(JPlus20Parser.MUL_ASSIGN, 0); }
 		public TerminalNode DIV_ASSIGN() { return getToken(JPlus20Parser.DIV_ASSIGN, 0); }
@@ -20445,7 +20444,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaExpressionContext extends JPlusParserRuleContext {
+	public static class LambdaExpressionContext extends ParserRuleContext {
 		public LambdaParametersContext lambdaParameters() {
 			return getRuleContext(LambdaParametersContext.class,0);
 		}
@@ -20498,7 +20497,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaParametersContext extends JPlusParserRuleContext {
+	public static class LambdaParametersContext extends ParserRuleContext {
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public TerminalNode RPAREN() { return getToken(JPlus20Parser.RPAREN, 0); }
 		public LambdaParameterListContext lambdaParameterList() {
@@ -20592,7 +20591,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaParameterListContext extends JPlusParserRuleContext {
+	public static class LambdaParameterListContext extends ParserRuleContext {
 		public List<LambdaParameterContext> lambdaParameter() {
 			return getRuleContexts(LambdaParameterContext.class);
 		}
@@ -20696,7 +20695,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaParameterContext extends JPlusParserRuleContext {
+	public static class LambdaParameterContext extends ParserRuleContext {
 		public LambdaParameterTypeContext lambdaParameterType() {
 			return getRuleContext(LambdaParameterTypeContext.class,0);
 		}
@@ -20783,7 +20782,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaParameterTypeContext extends JPlusParserRuleContext {
+	public static class LambdaParameterTypeContext extends ParserRuleContext {
 		public UnannTypeContext unannType() {
 			return getRuleContext(UnannTypeContext.class,0);
 		}
@@ -20842,7 +20841,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LambdaBodyContext extends JPlusParserRuleContext {
+	public static class LambdaBodyContext extends ParserRuleContext {
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
@@ -20949,7 +20948,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class SwitchExpressionContext extends JPlusParserRuleContext {
+	public static class SwitchExpressionContext extends ParserRuleContext {
 		public TerminalNode SWITCH() { return getToken(JPlus20Parser.SWITCH, 0); }
 		public TerminalNode LPAREN() { return getToken(JPlus20Parser.LPAREN, 0); }
 		public ExpressionContext expression() {
@@ -21008,7 +21007,7 @@ public class JPlus20Parser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstantExpressionContext extends JPlusParserRuleContext {
+	public static class ConstantExpressionContext extends ParserRuleContext {
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
