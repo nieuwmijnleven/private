@@ -32,7 +32,7 @@ import jplus.analyzer.nullability.dataflow.context.FieldContext;
 import jplus.analyzer.nullability.dataflow.context.MethodContext;
 import jplus.analyzer.nullability.dataflow.context.SwitchContext;
 import jplus.analyzer.nullability.dataflow.NullState;
-import jplus.analyzer.nullability.result.ResultState;
+import java.lang.Void;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
@@ -64,7 +64,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
+public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     private final SymbolTable globalSymbolTable;
     private final Set<SourceMappingEntry> sourceMappingEntrySet;
@@ -121,20 +121,20 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitStart_(JPlus25Parser.Start_Context ctx) {
+    public Void visitStart_(JPlus25Parser.Start_Context ctx) {
         this.originalText = ctx.start.getInputStream().toString();
         return super.visitStart_(ctx);
     }
 
     @Override
-    public ResultState visitPackageDeclaration(JPlus25Parser.PackageDeclarationContext ctx) {
+    public Void visitPackageDeclaration(JPlus25Parser.PackageDeclarationContext ctx) {
         this.packageName = ctx.identifier().stream().map(Utils::getTokenString).collect(Collectors.joining("."));
         //System.err.println("[NullabilityChecker] packageName = " + packageName);
         return super.visitPackageDeclaration(ctx);
     }
 
     @Override
-    public ResultState visitTopLevelClassOrInterfaceDeclaration(JPlus25Parser.TopLevelClassOrInterfaceDeclarationContext ctx) {
+    public Void visitTopLevelClassOrInterfaceDeclaration(JPlus25Parser.TopLevelClassOrInterfaceDeclarationContext ctx) {
         String className = getClassName(ctx.classDeclaration().normalClassDeclaration());
         //System.err.println("className = " + className);
 
@@ -161,7 +161,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitClassDeclaration(JPlus25Parser.ClassDeclarationContext ctx) {
+    public Void visitClassDeclaration(JPlus25Parser.ClassDeclarationContext ctx) {
 
         String typeName = null;
 
@@ -309,13 +309,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitConstructorDeclaration(JPlus25Parser.ConstructorDeclarationContext ctx) {
+    public Void visitConstructorDeclaration(JPlus25Parser.ConstructorDeclarationContext ctx) {
         //currentSymbolTable = currentSymbolTable.copy(true);
         return processInvocationDeclaration(InvocationDeclarationContext.from(ctx));
     }
 
     @Override
-    public ResultState visitMethodDeclaration(JPlus25Parser.MethodDeclarationContext ctx) {
+    public Void visitMethodDeclaration(JPlus25Parser.MethodDeclarationContext ctx) {
         //currentSymbolTable = currentSymbolTable.copy();
         return processInvocationDeclaration(InvocationDeclarationContext.from(ctx));
     }
@@ -350,7 +350,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         return extractParameterTypes(ctx.formalParameter());
     }
 
-    private ResultState processInvocationDeclaration(InvocationDeclarationContext ctx) {
+    private Void processInvocationDeclaration(InvocationDeclarationContext ctx) {
         List<String> typeNameList = getTypeNamesFromParameterList(ctx.formalParameterList());
         String methodSymbol = "^" + ctx.methodName() + "$~" + String.join("~", typeNameList);
 
@@ -379,7 +379,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitLambdaExpression(JPlus25Parser.LambdaExpressionContext ctx) {
+    public Void visitLambdaExpression(JPlus25Parser.LambdaExpressionContext ctx) {
         log("[LambdaExpression] contextString = " + Utils.getTokenString(ctx));
         log("[LambdaExpression] startOffset = " + ctx.start.getStartIndex());
 
@@ -398,7 +398,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitFieldDeclaration(JPlus25Parser.FieldDeclarationContext ctx) {
+    public Void visitFieldDeclaration(JPlus25Parser.FieldDeclarationContext ctx) {
         for (var decl : ctx.variableDeclaratorList().variableDeclarator()) {
             String symbol = Utils.getTokenString(decl.variableDeclaratorId());
             //System.err.println("[NullabilityChecker][FieldDecl] symbol = " + symbol);
@@ -569,7 +569,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitBlock(JPlus25Parser.BlockContext ctx) {
+    public Void visitBlock(JPlus25Parser.BlockContext ctx) {
         var saved = currentSymbolTable;
         enterSymbolTable("^block$");
         try {
@@ -581,7 +581,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitConstructorBody(JPlus25Parser.ConstructorBodyContext ctx) {
+    public Void visitConstructorBody(JPlus25Parser.ConstructorBodyContext ctx) {
         var saved = currentSymbolTable;
         enterSymbolTable("^block$");
         constructorContextStack.push(new ConstructorContext());
@@ -737,7 +737,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitUnqualifiedClassInstanceCreationExpression(JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
+    public Void visitUnqualifiedClassInstanceCreationExpression(JPlus25Parser.UnqualifiedClassInstanceCreationExpressionContext ctx) {
 
         TextChangeRange codeRange = getCodeRange(ctx);
         if (consumedExpressions.contains(codeRange)) {
@@ -799,7 +799,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitLocalVariableDeclaration(JPlus25Parser.LocalVariableDeclarationContext ctx) {
+    public Void visitLocalVariableDeclaration(JPlus25Parser.LocalVariableDeclarationContext ctx) {
 
         //System.err.println("[LocalVariableDeclaration] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
 
@@ -855,7 +855,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitAssignment(JPlus25Parser.AssignmentContext ctx) {
+    public Void visitAssignment(JPlus25Parser.AssignmentContext ctx) {
 
 
         //System.err.println("[NullabilityChecker][Assignment] contextString = " + Utils.getTokenString(ctx));
@@ -961,7 +961,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitIfThenStatement(JPlus25Parser.IfThenStatementContext ctx) {
+    public Void visitIfThenStatement(JPlus25Parser.IfThenStatementContext ctx) {
 
         SymbolTable entry = currentSymbolTable.copy();
 
@@ -990,7 +990,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitIfThenElseStatement(JPlus25Parser.IfThenElseStatementContext ctx) {
+    public Void visitIfThenElseStatement(JPlus25Parser.IfThenElseStatementContext ctx) {
 
         SymbolTable entry = currentSymbolTable.copy();
 
@@ -1033,7 +1033,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitIfThenElseStatementNoShortIf(JPlus25Parser.IfThenElseStatementNoShortIfContext ctx) {
+    public Void visitIfThenElseStatementNoShortIf(JPlus25Parser.IfThenElseStatementNoShortIfContext ctx) {
 
         SymbolTable entry = currentSymbolTable.copy();
 
@@ -1114,7 +1114,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitYieldStatement(JPlus25Parser.YieldStatementContext ctx) {
+    public Void visitYieldStatement(JPlus25Parser.YieldStatementContext ctx) {
         if (!switchContextStack.isEmpty()) {
             var nullState = evalRHS(ctx.expression(), currentSymbolTable);
             switchContextStack.peek().addNullState(Utils.getTokenString(ctx.expression()), nullState);
@@ -1123,18 +1123,18 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitSwitchExpression(JPlus25Parser.SwitchExpressionContext ctx) {
+    public Void visitSwitchExpression(JPlus25Parser.SwitchExpressionContext ctx) {
 
         return processSwitchBlock(SwitchExprStmtContext.from(ctx));
     }
 
     @Override
-    public ResultState visitSwitchStatement(JPlus25Parser.SwitchStatementContext ctx) {
+    public Void visitSwitchStatement(JPlus25Parser.SwitchStatementContext ctx) {
 
         return processSwitchBlock(SwitchExprStmtContext.from(ctx));
     }
 
-    private ResultState processSwitchBlock(SwitchExprStmtContext ctx) {
+    private Void processSwitchBlock(SwitchExprStmtContext ctx) {
 
         var selectorScope = currentSymbolTable;
 
@@ -1320,7 +1320,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitConditionalExpression(JPlus25Parser.ConditionalExpressionContext ctx) {
+    public Void visitConditionalExpression(JPlus25Parser.ConditionalExpressionContext ctx) {
 
         if (ctx.expression() == null) {
             return super.visitNullCoalescingExpression(ctx.nullCoalescingExpression());
@@ -1340,7 +1340,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
         visit(ctx.expression());
 
         currentSymbolTable = conditionResult.whenFalse;
-        ResultState elseResult =
+        Void elseResult =
                 (ctx.conditionalExpression() != null)
                         ? visit(ctx.conditionalExpression())
                         : visit(ctx.lambdaExpression());
@@ -1458,7 +1458,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitReturnStatement(JPlus25Parser.ReturnStatementContext ctx) {
+    public Void visitReturnStatement(JPlus25Parser.ReturnStatementContext ctx) {
         //System.err.println("[ReturnStatement] contextString: " + Utils.getTokenString(ctx));
 
         currentSymbolTable.setDeadContext(true);
@@ -1509,13 +1509,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitThrowStatement(JPlus25Parser.ThrowStatementContext ctx) {
+    public Void visitThrowStatement(JPlus25Parser.ThrowStatementContext ctx) {
         currentSymbolTable.setDeadContext(true);
         return super.visitThrowStatement(ctx);
     }
 
     @Override
-    public ResultState visitEnhancedForStatement(JPlus25Parser.EnhancedForStatementContext ctx) {
+    public Void visitEnhancedForStatement(JPlus25Parser.EnhancedForStatementContext ctx) {
 
         visit(ctx.enhancedForDeclaration().localVariableDeclaration());
 
@@ -1533,7 +1533,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitEqualityExpression(JPlus25Parser.EqualityExpressionContext ctx) {
+    public Void visitEqualityExpression(JPlus25Parser.EqualityExpressionContext ctx) {
         if (ctx.NOTEQUAL() != null) {
             String variableName = Utils.getTokenString(ctx.equalityExpression());
             String value = Utils.getTokenString(ctx.relationalExpression());
@@ -1560,7 +1560,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitAdditiveExpression(JPlus25Parser.AdditiveExpressionContext ctx) {
+    public Void visitAdditiveExpression(JPlus25Parser.AdditiveExpressionContext ctx) {
         ////System.err.println("[AdditiveExpression] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
         ////System.err.println("[AdditiveExpression] resolvedChains: " + currentSymbolTable.getResolvedChains());
 
@@ -1572,7 +1572,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitExplicitConstructorInvocation(JPlus25Parser.ExplicitConstructorInvocationContext ctx) {
+    public Void visitExplicitConstructorInvocation(JPlus25Parser.ExplicitConstructorInvocationContext ctx) {
         //System.err.println("[ExplicitConstructorInvocation] resolvedChains: " + currentSymbolTable.getResolvedChains());
         //System.err.println("[ExplicitConstructorInvocation] original range = " + Utils.getTextChangeRange(originalText, ctx));
 
@@ -1624,14 +1624,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
+    public Void visitMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
         TextChangeRange invocationCodeRange = getCodeRange(ctx);
         //System.err.println("[MethodInvocation] invocationCodeRange: " + invocationCodeRange);
 
         return processMethodInvocation(ctx);
     }
 
-    private ResultState processMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
+    private Void processMethodInvocation(JPlus25Parser.MethodInvocationContext ctx) {
         //System.err.println("[MethodInvocation] resolvedChains: " + currentSymbolTable.getResolvedChains());
         //System.err.println("[MethodInvocation] original range = " + Utils.getTextChangeRange(originalText, ctx));
 
@@ -1698,7 +1698,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPostfixExpression(JPlus25Parser.PostfixExpressionContext ctx) {
+    public Void visitPostfixExpression(JPlus25Parser.PostfixExpressionContext ctx) {
         if (ctx.expressionName() !=  null) {
             //System.err.println("[PostfixExpression] chaining = " + currentSymbolTable.getResolvedChains());
             //System.err.println("[PostfixExpression] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
@@ -1731,14 +1731,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayThis(JPlus25Parser.PrimaryNoNewArrayThisContext ctx) {
+    public Void visitPrimaryNoNewArrayThis(JPlus25Parser.PrimaryNoNewArrayThisContext ctx) {
         //'this' pNNA? #primaryNoNewArrayThis
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> PrimaryNoNewArrayThis(PrimaryNoNewArrayContextAdapter.from(ctx), resolvedChain.stepCursor()));
         return null;
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayQualifiedThis(JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext ctx) {
+    public Void visitPrimaryNoNewArrayQualifiedThis(JPlus25Parser.PrimaryNoNewArrayQualifiedThisContext ctx) {
         //typeName '.' 'this' pNNA?
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayQualifiedThis(ctx, resolvedChain.stepCursor()));
         return null;
@@ -1750,21 +1750,21 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayClassInstanceCreationContext ctx) {
+    public Void visitPrimaryNoNewArrayClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayClassInstanceCreationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handleUnqualifiedClassInstanceCreationExpression(PrimaryNoNewArrayUnqualifiedClassInstanceCreationContextAdapter.from(ctx), resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayClassInstanceCreation(ctx);
         return null;
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx) {
+    public Void visitPrimaryNoNewArrayExprQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayExprQualifiedClassInstanceCreationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handleExprQualifiedClassInstanceCreation(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayClassInstanceCreation(ctx);
         return null;
     }
 
     /*@Override
-    public ResultState visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx) {
+    public Void visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(JPlus25Parser.PrimaryNoNewArrayArrayQualifiedClassInstanceCreationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayQualifiedClassInstanceCreation(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayArrayQualifiedClassInstanceCreation(ctx);
         return null;
@@ -1781,7 +1781,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }*/
 
     /*@Override
-    public ResultState visitPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx) {
+    public Void visitPrimaryNoNewArrayArrayFieldAccess(JPlus25Parser.PrimaryNoNewArrayArrayFieldAccessContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayFieldAccess(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayArrayFieldAccess(ctx);
         return null;
@@ -1797,7 +1797,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }*/
 
     @Override
-    public ResultState visitPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx) {
+    public Void visitPrimaryNoNewArrayExprMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayExprMethodInvocation(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayExprMethodInvocation(ctx);
         return null;
@@ -1810,7 +1810,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx) {
+    public Void visitPrimaryNoNewArraySuperFieldAccess(JPlus25Parser.PrimaryNoNewArraySuperFieldAccessContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArraySuperFieldAccess(ctx, resolvedChain.stepCursor()));
         //return super.visitPrimaryNoNewArrayExprMethodInvocation(ctx);
         return null;
@@ -1827,7 +1827,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx) {
+    public Void visitPrimaryNoNewArrayQualifiedSuperFieldAccess(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperFieldAccessContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayQualifiedSuperFieldAccess(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -1845,7 +1845,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx) {
+    public Void visitPrimaryNoNewArrayArrayAccess(JPlus25Parser.PrimaryNoNewArrayArrayAccessContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayAccess(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -1861,7 +1861,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx) {
+    public Void visitPrimaryNoNewArrayArrayCreationWithInitAccess(JPlus25Parser.PrimaryNoNewArrayArrayCreationWithInitAccessContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayCreationWithInitAccess(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -1878,7 +1878,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx) {
+    public Void visitPrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> processImplicitReceiverMethodInvocationSignature(MethodInvocationSignatureContextAdapter.from(ctx), resolvedChain.stepCursor()));
         return null;
     }
@@ -1946,7 +1946,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx) {
+    public Void visitPrimaryNoNewArrayTypeMethodInvocation(JPlus25Parser.PrimaryNoNewArrayTypeMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayTypeMethodInvocation(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -1990,7 +1990,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     /*@Override
-    public ResultState visitPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx) {
+    public Void visitPrimaryNoNewArrayArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayArrayMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayArrayMethodInvocation(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -2008,7 +2008,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx) {
+    public Void visitPrimaryNoNewArraySuperMethodInvocation(JPlus25Parser.PrimaryNoNewArraySuperMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArraySuperMethodInvocation(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -2022,7 +2022,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
 
     @Override
-    public ResultState visitPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx) {
+    public Void visitPrimaryNoNewArrayQualifiedSuperMethodInvocation(JPlus25Parser.PrimaryNoNewArrayQualifiedSuperMethodInvocationContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayQualifiedSuperMethodInvocation(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -2035,7 +2035,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
     }
 
     @Override
-    public ResultState visitPrimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx) {
+    public Void visitPrimaryNoNewArrayExprMethodReference(JPlus25Parser.PrimaryNoNewArrayExprMethodReferenceContext ctx) {
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayprimaryNoNewArrayExprMethodReference(ctx, resolvedChain.stepCursor()));
         return null;
     }
@@ -2047,7 +2047,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<ResultState> {
 
 
     @Override
-    public ResultState visitPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx) {
+    public Void visitPrimaryNoNewArrayParenExpression(JPlus25Parser.PrimaryNoNewArrayParenExpressionContext ctx) {
         //'(' expression ')' pNNA?
         withPrimaryNoNewArrayChain(ctx, resolvedChain -> handlePrimaryNoNewArrayParenExpression(ctx, resolvedChain.stepCursor()));
         return null;
