@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "jplus.plugin.intellij"
-version = "0.1-mvp-alpha"
+version = "0.22"
 
 repositories {
     mavenCentral()

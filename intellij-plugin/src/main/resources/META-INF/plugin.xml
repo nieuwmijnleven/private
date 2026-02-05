@@ -4,19 +4,27 @@
     <id>jplus.plugin</id>
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
-    <name>JPlus</name>
+    <name>Jadex</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://github.com/nieuwmijnleven/JPlus">JPlus</vendor>
+    <vendor url="https://github.com/nieuwmijnleven/Jadex">Jadex</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        JPlus is a Java superset language running on the JVM.
-  It preserves Java syntax while adding modern features like strict null safety, type inference, and functional programming
-  to significantly boost developer productivity.
-  This IntelliJ plugin provides full language support for editing, compiling, and running JPlus code within the IDE.
-  JPlus allows gradual adoption in existing Java projects, helping you write safer and more concise code.
+        Jadex — Make Java Null-Safe Without Leaving Java
+
+        Jadex is a Java-compatible superset that brings compile-time null safety to your existing Java code — without rewriting it, without changing the JVM, and without leaving the familiar Java syntax behind.
+
+        With Jadex, development teams can gradually adopt null-safety at the type level, improving code reliability and reducing runtime null-pointer exceptions, just like TypeScript did for JavaScript.
+
+        Key Benefits:
+        - Seamless Integration: Works with existing Java projects with minimal changes.
+        - Incremental Adoption: Apply null-safety only where you need it.
+        - Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
+        - Familiar Syntax: No new language to learn, just safer Java.
+
+        Jadex makes your Java code safer, more maintainable, and future-proof — without compromise.
     ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -32,13 +40,13 @@
         <action id="NewJPlusClass"
                 class="jplus.plugin.intellij.JPlusNewClassAction"
                 text="JPlus Class"
-                description="Create new JPlus class">
+                description="Create new Jadex class">
             <add-to-group group-id="NewGroup1" anchor="after" relative-to-action="NewClass"/>
         </action>
         <action id="ConvertToJPlusAction"
                 class="jplus.plugin.intellij.ConvertToJPlusAction"
-                text="Convert Java File to JPlus File"
-                description="Convert Java File to JPlus File">
+                text="Convert Java File to Jadex File"
+                description="Convert Java File to Jadex File">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
         </action>
     </actions>
@@ -49,15 +57,15 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <fileTypeFactory implementation="jplus.plugin.intellij.JPlusFileTypeFactory"/>
-        <lang.syntaxHighlighterFactory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusSyntaxHighlighterFactory"/>
-        <completion.contributor language="JPlus" implementationClass="jplus.plugin.intellij.JPlusCompletionContributor"/>
+        <lang.syntaxHighlighterFactory language="Jadex" implementationClass="jplus.plugin.intellij.JPlusSyntaxHighlighterFactory"/>
+        <completion.contributor language="Jadex" implementationClass="jplus.plugin.intellij.JPlusCompletionContributor"/>
         <gotoDeclarationHandler implementation="jplus.plugin.intellij.JPlusGotoDefinitionHandler"/>
-        <lang.ast.factory language="JPlus" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>
-        <lang.parserDefinition language="JPlus" implementationClass="jplus.plugin.intellij.JPlusParserDefinition"/>
-        <lang.commenter language="JPlus" implementationClass="jplus.plugin.intellij.JPlusLanguageCommenter"/>
+        <lang.ast.factory language="Jadex" implementationClass="jplus.plugin.intellij.JPlusASTFactory"/>
+        <lang.parserDefinition language="Jadex" implementationClass="jplus.plugin.intellij.JPlusParserDefinition"/>
+        <lang.commenter language="Jadex" implementationClass="jplus.plugin.intellij.JPlusLanguageCommenter"/>
         <renamePsiElementProcessor order="first" implementation="jplus.plugin.intellij.JPlusRenameProcessor"/>
         <externalAnnotator
-                language="JPlus"
+                language="Jadex"
                 implementationClass="jplus.plugin.intellij.annotator.JPlusExternalAnnotator"/>
         <!--annotator language="JPlus" implementationClass="jplus.plugin.intellij.JPlusAnnotator"/-->
     </extensions>

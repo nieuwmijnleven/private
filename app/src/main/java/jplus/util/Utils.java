@@ -289,11 +289,11 @@ public class Utils {
         return elseFunction.get();
     }
 
-    public static SymbolInfo joinNullState(SymbolInfo stateA, SymbolInfo stateB) {
+    public static SymbolInfo joinNullState(SymbolTable joined, SymbolInfo stateA, SymbolInfo stateB) {
 
         var joinedNS = NullState.join(stateA.getNullState(), stateB.getNullState());
 
-        return stateA.toBuilder().nullState(joinedNS).build();
+        return stateA.toBuilder().nullState(joinedNS).symbolTable(joined).build();
     }
 
     public static String getFileNameWithoutExtension(Path path) {

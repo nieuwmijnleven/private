@@ -18,6 +18,6 @@ public class JPlusFile extends PsiFileBase {
 
     @Override
     public String toString() {
-        return "JPlus file";
+        return "Jadex file";
     }
 }

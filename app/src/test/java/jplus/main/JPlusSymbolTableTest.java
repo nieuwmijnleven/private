@@ -140,7 +140,7 @@ public class JPlusSymbolTableTest {
 
     @Test
     void testConvertJavaWithNullableAnnotation() throws Exception {
-//        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/User.jplus"));
+//        JPlusProcessor processor = new JPlusProcessor(Path.of("./src/test/files/NullableAnnotation/User.jadex"));
 ////        processor.addSrcDirPath(Path.of("./src/test/files/NullableAnnotation"));
 //        processor.process();
 ////        System.err.println(processor.getParseTreeString());

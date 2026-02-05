@@ -1,11 +1,15 @@
 package jplus.plugin.intellij;
 
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 
 public class JPlusSaveListener implements FileDocumentManagerListener {
@@ -26,7 +30,7 @@ public class JPlusSaveListener implements FileDocumentManagerListener {
 //        }
 
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
-        if (file == null || !file.getName().endsWith(".jplus")) return;
+        if (file == null || !file.getName().endsWith(".jadex")) return;
 
         String text = document.getText();
 
@@ -37,7 +41,14 @@ public class JPlusSaveListener implements FileDocumentManagerListener {
                 indicator.setIndeterminate(true);
                 indicator.setText("Compiling " + file.getName());
 
-                fileService.compileAndWriteToJava(file, text, indicator);
+                ReadAction.run(() -> {
+                    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+                    if (psiFile != null) {
+                        WriteAction.run(() -> {
+                            fileService.compileAndWriteToJava(psiFile, file, text, indicator);
+                        });
+                    }
+                });
             }
         }.queue();
     }

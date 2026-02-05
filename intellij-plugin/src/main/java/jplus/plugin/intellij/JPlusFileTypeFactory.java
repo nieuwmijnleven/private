@@ -7,6 +7,6 @@ import org.jetbrains.annotations.NotNull;
 public class JPlusFileTypeFactory extends FileTypeFactory {
     @Override
     public void createFileTypes(@NotNull FileTypeConsumer fileTypeConsumer) {
-        fileTypeConsumer.consume(JPlusFileType.INSTANCE, "jplus");
+        fileTypeConsumer.consume(JPlusFileType.INSTANCE, "jadex");
     }
 }

@@ -35,7 +35,7 @@ class JPlusTest {
 
     @Test
     void testNullableType1() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType1.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType1.jadex"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -51,7 +51,7 @@ class JPlusTest {
 
     @Test
     void testNullableType2() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType2.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType2.jadex"));
         processor.process();
         processor.analyzeSymbols();
 
@@ -70,7 +70,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityChecker() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityChecker.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityChecker.jadex"));
         processor.process();
         System.err.println("[ParseTreeString] " + processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -95,7 +95,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithDataflow() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithDataflow.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithDataflow.jadex"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -116,7 +116,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithAssignNullableToNonNullable() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithAssignNullableToNonNullable.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithAssignNullableToNonNullable.jadex"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -135,7 +135,7 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithNonInitializeLocalVariable() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jplus"));
+        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -158,102 +158,102 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator.jplus", "uscMLnF+l6+tsgztgsVpxycevp4=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator.jadex", "uscMLnF+l6+tsgztgsVpxycevp4=");
     }
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jplus", "bpdhemNrk7aasiOnNqMQ1+U1Cy0=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jadex", "bpdhemNrk7aasiOnNqMQ1+U1Cy0=");
     }
 
     @Test
     void testElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/ElvisOperator.jplus", "4nKedpMRMHPKof2GaBGoFlH5cIg=");
+        checkGeneratedCode("./src/test/samples/ElvisOperator.jadex", "4nKedpMRMHPKof2GaBGoFlH5cIg=");
     }
 
     @Test
     void testCascadingElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jplus", "ViJPZI8X4cHlCHxRkLwyyn7muUQ=");
+        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jadex", "ViJPZI8X4cHlCHxRkLwyyn7muUQ=");
     }
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jplus", "GylLgcKiiwhyRwqc7Vskb8krUDc=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jadex", "GylLgcKiiwhyRwqc7Vskb8krUDc=");
     }
 
     @Test
     void testApplyGetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyGetter.jplus", "2KehX1uPY6NqXQiwDyed7V5y5SQ=");
+        checkGeneratedCode("./src/test/samples/ApplyGetter.jadex", "2KehX1uPY6NqXQiwDyed7V5y5SQ=");
     }
 
     @Test
     void testApplySetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplySetter.jplus", "Q3LnhpGWKx1+rCJd5qFDg1XPiEg=");
+        checkGeneratedCode("./src/test/samples/ApplySetter.jadex", "Q3LnhpGWKx1+rCJd5qFDg1XPiEg=");
     }
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jplus", "/4y4rcMiJuXYHyV3FT/jy83/2vU=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jadex", "/4y4rcMiJuXYHyV3FT/jy83/2vU=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jplus", "SQ/+NbTZ7tNs2QkTNIkIdXRs21c=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jadex", "SQ/+NbTZ7tNs2QkTNIkIdXRs21c=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jplus", "Nu4CSpg8Fsb+GfxmBRar/f7cTmI=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jadex", "Nu4CSpg8Fsb+GfxmBRar/f7cTmI=");
     }
 
     @Test
     void testApplyToString() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyToString.jplus", "3WXjcqipwTO+F7/0KS/GSYQtIE4=");
+        checkGeneratedCode("./src/test/samples/ApplyToString.jadex", "3WXjcqipwTO+F7/0KS/GSYQtIE4=");
     }
 
     @Test
     void testApplyHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyHashCode.jplus", "o/Ugq6ZLP7mRCR7k7xnkb58e9Dk=");
+        checkGeneratedCode("./src/test/samples/ApplyHashCode.jadex", "o/Ugq6ZLP7mRCR7k7xnkb58e9Dk=");
     }
 
     @Test
     void testApplyConstructorWithRequired() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequired.jplus", "gQSG/fieVXDm6m4/LcO0FojTI5U=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequired.jadex", "gQSG/fieVXDm6m4/LcO0FojTI5U=");
     }
 
     @Test
     void testApplyConstructorWithAll() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAll.jplus", "NjPcw+ydxvus5tvXDc53hdhqnAU=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAll.jadex", "NjPcw+ydxvus5tvXDc53hdhqnAU=");
     }
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jplus", "yZtUmt/+VIn8dxshd7pNCR0wJ/8=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jadex", "yZtUmt/+VIn8dxshd7pNCR0wJ/8=");
     }
 
     @Test
     void testApplyConstructorWithNoInSingleClass() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jplus", "zoZLXdvFb0B6uUySG3mgm+d2/lo=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jadex", "zoZLXdvFb0B6uUySG3mgm+d2/lo=");
     }
 
     @Test
     void testApplyConstructorWithAllAndBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAllAndBuilder.jplus", "pY9jEWiq5yX/urk0RZcNMDjMsQc=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAllAndBuilder.jadex", "pY9jEWiq5yX/urk0RZcNMDjMsQc=");
     }
 
     @Test
     void testApplyConstructorWithRequiredAndBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequiredAndBuilder.jplus", "Oh4/D9SMOiOZmqtBH+KJf8l7PBw=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequiredAndBuilder.jadex", "Oh4/D9SMOiOZmqtBH+KJf8l7PBw=");
     }
 
     @Test
     void testApplyConstructorWithNoAndBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoAndBuilder.jplus", "pY9jEWiq5yX/urk0RZcNMDjMsQc=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoAndBuilder.jadex", "pY9jEWiq5yX/urk0RZcNMDjMsQc=");
     }
 
     @Test
     void testApplyDuplicatedHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyDuplicatedHashCode.jplus", "o/Ugq6ZLP7mRCR7k7xnkb58e9Dk=");
+        checkGeneratedCode("./src/test/samples/ApplyDuplicatedHashCode.jadex", "o/Ugq6ZLP7mRCR7k7xnkb58e9Dk=");
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {

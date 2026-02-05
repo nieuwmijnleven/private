@@ -27,12 +27,12 @@ public class JPlusFileService {
         this.project = project;
     }
 
-    public void compileAndWriteToJava(VirtualFile jplusFile, String jplusCode, ProgressIndicator indicator) {
+    public void compileAndWriteToJava(PsiFile file, VirtualFile jplusFile, String jplusCode, ProgressIndicator indicator) {
 
         try {
 
-            PsiFile file = PsiManager.getInstance(project).findFile(jplusFile);
-            if (file == null) return;
+            //PsiFile file = PsiManager.getInstance(project).findFile(jplusFile);
+            //if (file == null) return;
 
             Project ideaProject = file.getProject();
 
@@ -66,7 +66,7 @@ public class JPlusFileService {
             indicator.setText("Writing file");
 
             Path jplusPath = Paths.get(jplusFile.getPath());
-            String javaFileName = jplusPath.getFileName().toString().replaceFirst("\\.jplus$", ".java");
+            String javaFileName = jplusPath.getFileName().toString().replaceFirst("\\.jadex$", ".java");
             Path javaFilePath = jplusPath.resolveSibling(javaFileName);
 
             ApplicationManager.getApplication().invokeLater(() -> {

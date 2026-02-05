@@ -28,14 +28,14 @@ import java.io.IOException;
 public class JPlusNewClassAction extends CreateFileFromTemplateAction implements DumbAware {
 
     public JPlusNewClassAction() {
-        super("JPlus Class", "Create a new JPlus Class", AllIcons.Nodes.Class);
+        super("Jadex Class", "Create a new Jadex Class", AllIcons.Nodes.Class);
     }
 
     @Override
     protected void buildDialog(@NotNull final Project project, @NotNull PsiDirectory directory,
                                @NotNull CreateFileFromTemplateDialog.Builder builder) {
         builder
-                .setTitle("New JPlus Class")
+                .setTitle("New Jadex Class")
                 .addKind("Class", AllIcons.Nodes.Class, "Class")
                 .addKind("Interface", AllIcons.Nodes.Interface, "Interface")
                 .addKind("Enum", AllIcons.Nodes.Enum, "Enum")
@@ -99,7 +99,7 @@ public class JPlusNewClassAction extends CreateFileFromTemplateAction implements
             WriteCommandAction.runWriteCommandAction(project, () -> {
                 try {
                     VirtualFile parent = originalVFile.getParent();
-                    String newFileName = originalVFile.getNameWithoutExtension() + ".jplus";
+                    String newFileName = originalVFile.getNameWithoutExtension() + ".jadex";
                     VirtualFile jplusFile = parent.findChild(newFileName);
 
                     if (jplusFile == null) {
@@ -113,7 +113,7 @@ public class JPlusNewClassAction extends CreateFileFromTemplateAction implements
                             FileEditorManager.getInstance(project).openFile(finalJplusFile, true));
 
                 } catch (IOException e) {
-                    Messages.showErrorDialog(project, e.getMessage(), "Error Creating .jplus File");
+                    Messages.showErrorDialog(project, e.getMessage(), "Error Creating .jadex File");
                 }
             });
         });

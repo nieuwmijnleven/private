@@ -42,7 +42,7 @@ public class ConvertToJPlusAction extends AnAction {
             return;
         }
 
-        String newFileName = file.getNameWithoutExtension() + ".jplus";
+        String newFileName = file.getNameWithoutExtension() + ".jadex";
 
         WriteCommandAction.runWriteCommandAction(project, () -> {
             try {
@@ -54,7 +54,7 @@ public class ConvertToJPlusAction extends AnAction {
                 });
             } catch (IOException ex) {
                 ApplicationManager.getApplication().invokeLater(() ->
-                    Messages.showErrorDialog(project, "Failed to create JPlus file: " + ex.getMessage(), "Error")
+                    Messages.showErrorDialog(project, "Failed to create Jadex file: " + ex.getMessage(), "Error")
                 );
             }
         });

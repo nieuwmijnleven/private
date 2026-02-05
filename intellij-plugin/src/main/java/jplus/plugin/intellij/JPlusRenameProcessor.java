@@ -74,7 +74,7 @@ public class JPlusRenameProcessor extends RenamePsiElementProcessor {
         String newJPlusCode = newJavaCode;
 
         PsiFile jplusFile = JPlusContext.getInstance().getJPlusFile();
-        System.err.println("jplusFile = " + jplusFile);
+        System.err.println("jadexFile = " + jplusFile);
         if (jplusFile == null) return;
 
         Document jplusDoc = PsiDocumentManager.getInstance(project).getDocument(jplusFile);

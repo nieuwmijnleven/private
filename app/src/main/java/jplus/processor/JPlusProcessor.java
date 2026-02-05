@@ -40,14 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Performs:
- * 1. Parse JPlus source → ANTLR AST
- * 2. Generate intermediate Java
- * 3. Java symbol analysis (recursive unresolved resolution)
- * 4. Nullability check
- * 5. Boilerplate Java code generation
- */
 public class JPlusProcessor {
 
     private final Project project;
@@ -104,8 +96,8 @@ public class JPlusProcessor {
 
         String relativePath =
                 (packageName == null || packageName.isBlank())
-                        ? className + ".jplus"
-                        : packageName.replace('.', '/') + "/" + className + ".jplus";
+                        ? className + ".jadex"
+                        : packageName.replace('.', '/') + "/" + className + ".jadex";
 
         for (Path srcDir : project.getSourceDirs()) {
             Path candidate = srcDir.resolve(relativePath);

@@ -15,10 +15,14 @@ public final class ResolvedChain {
         FIELD,
         METHOD,
         EXPRESSION,
+        LAMBDA_EXPRESSION,
+        CONDITIONAL_EXPRESSION,
+
         NEW,
         LITERAL,
+
         ARRAY_ACCESS,
-        CONDITIONAL_EXPRESSION, CHAIN
+        CHAIN
     }
 
     public static final class Step {

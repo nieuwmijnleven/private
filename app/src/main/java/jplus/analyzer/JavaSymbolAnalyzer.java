@@ -207,6 +207,41 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 return;
             }
 
+            if (expr instanceof LambdaExpressionTree lambda) {
+
+                TreePath path = TreePath.getPath(ast, lambda);
+                TypeMirror typeMirror = trees.getTypeMirror(path);
+                Element element = trees.getElement(path);
+                TypeInfo ti = TypeUtils.fromTypeMirror(typeMirror, element);
+
+                chain.addStep(new ResolvedChain.Step(
+                        ResolvedChain.Kind.LAMBDA_EXPRESSION,
+                        lambda.toString(),
+                        ti,
+                        ti.isNullable(),
+                        false,
+                        computeRange(lambda),
+                        null,
+                        null
+                ));
+
+                Tree body = lambda.getBody();
+                if (body instanceof ExpressionTree bodyExpr) {
+
+                    build(bodyExpr);
+                } else if (body instanceof BlockTree block) {
+
+                    for (StatementTree stmt : block.getStatements()) {
+                        if (stmt instanceof ExpressionTree stmtExpr) {
+                            build(stmtExpr);
+                        }
+                    }
+                }
+
+                return;
+            }
+
+
             if (expr instanceof IdentifierTree id) {
                 handleIdentifier(id, chain);
             } else if (expr instanceof MemberSelectTree ms) {
