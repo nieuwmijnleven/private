@@ -40,7 +40,8 @@ public class ClassContext implements Context {
         mergedSymbolTable.findSymbolInfoByType(List.of(TypeInfo.Type.Reference)).stream()
                 .filter(fieldInfo -> !fieldInfo.getTypeInfo().isNullable() && fieldInfo.getNullState() != NullState.NON_NULL)
                 //.peek(fieldInfo -> System.err.println("[ClassContext] fieldInfo = " + fieldInfo))
-                .forEach(symbolInfo -> fieldCtorInitState.put(symbolInfo, InitState.INIT));
+                //.forEach(symbolInfo -> fieldCtorInitState.put(symbolInfo, InitState.INIT));
+                .forEach(symbolInfo -> fieldCtorInitState.put(symbolInfo, InitState.UNKNOWN));
 
         //System.err.println("[ClassContext] fieldCtorInitState = " + fieldCtorInitState);
     }
@@ -98,13 +99,15 @@ public class ClassContext implements Context {
     }
 
     public boolean hasUninitializedNonNullField() {
-        return fieldCtorInitState.entrySet().stream()
-                .anyMatch(entry -> entry.getValue() == InitState.UNINIT);
+
+        return fieldCtorInitState.values().stream()
+                .anyMatch(initState -> initState == InitState.UNINIT || initState == InitState.UNKNOWN);
     }
 
     public List<SymbolInfo> getUninitializedFieldList() {
+
         return fieldCtorInitState.entrySet().stream()
-                .filter(entry -> entry.getValue() == InitState.UNINIT)
+                .filter(entry -> entry.getValue() == InitState.UNINIT || entry.getValue() == InitState.UNKNOWN)
                 .map(Map.Entry::getKey)
                 .toList();
     }

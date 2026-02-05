@@ -128,7 +128,8 @@ class JPlusTest {
             });
         }
 
-        String expected = "Error: (line:8, column:8) this.name is a non-nullable variable. But null value is assigned to it.\n";
+        String expected = "Error: (line:4, column:4) Non-null field 'name' is not initialized in one or more constructors of class 'User'\n" +
+                "Error: (line:8, column:8) this.name is a non-nullable variable. But null value is assigned to it.\n";
         assertEquals(expected, outContent.toString());
     }
 
@@ -149,6 +150,7 @@ class JPlusTest {
 
         String expected = "Error: (line:18, column:8) The method(getCity) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:18, column:15) address is a nullable variable. But it directly accesses city. Consider using null-safe operator(?.).\n" +
+                "Error: (line:37, column:8) Variable 'nickName' might not have been initialized.\n" +
                 "Error: (line:42, column:21) The 1st argument of the jplus.example.User constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:42, column:36) The 1st argument of the jplus.example.User.Address constructor is a non-nullable variable, but a null value is assigned to it.\n";
         assertEquals(expected, outContent.toString());

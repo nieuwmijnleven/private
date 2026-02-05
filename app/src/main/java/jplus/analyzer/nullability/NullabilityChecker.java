@@ -425,10 +425,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 symbolInfo.getSymbolTable().declare(symbolInfo.getSymbol(), updated);
                 //System.err.println("[NullabilityChecker][FieldDecl] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
 
-                if (rhsState == NullState.NON_NULL) {
+                /*if (rhsState == NullState.NON_NULL) {
                     ClassContext classContext = classContextStack.peek();
                     classContext.update(new FieldContext(symbol, InitState.INIT));
-                }
+                }*/
+
+                ClassContext classContext = classContextStack.peek();
+                classContext.update(new FieldContext(symbol, InitState.INIT));
 
             } else {
                 if (!typeInfo.isNullable() && typeInfo.getType() == TypeInfo.Type.Reference) {
@@ -526,10 +529,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             if (rootInfo != null) {
                 nullState = rootInfo.getNullState();
 
-                if (!rootInfo.getTypeInfo().isNullable() && nullState == NullState.UNKNOWN) {
+                /*if (!rootInfo.getTypeInfo().isNullable() && nullState == NullState.UNKNOWN) {
                     reportIssue(ctx.start, root.symbol + " may be null. Consider checking for null or using null-safe operator(?.) before accessing.");
                     rootReported = true;
-                }
+                }*/
             } else {
                 if (root.typeInfo.getType() != TypeInfo.Type.Unknown) {
                     nullState = root.nullable ? NullState.UNKNOWN : NullState.NON_NULL;
@@ -840,12 +843,18 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             } else {
 
                 if (!typeInfo.isNullable() && typeInfo.getType() == TypeInfo.Type.Reference) {
+
                     SymbolInfo updated = symbolInfo.toBuilder()
                             .nullState(NullState.UNKNOWN)
                             .build();
 
                     symbolInfo.getSymbolTable().declare(symbolInfo.getSymbol(), updated);
                     //System.err.println("[NullabilityChecker][LocalVariable] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
+
+                    reportIssue(
+                            ctx.getStart(),
+                            String.format("Variable '%s' might not have been initialized.", symbol)
+                    );
                 }
             }
         }

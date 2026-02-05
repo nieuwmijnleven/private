@@ -88,7 +88,6 @@ public class JPlusSymbolTableTest {
         }
 
         assertEquals("Error: (line:13, column:8) this.address is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:18, column:15) address may be null. Consider checking for null or using null-safe operator(?.) before accessing.\n" +
                 "Error: (line:18, column:8) The method(getStreet) is declared to return a non-null value, but this return statement may return null.\n" +
                 "Error: (line:18, column:15) street is a nullable variable. But it directly accesses name. Consider using null-safe operator(?.).\n" +
                 "Error: (line:30, column:47) The 1st argument of the jplus.example.UserConstructorParamAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
