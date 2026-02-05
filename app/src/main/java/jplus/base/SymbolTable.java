@@ -42,8 +42,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private boolean deadContext;
 
-    private boolean isIfPrimaryContext;
-
     private SymbolTable parent;
 
     private Map<String, SymbolInfo> symbolMap = new HashMap<>();
@@ -64,6 +62,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         METHOD,
         BLOCK
     }*/
+
     public SymbolTable(SymbolTable parent, ExecutionContext context) {
         this.parent = parent;
         this.context = context;
@@ -98,28 +97,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
             replica.enclosing.put(e.getKey(), childCopy);
         }
 
-        replica.setIfContext(isIfPrimaryContext);
         replica.setDeadContext(deadContext);
 
         return replica;
     }
-
-    public SymbolTable promoteLocalSymbols() {
-        SymbolTable replica = parent.copy();
-
-        replica.symbolMap = new HashMap<>();
-        for (var e : this.symbolMap.entrySet()) {
-            replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().symbolTable(replica).build());
-        }
-
-        replica.setDeadContext(isDeadContext());
-
-        replica.setIfContext(isIfPrimaryContext);
-        replica.ifContextMap = new HashMap<>(ifContextMap);
-
-        return replica;
-    }
-
 
     private void declareInternal(String name, SymbolInfo symbolInfo) {
         symbolMap.put(name, symbolInfo);
@@ -243,25 +224,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return null;
     }
 
-    /*public SymbolInfo resolve(String name) {
-
-        SymbolInfo symbolInfo = resolveInCurrent(name);
-        if (symbolInfo != null) {
-            return symbolInfo;
-        }
-
-//        if (superClassTable != null) {
-//            symbolInfo = superClassTable.resolve(name);
-//            if (symbolInfo != null) return symbolInfo;
-//        }
-
-        if (parent != null) {
-            return parent.resolve(name);
-        }
-
-        return null;
-    }*/
-
     public SymbolInfo resolveInCurrent(String name) {
         SymbolInfo local = symbolMap.get(name);
         if (local != null) return local;
@@ -337,16 +299,8 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return deadContext;
     }
 
-    public boolean isIfPrimaryContext() {
-        return isIfPrimaryContext;
-    }
-
     public void setDeadContext(boolean deadContext) {
         this.deadContext = deadContext;
-    }
-
-    public void setIfContext(boolean ifPrimaryContext) {
-        isIfPrimaryContext = ifPrimaryContext;
     }
 
     public void mergeDeadContext(boolean deadContext) {
@@ -448,25 +402,11 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         });
     }
 
-//    public SymbolTable joinNullState(SymbolTable other) {
-//        for (String symbol : symbolMap.keySet()) {
-//            var syminfo1 = resolveInCurrent(symbol);
-//            var symInfo2 = other.resolveInCurrent(symbol);
-//            NullState joined = NullState.join(syminfo1.getNullState(), symInfo2.getNullState());
-//            symbolMap.put(symbol, syminfo1.toBuilder().nullState(joined).build());
-//        }
-//
-//        return this;
-//    }
-
     public void addResolvedChain(ResolvedChain chain) {
         resolvedChains.add(chain);
     }
 
     public List<ResolvedChain> getResolvedChains() {
-//        if (resolvedChains.isEmpty()) {
-//            return Collections.unmodifiableList(parent.getResolvedChains());
-//        }
         return Collections.unmodifiableList(resolvedChains);
     }
 
@@ -543,23 +483,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         }
 
         return Optional.empty();
-    }
-
-    public void putIfContext(String symbol, SymbolInfo symbolInfo) {
-        if (isIfPrimaryContext) {
-            ifContextMap.put(symbol, symbolInfo);
-            return;
-        }
-
-        if (parent != null) parent.putIfContext(symbol, symbolInfo);
-    }
-
-    public Map<String, SymbolInfo> getIfContextMap() {
-        if (isIfPrimaryContext) {
-            return Collections.unmodifiableMap(ifContextMap);
-        }
-
-        throw new IllegalStateException();
     }
 
     public SymbolTable findLowContextSymbolTable(String name) {
