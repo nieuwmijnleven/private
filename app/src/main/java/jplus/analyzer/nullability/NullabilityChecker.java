@@ -78,6 +78,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private final Deque<ConstructorContext> constructorContextStack = new ArrayDeque<>();
     private final Deque<SwitchContext> switchContextStack = new ArrayDeque<>();
 
+    private boolean isIfContext;
+
     private String originalText;
     private String packageName;
     private boolean hasPassed = true;
@@ -455,7 +457,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     NullState evalRHS(ParserRuleContext ctx, SymbolTable symbolTable) {
         if (ctx == null) return NullState.UNKNOWN;
 
-        //System.err.println("[evalInitializer] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
+        System.err.println("[evalInitializer] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
 
         var conditionalExprResult = symbolTable.resolveInCurrent("^ConditionalExpression$" + ctx.start.getStartIndex());
         if (conditionalExprResult != null) {
@@ -469,7 +471,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             return switchExprResult.getNullState();
         }
 
-        //System.err.println("[evalInitializer] resolvedChains: " + symbolTable.getResolvedChains());
+        System.err.println("[evalInitializer] resolvedChains: " + symbolTable.getResolvedChains());
 
         var ctxRange = Utils.getTextChangeRange(originalText, ctx);
         //System.err.println("[evalInitializer] original range = " + ctxRange);
@@ -660,7 +662,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             //var methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
             var methodSymbolInfo = classSymbolTable.resolve(candidate);
-            //System.err.println("[resolveMethod] methodSymbolInfo = " + methodSymbolInfo);
+            System.err.println("[resolveMethod] methodSymbolInfo = " + methodSymbolInfo);
             
             if (methodSymbolInfo != null) return Optional.of(methodSymbolInfo);
         }
@@ -699,7 +701,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             //String argType = info.argTypes.get(i);
             //log("paramType = " + paramType + ", argType = " + argType);
 
+            System.err.println("[validateMethodArguments] argument = " + Utils.getTokenString(argumentList.get(i)));
+
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
+
+            System.err.println("[validateMethodArguments] paramType = " + paramType);
+            System.err.println("[validateMethodArguments] argState = " + argState);
 
             if (isInvalidNullAssignment(paramType, argState)) {
                 reportInvalidNull(ctx.originalContext(), info, i + 1);
@@ -716,10 +723,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private boolean isInvalidNullAssignment(@NonNull String argType, NullState argState) {
+
         if (argType.endsWith("?")) return false;
-        return argState == NullState.NULL;
-        //return "<nulltype>".equals(argType);
-        //return !paramType.endsWith("?") && "<nulltype>".equals(argType);
+
+        return argState == NullState.NULL || argState == NullState.UNKNOWN;
     }
 
     private void reportInvalidNull(
@@ -810,7 +817,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         for (var decl : variableDeclarator) {
 
             String symbol = Utils.getTokenString(decl.variableDeclaratorId());
-            //System.err.println("[NullabilityChecker][LocalVariable] symbol = " + symbol);
+            System.err.println("[NullabilityChecker][LocalVariable] symbol = " + symbol);
 
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
             //System.err.println("[NullabilityChecker][LocalVariable] symbolInfo = " + symbolInfo);
@@ -823,7 +830,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 visit(decl.variableInitializer());
 
                 NullState rhsState = evalRHS(decl.variableInitializer(), currentSymbolTable);
-                //System.err.println("[NullabilityChecker][LocalVariable] rhsState = " + rhsState);
+                System.err.println("[NullabilityChecker][LocalVariable] rhsState = " + rhsState);
 
                 if (!typeInfo.isNullable() && rhsState == NullState.NULL) {
                     reportIssue(ctx.getStart(), symbol + " is a non-nullable variable. But null value is assigned to it.");
@@ -902,9 +909,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 .nullState(rhsState)
                 .build();
 
-        symbolInfo.getSymbolTable().declare(symbolInfo.getSymbol(), updated);
+        if (isIfContext) {
+            System.err.println("isIfContext");
+            currentSymbolTable.putIfContext(symbolInfo.getSymbol(), updated);
+        } else {
+            symbolInfo.getSymbolTable().declare(symbolInfo.getSymbol(), updated);
+        }
+
         //currentSymbolTable.declare(symbol, updated);
-        //System.err.println("[NullabilityChecker][Assignment] updated symbolInfo = " + updated.getSymbolTable().resolve(symbolInfo.getSymbol()));
+        System.err.println("[NullabilityChecker][Assignment] updated symbolInfo = " + updated.getSymbolTable().resolve(symbolInfo.getSymbol()));
         //System.err.println("[NullabilityChecker][Assignment] updated symbolTable = " + updated.getSymbolTable());
 
 
@@ -972,7 +985,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     @Override
     public Void visitIfThenStatement(JPlus25Parser.IfThenStatementContext ctx) {
 
+        isIfContext = true;
+
         SymbolTable entry = currentSymbolTable.copy();
+        entry.setIfContext(true);
 
         var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
 
@@ -980,6 +996,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         currentSymbolTable.merge(conditionResult.whenTrue);
+        currentSymbolTable.setIfContext(true);
+
         visit(ctx.statement());
 
         var whenTrue = currentSymbolTable.promoteLocalSymbols();
@@ -992,8 +1010,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         } else if (conditionResult.whenFalse.isDeadContext()) {
             currentSymbolTable = whenTrue;
         } else {
-            currentSymbolTable = join(entry, whenTrue);
+            //currentSymbolTable = join(entry, whenTrue);
+            //currentSymbolTable = join(whenTrue, conditionResult.whenFalse);
+            currentSymbolTable = join(entry, whenTrue, conditionResult.whenFalse);
         }
+
+        isIfContext = false;
 
         return null;
     }
@@ -1001,7 +1023,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     @Override
     public Void visitIfThenElseStatement(JPlus25Parser.IfThenElseStatementContext ctx) {
 
+        isIfContext = true;
+
         SymbolTable entry = currentSymbolTable.copy();
+        entry.setIfContext(true);
 
         //System.err.println("[IfThenElseStatement] line(" + ctx.expression().start.getLine() + ") = " + Utils.getTokenString(ctx.expression()));
         var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
@@ -1013,6 +1038,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         currentSymbolTable.merge(conditionResult.whenTrue);
+        currentSymbolTable.setIfContext(true);
+
         visit(ctx.statementNoShortIf());
 
         var whenTrue = currentSymbolTable.promoteLocalSymbols();
@@ -1023,6 +1050,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
         currentSymbolTable.merge(conditionResult.whenFalse);
+        currentSymbolTable.setIfContext(true);
+
         visit(ctx.statement());
 
         var whenFalse = currentSymbolTable.promoteLocalSymbols();
@@ -1035,8 +1064,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         } else if (whenFalse.isDeadContext()) {
             currentSymbolTable = whenTrue;
         } else {
-            currentSymbolTable = join(whenTrue, whenFalse);
+            currentSymbolTable = join(entry, whenTrue, whenFalse);
         }
+
+        isIfContext = false;
 
         return null;
     }
@@ -1044,7 +1075,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     @Override
     public Void visitIfThenElseStatementNoShortIf(JPlus25Parser.IfThenElseStatementNoShortIfContext ctx) {
 
+        isIfContext = true;
+
         SymbolTable entry = currentSymbolTable.copy();
+        entry.setIfContext(true);
 
         //System.err.println("[IfThenElseStatement] line(" + ctx.expression().start.getLine() + ") = " + Utils.getTokenString(ctx.expression()));
         var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
@@ -1056,6 +1090,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         currentSymbolTable.merge(conditionResult.whenTrue);
+        currentSymbolTable.setIfContext(true);
+
         visit(ctx.statementNoShortIf(0));
 
         var whenTrue = currentSymbolTable.promoteLocalSymbols();
@@ -1066,6 +1102,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
         currentSymbolTable.merge(conditionResult.whenFalse);
+        currentSymbolTable.setIfContext(true);
+
         visit(ctx.statementNoShortIf(1));
 
         var whenFalse = currentSymbolTable.promoteLocalSymbols();
@@ -1078,10 +1116,35 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         } else if (whenFalse.isDeadContext()) {
             currentSymbolTable = whenTrue;
         } else {
-            currentSymbolTable = join(whenTrue, whenFalse);
+            currentSymbolTable = join(entry, whenTrue, whenFalse);
         }
 
+        isIfContext = false;
+
         return null;
+    }
+
+    private SymbolTable join(SymbolTable entry, SymbolTable a, SymbolTable b) {
+
+        SymbolTable joined = entry.copy();
+
+        Set<String> symbols = new HashSet<>();
+
+        var deltaA = a.getIfContextMap();
+        var deltaB = b.getIfContextMap();
+
+        deltaA.keySet().stream().forEach(symbol -> symbols.add(symbol));
+        deltaB.keySet().stream().forEach(symbol -> symbols.add(symbol));
+
+        for (String symbol : symbols) {
+
+            var stateA = Utils.getOrElse(deltaA, symbol, () -> entry.resolve(symbol));
+            var stateB = Utils.getOrElse(deltaB, symbol, () -> entry.resolve(symbol));
+
+            joined.declare(symbol, Utils.joinNullState(stateA, stateB));
+        }
+
+        return joined;
     }
 
     SymbolTable join(SymbolTable a, SymbolTable b) {
@@ -1092,6 +1155,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         // a ∪ b
         Set<String> symbols = new HashSet<>();
+
         a.keyIterator().forEachRemaining(symbols::add);
         b.keyIterator().forEachRemaining(symbols::add);
 
@@ -1110,8 +1174,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             }
 
 
-            NullState ns =
-                    NullState.join(sa.getNullState(), sb.getNullState());
+            NullState ns = NullState.join(sa.getNullState(), sb.getNullState());
 
             joined.declare(
                     symbol,
@@ -1336,6 +1399,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         SymbolTable entry = currentSymbolTable.copy();
+        entry.setIfContext(true);
 //
 //        SymbolTable thenTable = before.copy();
 //        currentSymbolTable = thenTable;
@@ -1526,7 +1590,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     @Override
     public Void visitEnhancedForStatement(JPlus25Parser.EnhancedForStatementContext ctx) {
 
-        visit(ctx.enhancedForDeclaration().localVariableDeclaration());
+        //visit(ctx.enhancedForDeclaration().localVariableDeclaration());
 
         String symbol = Utils.getTokenString(ctx.enhancedForDeclaration().localVariableDeclaration().variableDeclaratorList().variableDeclarator().get(0).variableDeclaratorId());
 

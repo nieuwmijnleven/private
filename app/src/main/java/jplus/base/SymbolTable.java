@@ -25,7 +25,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +42,8 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private boolean deadContext;
 
+    private boolean isIfPrimaryContext;
+
     private SymbolTable parent;
 
     private Map<String, SymbolInfo> symbolMap = new HashMap<>();
@@ -51,7 +52,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private List<ResolvedChain> resolvedChains = new ArrayList<>();
 
-    private List<SymbolTable> ifContextList = new LinkedList<>();
+    private Map<String, SymbolInfo> ifContextMap = new HashMap<>();
 
     public enum ExecutionContext {
         STATIC,
@@ -97,6 +98,9 @@ public class SymbolTable implements Iterable<SymbolInfo> {
             replica.enclosing.put(e.getKey(), childCopy);
         }
 
+        replica.setIfContext(isIfPrimaryContext);
+        replica.setDeadContext(deadContext);
+
         return replica;
     }
 
@@ -109,6 +113,9 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         }
 
         replica.setDeadContext(isDeadContext());
+
+        replica.setIfContext(isIfPrimaryContext);
+        replica.ifContextMap = new HashMap<>(ifContextMap);
 
         return replica;
     }
@@ -330,8 +337,16 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return deadContext;
     }
 
+    public boolean isIfPrimaryContext() {
+        return isIfPrimaryContext;
+    }
+
     public void setDeadContext(boolean deadContext) {
         this.deadContext = deadContext;
+    }
+
+    public void setIfContext(boolean ifPrimaryContext) {
+        isIfPrimaryContext = ifPrimaryContext;
     }
 
     public void mergeDeadContext(boolean deadContext) {
@@ -530,12 +545,21 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return Optional.empty();
     }
 
-    public void addIfContext(SymbolTable symbolTable) {
-        ifContextList.add(symbolTable);
+    public void putIfContext(String symbol, SymbolInfo symbolInfo) {
+        if (isIfPrimaryContext) {
+            ifContextMap.put(symbol, symbolInfo);
+            return;
+        }
+
+        if (parent != null) parent.putIfContext(symbol, symbolInfo);
     }
 
-    public SymbolTable removeFirstIfContext() {
-        return ifContextList.removeFirst();
+    public Map<String, SymbolInfo> getIfContextMap() {
+        if (isIfPrimaryContext) {
+            return Collections.unmodifiableMap(ifContextMap);
+        }
+
+        throw new IllegalStateException();
     }
 
     public SymbolTable findLowContextSymbolTable(String name) {

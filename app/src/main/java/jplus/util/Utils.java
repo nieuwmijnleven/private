@@ -16,11 +16,17 @@
 
 package jplus.util;
 
+import jplus.analyzer.nullability.dataflow.NullState;
+import jplus.base.SymbolInfo;
+import jplus.base.SymbolTable;
 import jplus.generator.TextChangeRange;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -267,6 +273,27 @@ public class Utils {
         }
 
         return Utils.computeTextChangeRange(original, startIndex, stopIndex);
+    }
+
+    public static SymbolInfo getOrElse(
+            Map<String, SymbolInfo> delta,
+            String symbol,
+            Supplier<SymbolInfo> elseFunction
+    ) {
+
+        SymbolInfo s = delta.get(symbol);
+        if (s != null) {
+            return s;
+        }
+
+        return elseFunction.get();
+    }
+
+    public static SymbolInfo joinNullState(SymbolInfo stateA, SymbolInfo stateB) {
+
+        var joinedNS = NullState.join(stateA.getNullState(), stateB.getNullState());
+
+        return stateA.toBuilder().nullState(joinedNS).build();
     }
 
     public static String getFileNameWithoutExtension(Path path) {
