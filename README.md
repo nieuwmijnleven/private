@@ -4,14 +4,28 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-# <img src="https://raw.githubusercontent.com/nieuwmijnleven/JPlus/refs/heads/master/intellij-plugin/src/main/resources/META-INF/pluginIcon.svg" alt="Logo" width="25" style="vertical-align: middle;"> JPlus
+# <img src="https://raw.githubusercontent.com/nieuwmijnleven/JPlus/refs/heads/master/intellij-plugin/src/main/resources/META-INF/pluginIcon.svg" alt="Logo" width="25" style="vertical-align: middle;"> JADEx - Make Java Null-Safe Without Leaving and Rewriting Java
 
-A perfect Java-compatible superset language offering modern safety and expressiveness.
-With JPlus, you can enhance your Java code’s safety and expressiveness without rewriting it, while fully leveraging existing Java libraries and tools.
+JADEx (Java Advanced Development Extension) is a practical solution for Java null-safety. It lets you enhance your code’s safety and without rewriting it, while fully leveraging existing Java libraries and tools.
 
 ---
 
 ## ✨ Project Overview
+
+JADEx is a Java-compatible superset that brings compile-time null safety to your existing Java code — without rewriting it, without changing the JVM, and without leaving the familiar Java syntax behind.
+        
+With JADEx, development teams can gradually adopt null-safety at the type level, improving code reliability and reducing runtime null-pointer exceptions, just like TypeScript did for JavaScript.
+
+        Key Benefits:
+        - Seamless Integration: Works with existing Java projects with minimal changes.
+        - Incremental Adoption: Apply null-safety only where you need it.
+        - Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
+        - Familiar Syntax: No new language to learn, just safer Java.
+
+        JADEx makes your Java code safer, more maintainable, and future-proof — without compromise.
+ 
+
+
 
 JPlus is fully compatible with Java, offering modern language features like null safety, boilerplate code generation and other modern language features to reduce developer burden and maximize productivity.
 
