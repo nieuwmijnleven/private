@@ -819,11 +819,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             String symbol = Utils.getTokenString(decl.variableDeclaratorId());
             System.err.println("[NullabilityChecker][LocalVariable] symbol = " + symbol);
 
+            System.err.println("[NullabilityChecker][LocalVariable] currentSymbolTable = " + currentSymbolTable);
+            System.err.println("[NullabilityChecker][LocalVariable] currentSymbolTable.parent = " + currentSymbolTable.getParent());
+            System.err.println("[NullabilityChecker][LocalVariable] currentSymbolTable.parent = " + currentSymbolTable.getParent().getParent());
+
             SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
-            //System.err.println("[NullabilityChecker][LocalVariable] symbolInfo = " + symbolInfo);
+            System.err.println("[NullabilityChecker][LocalVariable] symbolInfo = " + symbolInfo);
 
             TypeInfo typeInfo = symbolInfo.getTypeInfo();
-            //System.err.println("[NullabilityChecker][LocalVariable] currentSymbolTable = " + currentSymbolTable);
 
             if (decl.variableInitializer() != null) {
 
@@ -923,9 +926,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 currentSymbolTable.putIfContext(symbolInfo.getSymbol(), updated);
             }*/
         } else {
+            symbolInfo.getSymbolTable().declare(symbolInfo.getSymbol(), updated);
         }
 
-        symbolInfo.getSymbolTable().declare(symbolInfo.getSymbol(), updated);
         //currentSymbolTable.declare(symbol, updated);
         //System.err.println("[NullabilityChecker][Assignment] updated symbolInfo = " + updated.getSymbolTable().resolve(symbolInfo.getSymbol()));
         //System.err.println("[NullabilityChecker][Assignment] updated symbolTable = " + updated.getSymbolTable());
@@ -1007,13 +1010,23 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
-        ifContextStack.push(conditionResult.whenTrue);
+        conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
+        ifContextStack.push(new SymbolTable(null));
 
         visit(ctx.statement());
 
-        var whenTrue = ifContextStack.pop();
+        var deltaSymbolTable = ifContextStack.pop();
+        var whenTrue = currentSymbolTable.promoteLocalSymbols();
+
+        deltaSymbolTable.transplantLocalSymbols(whenTrue);
 
         exitSymbolTable();
+
+        System.err.println("[IfThenElse][then] whenTrue SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
+
+        if (!ifContextStack.isEmpty()) {
+            deltaSymbolTable.transplantLocalSymbols(ifContextStack.peek());
+        }
 
         if (whenTrue.isDeadContext() && conditionResult.whenFalse.isDeadContext()) {
             currentSymbolTable = entry;
@@ -1022,14 +1035,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         } else if (conditionResult.whenFalse.isDeadContext()) {
             currentSymbolTable = whenTrue;
         } else {
-            //currentSymbolTable = join(entry, whenTrue);
             currentSymbolTable = join(whenTrue, conditionResult.whenFalse);
-            //currentSymbolTable = join(entry, whenTrue, conditionResult.whenFalse);
-        }
-
-        if (!ifContextStack.isEmpty()) {
-            ifContextStack.pop();
-            ifContextStack.push(currentSymbolTable);
         }
 
         return null;
@@ -1050,28 +1056,42 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
-        ifContextStack.push(conditionResult.whenTrue);
+        conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
+        ifContextStack.push(new SymbolTable(null));
 
         visit(ctx.statementNoShortIf());
 
-        var whenTrue = ifContextStack.pop();
+        var trueDeltaSymbolTable = ifContextStack.pop();
+        var whenTrue = currentSymbolTable.promoteLocalSymbols();
+
+        trueDeltaSymbolTable.transplantLocalSymbols(whenTrue);
 
         exitSymbolTable();
 
-        //System.err.println("[IfThenElse][then] whenTrue SymbolTable(" + ctx.getStart().getLine() + ") = " + whenTrue);
+        System.err.println("[IfThenElse][then] whenTrue SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
 
         currentSymbolTable = conditionResult.whenFalse;
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
-        ifContextStack.push(conditionResult.whenFalse);
+        conditionResult.whenFalse.transplantLocalSymbols(currentSymbolTable);
+        ifContextStack.push(new SymbolTable(null));
 
         visit(ctx.statement());
 
-        var whenFalse = ifContextStack.pop();
+        var falseDeltaSymbolTable = ifContextStack.pop();
+        var whenFalse = currentSymbolTable.promoteLocalSymbols();
+
+        falseDeltaSymbolTable.transplantLocalSymbols(whenFalse);
+        System.err.println("[IfThenElse][else] whenFalse falseDeltaSymbolTable(" + ctx.getStart().getLine() + ") = " + falseDeltaSymbolTable);
 
         exitSymbolTable();
 
-        //System.err.println("[IfThenElse][else] whenFalse SymbolTable(" + ctx.getStart().getLine() + ") = " + whenFalse);
+        System.err.println("[IfThenElse][else] whenFalse SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
+
+        var joinedDeltaSymbolTable = join(trueDeltaSymbolTable, falseDeltaSymbolTable);
+        if (!ifContextStack.isEmpty()) {
+            joinedDeltaSymbolTable.transplantLocalSymbols(ifContextStack.peek());
+        }
 
         if (whenTrue.isDeadContext() && whenFalse.isDeadContext()) {
             currentSymbolTable = entry;
@@ -1081,13 +1101,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             currentSymbolTable = whenTrue;
         } else {
             currentSymbolTable = join(whenTrue, whenFalse);
-            //System.err.println("[IfThenElse][join] SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
         }
 
-        if (!ifContextStack.isEmpty()) {
-            ifContextStack.pop();
-            ifContextStack.push(currentSymbolTable);
-        }
+        System.err.println("[IfThenElse][join] SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
 
         return null;
     }
@@ -1107,28 +1123,42 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
-        ifContextStack.push(conditionResult.whenTrue);
+        conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
+        ifContextStack.push(new SymbolTable(null));
 
         visit(ctx.statementNoShortIf(0));
 
-        var whenTrue = ifContextStack.pop();
+        var trueDeltaSymbolTable = ifContextStack.pop();
+        var whenTrue = currentSymbolTable.promoteLocalSymbols();
+
+        trueDeltaSymbolTable.transplantLocalSymbols(whenTrue);
 
         exitSymbolTable();
 
-        //System.err.println("[IfThenElse][then] whenTrue SymbolTable(" + ctx.getStart().getLine() + ") = " + whenTrue);
+        System.err.println("[IfThenElse][then] whenTrue SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
 
         currentSymbolTable = conditionResult.whenFalse;
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
-        ifContextStack.push(conditionResult.whenFalse);
+        conditionResult.whenFalse.transplantLocalSymbols(currentSymbolTable);
+        ifContextStack.push(new SymbolTable(null));
 
         visit(ctx.statementNoShortIf(1));
 
-        var whenFalse = ifContextStack.pop();
+        var falseDeltaSymbolTable = ifContextStack.pop();
+        var whenFalse = currentSymbolTable.promoteLocalSymbols();
+
+        falseDeltaSymbolTable.transplantLocalSymbols(whenFalse);
+        System.err.println("[IfThenElse][else] whenFalse falseDeltaSymbolTable(" + ctx.getStart().getLine() + ") = " + falseDeltaSymbolTable);
 
         exitSymbolTable();
 
-        //System.err.println("[IfThenElse][else] whenFalse SymbolTable(" + ctx.getStart().getLine() + ") = " + whenFalse);
+        System.err.println("[IfThenElse][else] whenFalse SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
+
+        var joinedDeltaSymbolTable = join(trueDeltaSymbolTable, falseDeltaSymbolTable);
+        if (!ifContextStack.isEmpty()) {
+            joinedDeltaSymbolTable.transplantLocalSymbols(ifContextStack.peek());
+        }
 
         if (whenTrue.isDeadContext() && whenFalse.isDeadContext()) {
             currentSymbolTable = entry;
@@ -1138,38 +1168,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             currentSymbolTable = whenTrue;
         } else {
             currentSymbolTable = join(whenTrue, whenFalse);
-            //System.err.println("[IfThenElse][join] SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
         }
 
-        if (!ifContextStack.isEmpty()) {
-            ifContextStack.pop();
-            ifContextStack.push(currentSymbolTable);
-        }
+        System.err.println("[IfThenElse][join] SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
 
         return null;
-    }
-
-    private SymbolTable join(SymbolTable entry, SymbolTable a, SymbolTable b) {
-
-        SymbolTable joined = entry.copy();
-
-        Set<String> symbols = new HashSet<>();
-
-        var deltaA = a.getIfContextMap();
-        var deltaB = b.getIfContextMap();
-
-        deltaA.keySet().stream().forEach(symbol -> symbols.add(symbol));
-        deltaB.keySet().stream().forEach(symbol -> symbols.add(symbol));
-
-        for (String symbol : symbols) {
-
-            var stateA = Utils.getOrElse(deltaA, symbol, () -> entry.resolve(symbol));
-            var stateB = Utils.getOrElse(deltaB, symbol, () -> entry.resolve(symbol));
-
-            joined.declare(symbol, Utils.joinNullState(joined, stateA, stateB));
-        }
-
-        return joined;
     }
 
     SymbolTable join(SymbolTable a, SymbolTable b) {
@@ -1424,7 +1427,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         SymbolTable entry = currentSymbolTable.copy();
-        entry.setIfContext(true);
 //
 //        SymbolTable thenTable = before.copy();
 //        currentSymbolTable = thenTable;

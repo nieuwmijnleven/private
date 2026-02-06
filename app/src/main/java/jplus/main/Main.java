@@ -27,9 +27,9 @@ public class Main {
         //String className = "SimpleConsole";
         //String className = "Database";
 
-        String className = "SQLParser";
+        //String className = "SQLParser";
         //String className = "SQLProcessor";
-        //String className = "SQLScanner";
+        String className = "SQLScanner";
 
         //String className = "StandardTable";
 

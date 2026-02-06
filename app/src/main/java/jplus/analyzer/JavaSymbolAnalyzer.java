@@ -1189,11 +1189,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                                 || name.equals("org.jspecify.annotations.Nullable")
                 );
 
-        //System.err.println("[handleLocalVariable] contextString = " + node.toString());
+        System.err.println("[handleLocalVariable] contextString = " + node.toString());
         //System.err.println("[handleLocalVariable] isNullable = " + isNullable);
 
         typeInfo = typeInfo.toBuilder().isNullable(isNullable).build();
-        //System.err.println("[handleLocalVariable] typeInfo = " + typeInfo);
+        System.err.println("[handleLocalVariable] typeInfo = " + typeInfo);
 
         SymbolInfo symbolInfo = SymbolInfo.builder()
                 .symbol(node.getName().toString())
@@ -1206,7 +1206,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .build();
 
         currentSymbolTable.declare(symbolInfo.getSymbol(), symbolInfo);
-        //System.err.println("[handleLocalVariable] currentSymbolTable = " + currentSymbolTable);
+        System.err.println("[handleLocalVariable] currentSymbolTable = " + currentSymbolTable);
 
         return super.visitVariable(node, unused);
     }

@@ -485,6 +485,34 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         return Optional.empty();
     }
 
+    public SymbolTable promoteLocalSymbols() {
+        //SymbolTable replica = parent.copy();
+        SymbolTable replica = parent;
+
+        //replica.symbolMap = new HashMap<>();
+        for (var e : this.symbolMap.entrySet()) {
+            replica.symbolMap.put(e.getKey(), e.getValue().toBuilder().symbolTable(replica).build());
+        }
+
+        replica.setDeadContext(isDeadContext());
+
+        return replica;
+    }
+
+    public SymbolTable transplantLocalSymbols(SymbolTable table) {
+        //SymbolTable replica = parent.copy();
+        //SymbolTable replica = parent;
+
+        //table.symbolMap = new HashMap<>();
+        for (var e : this.symbolMap.entrySet()) {
+            table.symbolMap.put(e.getKey(), e.getValue().toBuilder().symbolTable(table).build());
+        }
+
+        //table.setDeadContext(isDeadContext());
+
+        return table;
+    }
+
     public SymbolTable findLowContextSymbolTable(String name) {
         if (!symbolMap.containsKey(name)) {
             SymbolTable found = null;
