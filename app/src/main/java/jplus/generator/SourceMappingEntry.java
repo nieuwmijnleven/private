@@ -1,17 +1,27 @@
 /*
- * Copyright 2025 Cheol Jeon <nieuwmijnleven@outlook.com>
+ * JADEx - Java Advanced Development Extension
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (C) 2026 Cheol Jeon <nieuwmijnleven@outlook.com>
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 only,
+ * as published by the Free Software Foundation.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Alternatively, this software may be used under a commercial license
+ * from Cheol Jeon.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License version 2 for more details:
+ * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+ *
+ * For commercial licensing, please contact <nieuwmijnleven@outlook.com>.
+ *
+ * Contributors to this project must sign a Contributor License Agreement (CLA)
+ * granting Cheol Jeon the right to relicense their contributions under
+ * a commercial license. See the CLA file in the project root for details.
  */
 
 package jplus.generator;

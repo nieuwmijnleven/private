@@ -24,15 +24,12 @@
  * a commercial license. See the CLA file in the project root for details.
  */
 
-package jplus.plugin.intellij;
+package jplus.rumtime;
 
-import com.intellij.openapi.fileTypes.FileTypeConsumer;
-import com.intellij.openapi.fileTypes.FileTypeFactory;
-import org.jetbrains.annotations.NotNull;
+public final class JPlusRuntime {
+    private JPlusRuntime() {} // 인스턴스 생성 방지
 
-public class JPlusFileTypeFactory extends FileTypeFactory {
-    @Override
-    public void createFileTypes(@NotNull FileTypeConsumer fileTypeConsumer) {
-        fileTypeConsumer.consume(JPlusFileType.INSTANCE, "jadex");
+    public static <T,R> R safe(T obj, java.util.function.Function<T,R> f) {
+        return obj != null ? f.apply(obj) : null;
     }
 }
