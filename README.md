@@ -255,11 +255,11 @@ public class Main {
 #### JADEx IntelliJ Plugin Installation
 The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply null-safety operators without leaving your familiar IDE. Follow the steps below to install it.
 
-* Launch your IntelliJ IDEA IDE.
-* Navigate to Settings / Preferences → Plugins → Marketplace.
-* Type JADEx in the search bar and locate the plugin.
-* Click Install and wait for the installation to complete.
-* Restart your IDE to activate the plugin.
+* Step1: Launch your IntelliJ IDEA IDE.
+* Step2: Navigate to Settings / Preferences → Plugins → Marketplace.
+* Step3: Type JADEx in the search bar and locate the plugin.
+* Step4: Click Install and wait for the installation to complete.
+* Step5: Restart your IDE to activate the plugin.
 
 
 
