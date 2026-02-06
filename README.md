@@ -49,7 +49,7 @@ Making your existing Java code null-safe with JADEx is simple and straightforwar
 **Java code → JADEx null-safety analysis → Review results → Apply null-safe operators → Compile → Null-safe Java code**
 
 
-### Basic Examples
+### 📚 Basic Examples
 - Simple, focused examples showing how to use JADEx null-safety operators.
 
 #### ✅ Example ① - Compile-time null assignment check
@@ -247,15 +247,19 @@ public class Main {
 > The expression `s1?.length() ?: 0` is translated into a nested conditional check in Java:  
 > `java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
 
-### Real-World Examples
+### 📚 Real-World Examples
 
 - Applying JADEx to larger, real-world Java codebases.
 
 
+#### JADEx IntelliJ Plugin Installation
+The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply null-safety operators without leaving your familiar IDE. Follow the steps below to install it.
 
-
-
-
+* Launch your IntelliJ IDEA IDE.
+* Navigate to Settings / Preferences → Plugins → Marketplace.
+* Type JADEx in the search bar and locate the plugin.
+* Click Install and wait for the installation to complete.
+* Restart your IDE to activate the plugin.
 
 
 
