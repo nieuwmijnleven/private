@@ -4,15 +4,30 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-# <img src="https://raw.githubusercontent.com/nieuwmijnleven/JPlus/refs/heads/master/intellij-plugin/src/main/resources/META-INF/pluginIcon.svg" alt="Logo" width="25" style="vertical-align: middle;"> JADEx - Make Java Null-Safe Without Leaving and Rewriting Java
+# <img src="https://raw.githubusercontent.com/nieuwmijnleven/JPlus/refs/heads/master/intellij-plugin/src/main/resources/META-INF/pluginIcon.svg" alt="Logo" width="25" style="vertical-align: middle;"> JADEx - Same Java, Just safer
 
-JADEx (Java Advanced Development Extension) is a practical solution for Java null-safety. It lets you enhance your code’s safety and without rewriting it, while fully leveraging existing Java libraries and tools.
+JADEx (Java Advanced Development Extension) is **a practical solution for Java null-safety**. It lets you enhance your code’s safety and **without rewriting it**, while **fully leveraging existing Java libraries and tools**.
 
 ---
 
 ## ✨ Project Overview
 
-JADEx is a Java-compatible superset that brings compile-time null safety to your existing Java code — without rewriting it, without changing the JVM, and without leaving the familiar Java syntax behind.
+#### Key Idea
+
+* JADEx **strengthens Java’s null-related type system in a way similar to how TypeScript enhances JavaScript’s type system**. It brings compile-time null-safety to your existing Java code without requiring a complete rewrite.
+
+#### Key Benefits
+
+* Familiar Syntax: **No new language to learn, just safer Java.**
+
+* Seamless Integration: Works with existing Java projects with minimal changes.
+* Incremental Adoption: Apply null-safety only where you need it.
+* Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
+
+
+
+
+JADEx is a fully Java-compatible superset that brings compile-time null safety to your existing Java code — without rewriting it, without changing the JVM, and without leaving the familiar Java syntax behind.
         
 With JADEx, development teams can gradually adopt null-safety at the type level, improving code reliability and reducing runtime null-pointer exceptions, just like TypeScript did for JavaScript.
 
