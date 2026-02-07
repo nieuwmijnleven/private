@@ -45,23 +45,21 @@ Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 * Incremental Adoption: Apply null-safety only where you need it.
 * Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
 
-### Workflow (JADEx IntelliJ Plugin)
-
-The typical JADEx workflow for producing Java source code with enhanced null-safety guarantees is as follows: 
-
-**Java source → copied as-is to .jadex → JADEx source → JADEx Nullability Checker -> review the null-safety analysis results and apply JADEx null-safety operators → JADEx compiler → Java source with enhanced null-safety**
-
-* Existing Java source files are copied unchanged into `.jadex` files. JADEx null-safety operators are then applied to the JADEx sources to explicitly annotate and enforce null-safety semantics. These annotated JADEx sources are subsequently compiled by the JADEx compiler into Java source code with enhanced null-safety guarantees.
- 
-* Essentially, **all you need to do is review the null-safety analysis results and apply the null-safety operators** in your `.jadex` files. The JADEx IntelliJ plugin takes care of the rest automatically.
-
 ---
 
 ## 💡 How to make your java code null-safe
 
 Making your existing Java code null-safe with JADEx is simple and straightforward. The process guides you from analyzing potential null-pointer issues to applying null-safety operators, and finally generating safe, standard Java code without rewriting your code or leaving the Java ecosystem.
 
-**Java code → JADEx null-safety analysis → Review results → Apply null-safety operators → Compile → Null-safe Java code**
+### Workflow (with JADEx IntelliJ Plugin)
+
+The typical JADEx workflow for producing Java source code with enhanced null-safety guarantees is as follows: 
+
+**Java source → copied as-is to .jadex → JADEx source → JADEx null-safety analysis -> review the results → apply JADEx null-safety operators → JADEx compiler → Java source with enhanced null-safety**
+
+* Existing Java source files are copied unchanged into `.jadex` files. JADEx null-safety operators are then applied to the JADEx sources to explicitly annotate and enforce null-safety semantics. These annotated JADEx sources are subsequently compiled by the JADEx compiler into Java source code with enhanced null-safety guarantees.
+ 
+* Essentially, **all you need to do is review the null-safety analysis results and apply the null-safety operators** in your `.jadex` files. The JADEx IntelliJ plugin takes care of the rest automatically.
 
 
 ### 📚 Basic Examples
