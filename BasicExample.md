@@ -47,7 +47,7 @@ https://github.com/nieuwmijnleven/JADEx
 
 ---
 
-#### User.JADEx
+#### User.jadex
 ```java
 package JADEx.example;
 
@@ -222,7 +222,7 @@ Run the program:
 
 No NullPointerException occurs, but some outputs are null. Use the Elvis operator ?: to provide default values.
 
-Edit getCity() in User.JADEx:
+Edit getCity() in User.jadex:
 
 ```java
 class User {
