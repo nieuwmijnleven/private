@@ -35,7 +35,6 @@ JADEx (Java Advanced Development Extension) is **a practical solution for Java n
           |  null-safety guarantees)  |
           +---------------------------+
 
-
 Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 
 ### Key Benefits
@@ -52,6 +51,7 @@ Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 Making your existing Java code null-safe with JADEx is simple and straightforward. The process guides you from analyzing potential null-pointer issues to applying null-safety operators, and finally generating safe, standard Java code without rewriting your code or leaving the Java ecosystem.
 
 ### Workflow (with JADEx IntelliJ Plugin)
+
 The typical JADEx workflow for producing Java source code with enhanced null-safety guarantees is as follows: 
 
 ```
@@ -143,7 +143,7 @@ public class Main {
 #### ❌ Output
 
 ```
-Error: (line:8, column:8) s1 is a nullable variable. But it direct accesses to length(). You must consider to use null-safe operator(?.)
+Warning: (line:8, column:8) s1 is a nullable variable. But it direct accesses to length(). You must consider to use null-safe operator(?.)
 ```
 
 #### ✅ Corrected Code (Works as Expected)
@@ -292,7 +292,7 @@ The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply 
 * Step5: Restart your IDE to activate the plugin.
 
 
-
+#### 
 
 
 
@@ -567,7 +567,7 @@ public class Main {
 #### ❌ Output
 
 ```
-Error: (line:6, column:8) s2 is a non-nullable variable. But null value is assigned to it.
+Warning: (line:6, column:8) s2 is a non-nullable variable. But null value is assigned to it.
 ```
 
 ---
@@ -618,7 +618,7 @@ public class Main {
 #### ❌ Output
 
 ```
-Error: (line:8, column:8) s1 is a nullable variable. But it direct accesses to length(). You must consider to use null-safe operator(?.)
+Warning: (line:8, column:8) s1 is a nullable variable. But it direct accesses to length(). You must consider to use null-safe operator(?.)
 ```
 
 ---
