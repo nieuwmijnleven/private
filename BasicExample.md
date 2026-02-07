@@ -133,7 +133,7 @@ The Problems tab shows:
 
 Then only the constructor-related warning for name remains. 
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/1mtxx36ggd5mwx2log08.png)
+![image](https://github.com/user-attachments/assets/4b3c5a81-9667-4829-83d1-5b6c64485b00)
 
 Replace null with "No Name" because name field is required.
 
@@ -145,7 +145,7 @@ Now only one error remains:
 - The 1st argument of the Address constructor is a non-nullable variable, but a null value is assigned to it.
 
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/t419qh9nvmfafr3du97p.png)
+![image](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/t419qh9nvmfafr3du97p.png)
 
 ---
 
