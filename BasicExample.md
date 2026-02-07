@@ -89,7 +89,7 @@ User user2 = new User("Jane Smith", null);
 User user3 = new User(null, new Address(null));
 ```
 - The constructor parameters for User and Address are all non-nullable. Passing null violates the null-safety rules.
-- Therefore, errors occur for user2 and user3.
+- Therefore, warnings occur for user2 and user3.
 
 ---
 
@@ -141,7 +141,7 @@ Replace null with "No Name" because name field is required.
 User user3 = new User("No Name", new Address(null));
 ```
 
-Now only one error remains:
+Now only one warning remains:
 - The 1st argument of the Address constructor is a non-nullable variable, but a null value is assigned to it.
 
 ![image](https://github.com/user-attachments/assets/148921bc-b542-4979-bf33-681799db5317)
@@ -162,7 +162,7 @@ static class Address {
 }
 ```
   
-All nullability errors disappear. Save the file `(Ctrl + S)` to generate new User.java.
+All nullability warnings disappear. Save the file `(Ctrl + S)` to generate new User.java.
 
 User.java made null-safe by JADEx
 
