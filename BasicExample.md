@@ -148,7 +148,7 @@ Now only one error remains:
 
 ---
 
-(3) Assume city in Address is nullable
+**(3) Assume city in Address is nullable**
 - Add ? to String type and constructor parameter
 
 ```java
@@ -162,33 +162,27 @@ static class Address {
 }
 ```
   
-All nullability errors disappear. Save the file (Ctrl + S) to generate new User.java.
+All nullability errors disappear. Save the file `(Ctrl + S)` to generate new User.java.
 
 User.java made null-safe by JADEx
 
 ```java
-package JADEx.example;
-
-//apply constructor(required);
+package jadex.example;
 
 class User {
     // Name is required
-    final String name;
+    String name;
     // Address can be null
-    Address address;    
-    
-    public User(String name) {
-        this.name = name;
-    }
+    @org.jspecify.annotations.Nullable Address address;
 
-    User(String name, Address address) {
+    User(String name, @org.jspecify.annotations.Nullable Address address) {
         this.name = name;
         this.address = address;
     }
 
     // Safely get the city name of the address
-    String getCity() {
-        return (((address)!=null)?(address.city):null);
+    @org.jspecify.annotations.Nullable String getCity() {
+        return java.util.Optional.ofNullable(address).map(t0 -> t0.city).orElse(null);
     }
 
     // Get the display name of the user
@@ -199,9 +193,9 @@ class User {
     // Address class
     static class Address {
         // City can be null
-        String city;
+        @org.jspecify.annotations.Nullable String city;
 
-        Address(String city) {
+        Address(@org.jspecify.annotations.Nullable String city) {
             this.city = city;
         }
     }
@@ -217,6 +211,7 @@ class User {
         System.out.println(user2.getDisplayName() + "'s city: " + user2.getCity()); // Jane Smith's city: No Address
         System.out.println(user3.getDisplayName() + "'s city: " + user3.getCity()); // No Name's city: No Address
     }
+
 }
 
 ```
@@ -247,28 +242,22 @@ Also, be sure to press Ctrl + S to save. This ensures that the new Java code is 
 User.java made null-safe by JADEx
 
 ```java
-package JADEx.example;
-
-//apply constructor(required);
+package jadex.example;
 
 class User {
     // Name is required
-    final String name;
+    String name;
     // Address can be null
-    Address address;    
-    
-    public User(String name) {
-        this.name = name;
-    }
+    @org.jspecify.annotations.Nullable Address address;
 
-    User(String name, Address address) {
+    User(String name, @org.jspecify.annotations.Nullable Address address) {
         this.name = name;
         this.address = address;
     }
 
     // Safely get the city name of the address
-    String getCity() {
-        return ((((((address)!=null)?(address.city):null))!=null)?((((address)!=null)?(address.city):null)):("No City"));
+    @org.jspecify.annotations.Nullable String getCity() {
+        return java.util.Optional.ofNullable(address).map(t0 -> t0.city).orElseGet(() -> "No City");
     }
 
     // Get the display name of the user
@@ -279,9 +268,9 @@ class User {
     // Address class
     static class Address {
         // City can be null
-        String city;
+        @org.jspecify.annotations.Nullable String city;
 
-        Address(String city) {
+        Address(@org.jspecify.annotations.Nullable String city) {
             this.city = city;
         }
     }
