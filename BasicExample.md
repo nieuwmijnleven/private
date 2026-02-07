@@ -3,13 +3,13 @@ Null-pointer exceptions are a common error in Java, causing inconvenience for ma
 
 ---
 
-## 1. JADEx GitHub repository
+## JADEx GitHub repository
 
 https://github.com/nieuwmijnleven/JADEx
 
 ---
 
-## 2. JADEx IntelliJ plugin Installation
+## JADEx IntelliJ plugin Installation
 
 #### Installation From Jetbrains MarketPlace
 
@@ -32,7 +32,7 @@ https://github.com/nieuwmijnleven/JADEx
 
 ---
 
-## 3. Open the example project in IntelliJ
+## Open the example project in IntelliJ
 - Go to `File > New > Project from Version Control`
 - Enter `https://github.com/nieuwmijnleven/JADExExample`
 - Click the `Clone` button
@@ -41,7 +41,7 @@ https://github.com/nieuwmijnleven/JADEx
 
 ---
 
-## 4. Create a JADEx file for User.java in the Project View
+## Create a JADEx file for User.java in the Project View
 - Right-click User.java in the Project View
 - Select Convert Java File to JADEx File from the menu
 
@@ -49,7 +49,6 @@ https://github.com/nieuwmijnleven/JADEx
 
 ---
 
-## 5. Making Java code null-safe with JADEx
 #### User.JADEx
 ```java
 package JADEx.example;
@@ -69,11 +68,11 @@ class User {
 }
 ```
 
-Opening the generated User.JADEx file, you can see error messages in the Problems tab.
+Opening the generated `User.jadex` file, you can see warning messages in the Problems tab.
 
-<img width="1031" height="130" alt="image" src="https://github.com/user-attachments/assets/2a311846-4b69-4f03-a462-d36edbb54a48" />
+![image](https://github.com/user-attachments/assets/944c5eb5-81dc-4389-97c7-8280b35d2548)
 
-By default, JADEx assumes all reference types are non-nullable, which causes these errors. The problematic parts are where the constructors of the User and Address classes are called.
+By default, **JADEx assumes all reference types are non-nullable**, which causes these warnings. The problematic parts are where the constructors of the User and Address classes are called.
 
 ```java
 User(String name, Address address) {
@@ -94,45 +93,14 @@ User user3 = new User(null, new Address(null));
 
 ---
 
-### Making Java code null-safe with JADEx
+## Making Java code null-safe with JADEx
  
-(1) Assume the name field is required
-- Add final to the name field
-- Use apply constructor(required) to auto-generate the required constructor
-- Press Ctrl + S to save, so changes reflect in User.java.
-
-#### User.JADEx
-```java
-package JADEx.example;
-
-apply constructor(required);
-
-class User {
-    // Name is required
-    final String name;        
-    // Address can be null
-    Address address;   
-
-    User(String name, Address address) {
-        this.name = name;
-        this.address = address;
-    }
-    
-    //remain codes
-}
-```
-- At the end, the generated User.java includes a constructor for the final name field.
-
----
-
-#### (2) Assume the address field is nullable
+#### (1) Assume the address field is nullable
 - Add ? to the Address type
 - Also mark the constructor parameter as nullable
 
 ```java
 package JADEx.example;
-
-apply constructor(required);
 
 class User {
     // Name is required
@@ -147,10 +115,10 @@ class User {
 ```
 
 The Problems tab shows:
+- The method(getCity) is declared to return a non-null value, but this return statement may return null.
 - address is a nullable variable. But it directly accesses city. Consider using null-safe operator(?.)
 
-
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/3caybfqmk33ncv09ay4u.png)
+![image](https://github.com/user-attachments/assets/f7b3ab34-26b5-4858-bac9-70617278cb6e)
 
 
 - Use the null-safe operator ?.:
