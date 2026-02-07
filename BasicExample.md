@@ -23,11 +23,9 @@ https://github.com/nieuwmijnleven/JADEx
 
 #### (Alternative) Manual Installation
 
-![image](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hnrmyesd5xly51rewu66.png)
-
 - Open IntelliJ
 - Go to `File > Settings > Plugin > ⚙️ > Install Plugin from Disk`
-- Select the downloaded `intellij-plugin-0.1-mvp-alpha.zip`
+- Select the downloaded `intellij-plugin-0.25.zip`
 - Restart IntelliJ
 
 
