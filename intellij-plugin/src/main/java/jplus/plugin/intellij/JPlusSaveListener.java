@@ -67,14 +67,10 @@ public class JPlusSaveListener implements FileDocumentManagerListener {
                 indicator.setIndeterminate(true);
                 indicator.setText("Compiling " + file.getName());
 
-                ReadAction.run(() -> {
-                    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-                    if (psiFile != null) {
-                        WriteAction.run(() -> {
-                            fileService.compileAndWriteToJava(psiFile, file, text, indicator);
-                        });
-                    }
-                });
+                PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(project).findFile(file));
+                if (psiFile == null) return;
+
+                fileService.compileAndWriteToJava(psiFile, file, text, indicator);
             }
         }.queue();
     }

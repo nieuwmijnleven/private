@@ -706,26 +706,24 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         for (int i = 0; i < fixedVariableCnt; i++) {
-        //for (int i = 0; i < info.argTypes.size(); i++) {
-            String paramType = paramTypes[i];
-            //String argType = info.argTypes.get(i);
-            //log("paramType = " + paramType + ", argType = " + argType);
 
             System.err.println("[validateMethodArguments] argument = " + Utils.getTokenString(argumentList.get(i)));
 
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
 
-            System.err.println("[validateMethodArguments] paramType = " + paramType);
+            System.err.println("[validateMethodArguments] paramType = " + paramTypes[i]);
             System.err.println("[validateMethodArguments] argState = " + argState);
 
-            if (isInvalidNullAssignment(paramType, argState)) {
+            if (isInvalidNullAssignment(paramTypes[i], argState)) {
                 reportInvalidNull(ctx.originalContext(), info, i + 1);
             }
         }
 
         for (int i = fixedVariableCnt; i < argumentList.size(); ++i) {
+
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
-            if (argState != NullState.NON_NULL) {
+//            if (argState != NullState.NON_NULL) {
+            if (isInvalidNullAssignment(paramTypes[fixedVariableCnt], argState)) {
                 reportInvalidNull(ctx.originalContext(), info, i + 1);
             }
         }

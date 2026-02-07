@@ -1061,6 +1061,16 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         List<String> typeNameList = new ArrayList<>();
         List<String> simpleTypeNameList = new ArrayList<>();
 
+        String qualifiedClassName = currentSymbolTable.resolve("^ClassDef$")
+                                                    .getTypeInfo()
+                                                    .getName();
+
+        boolean isJavaApi =
+                qualifiedClassName.startsWith("java.")
+                        || qualifiedClassName.startsWith("javax.")
+                        || qualifiedClassName.startsWith("jakarta."); //this must be changed
+
+
         for (VariableTree param : node.getParameters()) {
 
             Element element = trees.getElement(TreePath.getPath(ast, param));
@@ -1069,9 +1079,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
             //System.err.println("[method] typeInfo = " + typeInfo);
 
-            String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
+            //String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
+            String typeNameWithNullability = typeInfo.getFullname() + (isJavaApi ? "?" : (typeInfo.isNullable() ? "?" : ""));
             //System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
-            String simpleTypeNameWithNullability = param.getType().toString().replace(", ", ",") + (typeInfo.isNullable() ? "?" : "");
+            //String simpleTypeNameWithNullability = param.getType().toString().replace(", ", ",") + (typeInfo.isNullable() ? "?" : "");
+            String simpleTypeNameWithNullability = param.getType().toString().replace(", ", ",") + (isJavaApi ? "?" : (typeInfo.isNullable() ? "?" : ""));
             ////System.err.println("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
             simpleTypeNameList.add(simpleTypeNameWithNullability);

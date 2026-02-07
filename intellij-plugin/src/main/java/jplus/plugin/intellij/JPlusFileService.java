@@ -117,7 +117,7 @@ public class JPlusFileService {
                         }
 
 //                    FileDocumentManager.getInstance().saveAllDocuments();
-                        System.out.println("JPlus compiled → " + javaFilePath);
+                        System.out.println("JADEx compiled -> " + javaFilePath);
 
                     } catch (IOException e) {
                         e.printStackTrace();

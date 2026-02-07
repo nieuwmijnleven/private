@@ -78,7 +78,7 @@ public class JavaSymbolResolver {
 
         boolean isJavaApi =
                 qualifiedName.startsWith("java.")
-                || qualifiedName.startsWith("javax.") //this must be changed
+                || qualifiedName.startsWith("javax.")
                 || qualifiedName.startsWith("jakarta."); //this must be changed
 
         List<String> typeParams = clazz.getTypeParameters().stream()
