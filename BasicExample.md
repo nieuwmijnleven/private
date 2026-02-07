@@ -13,7 +13,7 @@ https://github.com/nieuwmijnleven/JADEx
 
 #### Installation From Jetbrains MarketPlace
 
-<img width="1122" height="210" alt="Jadex-Plugin" src="https://github.com/user-attachments/assets/32afb71b-7e19-4a8f-a3f0-a1d5ec337b1d" />
+![image](https://github.com/user-attachments/assets/32afb71b-7e19-4a8f-a3f0-a1d5ec337b1d)
 
 - Open IntelliJ
 - Go to `File > Settings > Plugins > Marketplace`
@@ -21,14 +21,15 @@ https://github.com/nieuwmijnleven/JADEx
 - Click Install and wait for the installation to complete
 - Restart IntelliJ
 
-#### Manual Installation
+#### (Alternative) Manual Installation
+
+![image](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hnrmyesd5xly51rewu66.png)
 
 - Open IntelliJ
 - Go to `File > Settings > Plugin > ⚙️ > Install Plugin from Disk`
 - Select the downloaded `intellij-plugin-0.1-mvp-alpha.zip`
 - Restart IntelliJ
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hnrmyesd5xly51rewu66.png)
 
 ---
 
