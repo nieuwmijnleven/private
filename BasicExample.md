@@ -1,4 +1,4 @@
-
+<img width="474" height="122" alt="image" src="https://github.com/user-attachments/assets/6b5c0dae-9e4c-4bb3-8f8a-3d8e92263648" />
 Null-pointer exceptions are a common error in Java, causing inconvenience for many developers. Preventing null pointer exceptions in advance is important, but for developers who want to focus solely on logic, handling them can be tedious. Moreover, it’s not always easy to account for every scenario. Typically, static analysis tools are used to detect potential null pointer issues, but developers still have to find and fix the code themselves. JADEx reduces that burden. Let’s write null-safe Java code with JADEx.
 
 ---
@@ -44,7 +44,7 @@ https://github.com/nieuwmijnleven/JADEx
 - Right-click User.java in the Project View
 - Select Convert Java File to JADEx File from the menu
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/1pkpjslk5n51eitd1sf1.png)
+![image](https://github.com/user-attachments/assets/b0d50215-0746-41d2-b2e6-e60528d9da95)
 
 ---
 
