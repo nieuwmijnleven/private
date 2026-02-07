@@ -16,6 +16,28 @@ JADEx (Java Advanced Development Extension) is **a practical solution for Java n
 
 * JADEx **strengthens Java’s null-related type system in a way similar to how TypeScript enhances JavaScript’s type system**. It brings compile-time null-safety to your existing Java code without requiring a complete rewrite.
 
+          +---------------------------+
+          |       Existing Java       |
+          | (potentially null-prone)  |
+          +------------+--------------+
+                       |
+                       v
+       +-----------------------------------+
+       |           JADEx Tools             |
+       | (strengthens type system          |
+       |  & applies null-safety operators) |
+       +----------------+------------------+
+                        |
+                        v
+          +---------------------------+
+          |   Null-Safe Java Code     |
+          | (enhanced compile-time    |
+          |  null-safety guarantees)  |
+          +---------------------------+
+
+
+Analogy: Java + JADEx  ~  JavaScript + TypeScript
+
 ### Key Benefits
 
 * Familiar Syntax: **No new language to learn, just safer Java.**
