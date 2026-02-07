@@ -52,10 +52,26 @@ Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 Making your existing Java code null-safe with JADEx is simple and straightforward. The process guides you from analyzing potential null-pointer issues to applying null-safety operators, and finally generating safe, standard Java code without rewriting your code or leaving the Java ecosystem.
 
 ### Workflow (with JADEx IntelliJ Plugin)
-
 The typical JADEx workflow for producing Java source code with enhanced null-safety guarantees is as follows: 
 
-**Java source → copied as-is to .jadex → JADEx source → JADEx null-safety analysis -> review the results → apply JADEx null-safety operators → JADEx compiler → Java source with enhanced null-safety**
+```
+           << JAVA SOURCE >>
+                   ↓
+     << COPIED AS-IS TO .JADEX >>
+                   ↓
+           << JADEX SOURCE >>
+                   ↓
+     << JADEX NULL-SAFETY ANALYSIS >>
+                   ↓
+         << REVIEW THE RESULTS >>
+                   ↓
+   << APPLY JADEX NULL-SAFETY OPERATORS >>
+                   ↓
+           << JADEX COMPILER >>
+                   ↓
+   << JAVA SOURCE WITH ENHANCED NULL-SAFETY >>
+
+```
 
 * Existing Java source files are copied unchanged into `.jadex` files. JADEx null-safety operators are then applied to the JADEx sources to explicitly annotate and enforce null-safety semantics. These annotated JADEx sources are subsequently compiled by the JADEx compiler into Java source code with enhanced null-safety guarantees.
  
