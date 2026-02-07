@@ -226,7 +226,7 @@ Run the program:
 - Go to User.java
 - Select Run > 'Run User.java'
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hhkyo3en31720gszchje.png)
+![image](https://github.com/user-attachments/assets/148921bc-b542-4979-bf33-681799db5317)
 
 No NullPointerException occurs, but some outputs are null. Use the Elvis operator ?: to provide default values.
 
