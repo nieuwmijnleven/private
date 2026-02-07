@@ -289,10 +289,10 @@ public class Main {
 
 ### 📚 Basic Examples
 
-- 
+- Hands-on examples that demonstrate the core JADEx null-safety features in everyday Java code.  
+These examples focus on common patterns—such as nullable fields, safe access (`?.`), and evis operator (`?:`) to help you quickly understand how to write null-safe code with JADEx.
 
 [BasicExample](./BasicExample.md)
-
 
 
 ### 📚 Real-World Examples
