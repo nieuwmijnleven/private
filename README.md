@@ -23,22 +23,15 @@ JADEx (Java Advanced Development Extension) is **a practical solution for Java n
 * Incremental Adoption: Apply null-safety only where you need it.
 * Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
 
-### Workflow (JADEx Intellij Plugin)
+### Workflow (JADEx IntelliJ Plugin)
 
-The typical JADEx workflow for generating Java code with null-safety is:
+The typical JADEx workflow for producing Java source code with enhanced null-safety guarantees is as follows: 
 
-```mermaid
-flowchart LR
-    A[Java source]
-    B[Copy as-is to .jadex]
-    C[JADEx source]
-    D[JADEx compiler]
-    E[Java source]
+**Java source → copied as-is to .jadex → JADEx source → apply JADEx null-safety operators → JADEx compiler → Java source with enhanced null-safety**
 
-    A --> B --> C --> D --> E
-```
-
-* Essentially, all you need to do is review the null-safety analysis results and apply the null-safe operators in your .jadex files. The JADEx IntelliJ plugin takes care of the rest automatically.
+* Existing Java source files are copied unchanged into `.jadex` files. JADEx null-safety operators are then applied to the JADEx sources to explicitly annotate and enforce null-safety semantics. These annotated JADEx sources are subsequently compiled by the JADEx compiler into Java source code with enhanced null-safety guarantees.
+ 
+* Essentially, all you need to do is review the null-safety analysis results and apply the null-safety operators in your `.jadex` files. The JADEx IntelliJ plugin takes care of the rest automatically.
 
 ---
 
