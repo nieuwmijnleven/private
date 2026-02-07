@@ -144,8 +144,7 @@ User user3 = new User("No Name", new Address(null));
 Now only one error remains:
 - The 1st argument of the Address constructor is a non-nullable variable, but a null value is assigned to it.
 
-
-![image](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/t419qh9nvmfafr3du97p.png)
+![image](https://github.com/user-attachments/assets/148921bc-b542-4979-bf33-681799db5317)
 
 ---
 
