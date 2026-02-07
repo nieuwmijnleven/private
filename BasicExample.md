@@ -122,15 +122,16 @@ The Problems tab shows:
 
 
 - Use the null-safe operator ?.:
+- Add ? to the return type (String) of method getCity.
 ```java
     // Safely get the city name of the address
-    String getCity() {
+    String? getCity() {
         return address?.city;
     }
 
 ```
 
-Then only the constructor-related error for name remains. 
+Then only the constructor-related warning for name remains. 
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/1mtxx36ggd5mwx2log08.png)
 
