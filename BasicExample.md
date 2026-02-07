@@ -36,7 +36,10 @@ https://github.com/nieuwmijnleven/JADEx
 - Enter `https://github.com/nieuwmijnleven/JADExExample`
 - Click the `Clone` button
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/n8andr9th5wgv6om8faq.png)
+
+<img width="748" height="127" alt="image" src="https://github.com/user-attachments/assets/3235169a-dc70-472a-ba52-8e99d412690b" />
+
+![image](https://github.com/user-attachments/assets/3235169a-dc70-472a-ba52-8e99d412690b)
 
 ---
 
