@@ -291,7 +291,7 @@ public class Main {
 
 - 
 
-[BasicExample](../BasicExample.md)
+[BasicExample](./BasicExample.md)
 
 
 
