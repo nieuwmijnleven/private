@@ -99,6 +99,8 @@ The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply 
 - Select the downloaded `intellij-plugin-0.26.zip`
 - Restart IntelliJ
 
+---
+
 ### 📚 Essential Examples
 - Simple, focused examples showing how to use JADEx null-safety operators.
 
@@ -309,6 +311,8 @@ This example demonstrates a **natural combination** of the following features:
   Provides a default value when an expression evaluates to `null`, improving code safety and readability.
 
 JADEx allows even complex null-handling logic to be expressed **safely and concisely** with its extended syntax.
+
+---
 
 ### 📚 Basic Examples
 
@@ -590,33 +594,20 @@ All null values are replaced with "No City"
 
 With JADEx, you can easily enforce null-safety in Java code. JADEx fully supports Java syntax, making it accessible for Java developers. The final code is converted to Java, allowing developers to review it. JADEx is still in its early stages and needs support from the Java community. Even small, regular contributions will help complete this project. Your support can make a real impact.
 
-
-
-
-
-
-
-
-
-
-
+---
 
 ### 📚 Real-World Examples
 
 - Applying JADEx to larger, real-world Java codebases.
 
-
-#### JADEx IntelliJ Plugin Installation
-The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply null-safety operators without leaving your familiar IDE. Follow the steps below to install it.
-
-* Step1: Launch your IntelliJ IDEA IDE.
-* Step2: Navigate to Settings / Preferences → Plugins → Marketplace.
-* Step3: Type JADEx in the search bar and locate the plugin.
-* Step4: Click Install and wait for the installation to complete.
-* Step5: Restart your IDE to activate the plugin.
+#### [drafting] ####
 
 
-#### 
+---
+
+## Q & A
+
+
 
 
 
