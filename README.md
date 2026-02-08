@@ -626,6 +626,28 @@ From a null-safety perspective, the key difference is this:
 | Gradual adoption    | Limited                | **Core design principle** |
 | Output focus        | Bytecode               | **Human-readable Java**   |
 
+Even after Valhalla ships:
+
+```
+String s = foo();
+s.length();
+```
+
+This code will still:
+- Compile successfully
+- Potentially crash at runtime
+- Exist across billions of lines of legacy Java
+
+**Valhalla does not infer or enforce null contracts in existing APIs.**
+
+In JADEx,
+
+```
+String s = foo(); // compile-time error if foo() is nullable
+```
+
+👉 The problem surfaces at authoring time, not in production.
+
 
 ---
 
