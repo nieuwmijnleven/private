@@ -208,8 +208,8 @@ public class Main {
 public class Main {
     public static void main(String[] args) {
         @org.jspecify.annotations.Nullable String s1 = null;
-        String s2 = java.util.Optional.ofNullable(s1).orElseGet(() -> "JADEx");
-        System.out.printf("s1 = %s\n", java.util.Optional.ofNullable(s1).orElseGet(() -> "null-value"));
+        String s2 = jadex.runtime.SafeAccess.ofNullable(s1).orElseGet(() -> "JADEx");
+        System.out.printf("s1 = %s\n", jadex.runtime.SafeAccess.ofNullable(s1).orElseGet(() -> "null-value"));
         System.out.printf("s2 = %s\n", s2);
     }
 }
@@ -247,7 +247,7 @@ public class Main {
     public static void main(String[] args) {
         @org.jspecify.annotations.Nullable String s1 = null;
         String s2 = "JADEx";
-        System.out.printf("the length of s1 : %d\n", java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElse(null));
+        System.out.printf("the length of s1 : %d\n", jadex.runtime.SafeAccess.ofNullable(s1).map(t0 -> t0.length()).orElse(null));
         System.out.printf("the length of s2 : %d\n", s2.length());
     }
 }
@@ -290,15 +290,15 @@ package jadex.example;
 public class Main {
     public static void main(String[] args) {
         @org.jspecify.annotations.Nullable String s1 = null;
-        String s2 = java.util.Optional.ofNullable(s1).orElseGet(() -> "JADEx");
-        System.out.printf("the length of s1 : %d\n", java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0));
+        String s2 = jadex.runtime.SafeAccess.ofNullable(s1).orElseGet(() -> "JADEx");
+        System.out.printf("the length of s1 : %d\n", jadex.runtime.SafeAccess.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0));
         System.out.printf("the length of s2 : %d\n", s2.length());
     }
 }
 ```
 
 > The expression `s1?.length() ?: 0` is translated into a nested conditional check in Java:  
-> `java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
+> `jadex.runtime.SafeAccess.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
 
 #### 📌 Summary
 
@@ -1029,8 +1029,8 @@ package jadex.example;
 public class Main {
     public static void main(String[] args) {
         @org.jspecify.annotations.Nullable String s1 = null;
-        String s2 = java.util.Optional.ofNullable(s1).orElseGet(() -> "jplus");
-        System.out.printf("s1 = %s\n", java.util.Optional.ofNullable(s1).orElseGet(() -> "null-value"));
+        String s2 = jadex.runtime.SafeAccess.ofNullable(s1).orElseGet(() -> "jplus");
+        System.out.printf("s1 = %s\n", jadex.runtime.SafeAccess.ofNullable(s1).orElseGet(() -> "null-value"));
         System.out.printf("s2 = %s\n", s2);
     }
 }
@@ -1082,7 +1082,7 @@ public class Main {
     public static void main(String[] args) {
         @org.jspecify.annotations.Nullable String s1 = null;
         String s2 = "jplus";
-        System.out.printf("the length of s1 : %d\n", java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElse(null));
+        System.out.printf("the length of s1 : %d\n", jadex.runtime.SafeAccess.ofNullable(s1).map(t0 -> t0.length()).orElse(null));
         System.out.printf("the length of s2 : %d\n", s2.length());
     }
 }
@@ -1139,15 +1139,15 @@ package jadex.example;
 public class Main {
     public static void main(String[] args) {
         @org.jspecify.annotations.Nullable String s1 = null;
-        String s2 = java.util.Optional.ofNullable(s1).orElseGet(() -> "jplus");
-        System.out.printf("the length of s1 : %d\n", java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0));
+        String s2 = jadex.runtime.SafeAccess.ofNullable(s1).orElseGet(() -> "jplus");
+        System.out.printf("the length of s1 : %d\n", jadex.runtime.SafeAccess.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0));
         System.out.printf("the length of s2 : %d\n", s2.length());
     }
 }
 ```
 
 > The expression `s1?.length() ?: 0` is translated into a nested conditional check in Java:  
-> `java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
+> `jadex.runtime.SafeAccess.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
 
 ---
 <a name="example6"></a>
