@@ -672,10 +672,20 @@ simpleTypeName
     ;
 
 constructorBody
-    //: '{' explicitConstructorInvocation? blockStatements? '}'
-    : '{' blockStatements? '}'
-    | '{' blockStatements? explicitConstructorInvocation blockStatement? '}'
+    : '{' blockStatements? explicitConstructorInvocation? blockStatements? '}'
+    // '{' constructorBlockStatements? '}'
     ;
+
+/*constructorBlockStatements
+    : constructorBlockStatement constructorBlockStatement*
+    ;
+
+constructorBlockStatement
+    : explicitConstructorInvocation
+    | localClassOrInterfaceDeclaration
+    | localVariableDeclarationStatement
+    | statement
+    ;*/
 
 explicitConstructorInvocation
     : typeArguments? ('this' | 'super') '(' argumentList? ')' ';'
