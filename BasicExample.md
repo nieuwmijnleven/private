@@ -22,6 +22,7 @@ https://github.com/nieuwmijnleven/JADEx
 
 #### (Alternative) Manual Installation
 
+- Download [intellij-plugin-0.26.zip](https://github.com/user-attachments/files/25161928/intellij-plugin-0.26.zip)
 - Open IntelliJ
 - Go to `File > Settings > Plugin > ⚙️ > Install Plugin from Disk`
 - Select the downloaded `intellij-plugin-0.25.zip`
