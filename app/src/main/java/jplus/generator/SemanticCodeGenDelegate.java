@@ -102,7 +102,8 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         ensureChildTextInitialized();
 
         String conditionalOrExpressionString = Utils.getTokenString(ctx.conditionalOrExpression());
-        String rhsExpressionString = ctx.nullCoalescingExpression() != null ? Utils.getTokenString(ctx.nullCoalescingExpression()) : Utils.getTokenString(ctx.lambdaExpression());
+        //String rhsExpressionString = ctx.nullCoalescingExpression() != null ? Utils.getTokenString(ctx.nullCoalescingExpression()) : Utils.getTokenString(ctx.lambdaExpression());
+        String rhsExpressionString = ctx.nullCoalescingExpression() != null ? ctx.nullCoalescingExpression().getText() : Utils.getTokenString(ctx.lambdaExpression());
 
         String replaced = "jext.util.JextUtils.__elvis(" + conditionalOrExpressionString + ", " + rhsExpressionString + ")";
 

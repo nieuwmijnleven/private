@@ -33,7 +33,10 @@ import jplus.generator.TextChangeRange;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -285,26 +288,31 @@ public class Utils {
         return Utils.computeTextChangeRange(original, startIndex, stopIndex);
     }
 
-    public static SymbolInfo getOrElse(
-            Map<String, SymbolInfo> delta,
-            String symbol,
-            Supplier<SymbolInfo> elseFunction
-    ) {
+    public static void createJavaFile(String baseDir, String packageName, String className, String code) {
+        Path packagePath = Paths.get(baseDir, packageName.replace('.', '/'));
 
-        SymbolInfo s = delta.get(symbol);
-        if (s != null) {
-            return s;
+        try {
+            // 디렉토리 생성 (존재하면 무시)
+            Files.createDirectories(packagePath);
+
+            // 자바 파일 경로
+            Path javaFilePath = packagePath.resolve(className + ".java");
+
+            // 이미 파일이 존재하면 종료
+            if (Files.exists(javaFilePath)) {
+                return;
+            }
+
+            // 파일 생성 및 내용 작성
+            Files.writeString(javaFilePath, code);
+            System.out.println("Created: " + javaFilePath.toAbsolutePath());
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return elseFunction.get();
     }
 
-    public static SymbolInfo joinNullState(SymbolTable joined, SymbolInfo stateA, SymbolInfo stateB) {
 
-        var joinedNS = NullState.join(stateA.getNullState(), stateB.getNullState());
-
-        return stateA.toBuilder().nullState(joinedNS).symbolTable(joined).build();
-    }
 
     public static String getFileNameWithoutExtension(Path path) {
         String name = path.getFileName().toString();

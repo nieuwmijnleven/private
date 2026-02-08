@@ -201,7 +201,8 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
 
         String identifier = Utils.getTokenString(expressionNameContextDeque.removeFirst().identifier());
         //System.err.println("[processNullSafety] identifier = " + identifier);
-        String replaced = "java.util.Optional.ofNullable(" + identifier;
+        //String replaced = "java.util.Optional.ofNullable(" + identifier;
+        String replaced = "jadex.runtime.SafeAccess.ofNullable(" + identifier;
         int i = 0;
         while (!expressionNameContextDeque.isEmpty()) {
             String curTVar = "t" + i;
@@ -291,7 +292,8 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             replaced = conditionalOrExpressionString.orElse("null");
             replaced = replaced.replace("orElse(null)", "orElseGet(() -> " + rhsExpressionString.orElse("null") + ")");
         } else {
-            replaced = "java.util.Optional.ofNullable(";
+            //replaced = "java.util.Optional.ofNullable(";
+            replaced = "jadex.runtime.SafeAccess.ofNullable(";
             replaced += conditionalOrExpressionString.orElse("null") + ")";
             replaced += ".orElseGet(() -> " + rhsExpressionString.orElse("null") + ")";
         }
@@ -342,10 +344,12 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             //System.err.println("[replaceBaseWithOptional] instance = " + instance);
             //System.err.println("[replaceBaseWithOptional] member = " + member);
 
-            return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
+            //return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
+            return "jadex.runtime.SafeAccess.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
         }
 
-        return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 0, ruleCtx);
+        //return "java.util.Optional.ofNullable(" + base + replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 0, ruleCtx);
+        return "jadex.runtime.SafeAccess.ofNullable(" + base + replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 0, ruleCtx);
     }
 
     private String replacePNNAWithOptional(PNNAContextAdapter ctx, int index, ParserRuleContext ruleCtx) {
@@ -394,12 +398,14 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     }
 
     private String replaceNullsafeOperator(ParserRuleContext ctx, String lhs, String rhs) {
-        String replaced = "java.util.Optional.ofNullable(" + lhs + ").map(t0 -> t0." + rhs + ").orElse(null)";
+        //String replaced = "java.util.Optional.ofNullable(" + lhs + ").map(t0 -> t0." + rhs + ").orElse(null)";
+        String replaced = "jadex.runtime.SafeAccess.ofNullable(" + lhs + ").map(t0 -> t0." + rhs + ").orElse(null)";
         return updateContextString(ctx, replaced);
     }
 
     private String replaceNullsafeOperatorWithOptionalIfPresent(ParserRuleContext ctx, String lhs, String rhs) {
-        String replaced = "java.util.Optional.ofNullable(" + lhs + ").ifPresent(t0 -> t0." + rhs + ")";
+        //String replaced = "java.util.Optional.ofNullable(" + lhs + ").ifPresent(t0 -> t0." + rhs + ")";
+        String replaced = "jadex.runtime.SafeAccess.ofNullable(" + lhs + ").ifPresent(t0 -> t0." + rhs + ")";
         return updateContextString(ctx, replaced);
     }
 

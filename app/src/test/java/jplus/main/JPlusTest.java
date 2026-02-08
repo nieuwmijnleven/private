@@ -61,7 +61,12 @@ class JPlusTest {
 
     @Test
     void testNullableType1() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType1.jadex"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType1.jadex"));
+
+        Project project = new Project(Path.of("./src/test/samples"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        JPlusProcessor processor = new JPlusProcessor(project, "", "NullableType1");
+
         processor.process();
         processor.analyzeSymbols();
 
@@ -77,7 +82,12 @@ class JPlusTest {
 
     @Test
     void testNullableType2() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType2.jadex"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullableType2.jadex"));
+
+        Project project = new Project(Path.of("./src/test/samples"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        JPlusProcessor processor = new JPlusProcessor(project, "", "NullableType2");
+
         processor.process();
         processor.analyzeSymbols();
 
@@ -96,7 +106,12 @@ class JPlusTest {
 
     @Test
     void testNullabilityChecker() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityChecker.jadex"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityChecker.jadex"));
+
+        Project project = new Project(Path.of("./src/test/samples"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        JPlusProcessor processor = new JPlusProcessor(project, "", "NullabilityChecker");
+
         processor.process();
         System.err.println("[ParseTreeString] " + processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -121,7 +136,12 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithDataflow() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithDataflow.jadex"));
+//        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithDataflow.jadex"));
+
+        Project project = new Project(Path.of("./src/test/samples"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        JPlusProcessor processor = new JPlusProcessor(project, "", "NullabilityCheckerWithDataflow");
+
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -142,7 +162,12 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithAssignNullableToNonNullable() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithAssignNullableToNonNullable.jadex"));
+//        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerWithAssignNullableToNonNullable.jadex"));
+
+        Project project = new Project(Path.of("./src/test/samples"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        JPlusProcessor processor = new JPlusProcessor(project, "", "NullabilityCheckerWithAssignNullableToNonNullable");
+
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -161,7 +186,10 @@ class JPlusTest {
 
     @Test
     void testNullabilityCheckerWithNonInitializeLocalVariable() throws Exception {
-        JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        Project project = new Project(Path.of("./src/test/samples"));
+        //JPlusProcessor processor = new JPlusProcessor(null, Path.of("./src/test/samples/NullabilityCheckerLocalVariable.jadex"));
+        JPlusProcessor processor = new JPlusProcessor(project, "", "NullabilityCheckerLocalVariable");
+
         processor.process();
 //        System.err.println(processor.getParseTreeString());
         processor.analyzeSymbols();
@@ -184,27 +212,27 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator.jadex", "uscMLnF+l6+tsgztgsVpxycevp4=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator.jadex", "ZmvEtjcpQ1/buiGz1jw5hns/zCc=");
     }
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jadex", "bpdhemNrk7aasiOnNqMQ1+U1Cy0=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jadex", "InWLeUjpgjjWCpibIhaD9kMlA6M=");
     }
 
     @Test
     void testElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/ElvisOperator.jadex", "4nKedpMRMHPKof2GaBGoFlH5cIg=");
+        checkGeneratedCode("./src/test/samples/ElvisOperator.jadex", "iDPFM7FAdwWCr3LKcUMCUGrM9Wk=");
     }
 
     @Test
     void testCascadingElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jadex", "ViJPZI8X4cHlCHxRkLwyyn7muUQ=");
+        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jadex", "cMMmTE8CcBCrwE5zvRv4ndU1Hks=");
     }
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jadex", "GylLgcKiiwhyRwqc7Vskb8krUDc=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jadex", "y1mgbmFDQ8VX7hBk2XlAVP1ICqo=");
     }
 
     @Test
@@ -291,8 +319,10 @@ class JPlusTest {
 
         Project project = new Project(parentDirectory);
         JPlusProcessor processor = new JPlusProcessor(project, "", className);
+
         processor.process();
-        System.err.println("[parseTreeString] " + processor.getParseTreeString());
+        //System.err.println("[parseTreeString] " + processor.getParseTreeString());
+
         processor.analyzeSymbols();
 
 //        JPlusProcessor processor = new JPlusProcessor(Path.of(fileName));
@@ -307,7 +337,8 @@ class JPlusTest {
 
         String generatedJavaCode = processor.generateJavaCode();
         System.err.println("[BoilerplateCodeGeneration] = " + generatedJavaCode);
-        processor = new JPlusProcessor(null, generatedJavaCode);
+
+        processor = new JPlusProcessor(project, generatedJavaCode);
         processor.process();
 
         String parseTreeString = processor.getParseTreeString();

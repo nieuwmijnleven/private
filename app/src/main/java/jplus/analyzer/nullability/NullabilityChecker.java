@@ -709,6 +709,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             System.err.println("[validateMethodArguments] argument = " + Utils.getTokenString(argumentList.get(i)));
 
+            visit(argumentList.get(i));
+
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
 
             System.err.println("[validateMethodArguments] paramType = " + paramTypes[i]);
@@ -720,6 +722,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }
 
         for (int i = fixedVariableCnt; i < argumentList.size(); ++i) {
+
+            visit(argumentList.get(i));
 
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
 //            if (argState != NullState.NON_NULL) {
@@ -1676,6 +1680,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             return super.visitAdditiveExpression(ctx);
         }
 
+        visit(ctx.additiveExpression());
+        visit(ctx.multiplicativeExpression());
+
         return null;
     }
 
@@ -1807,7 +1814,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitPostfixExpression(JPlus25Parser.PostfixExpressionContext ctx) {
-        if (ctx.expressionName() !=  null) {
+        if (ctx.expressionName() != null) {
             //System.err.println("[PostfixExpression] chaining = " + currentSymbolTable.getResolvedChains());
             //System.err.println("[PostfixExpression] findResolvedChain = " + currentSymbolTable.findResolvedChain(Utils.getTextChangeRange(originalText, ctx)));
 
