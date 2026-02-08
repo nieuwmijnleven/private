@@ -55,18 +55,18 @@ public class Main {
 
         //String className = "SQLParser";
         //String className = "SQLProcessor";
-        String className = "SQLScanner";
+        //String className = "SQLScanner";
 
         //String className = "StandardTable";
 
-        //String className = "StandardTablespaceManager";
+        String className = "StandardTablespaceManager";
 
         Project project = new Project(srcDirList, classPathList);
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.console", className);
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.database", className);
-        JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.sqlprocessor", className);
+        //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.sqlprocessor", className);
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.table", className);
-        //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.tablespace.manager", className);
+        JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.tablespace.manager", className);
 
         //JPlusProcessor processor = new JPlusProcessor(project, "jplus.analyzer.nullability", className);
 
