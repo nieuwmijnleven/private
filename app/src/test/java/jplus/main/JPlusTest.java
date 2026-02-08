@@ -124,8 +124,8 @@ class JPlusTest {
         }
 
         String expected = "Error: (line:5, column:4) lastname is a non-nullable variable. But null value is assigned to it.\n" +
-                "Error: (line:9, column:26) fullname is a nullable variable. But it directly accesses split(). Consider using null-safe operator(?.).\n" +
                 "Error: (line:9, column:8) tokens is a non-nullable variable. But nullable value is assigned to it. Change the type to String[]? or add a null check.\n" +
+                "Error: (line:9, column:26) fullname is a nullable variable. But it directly accesses split(). Consider using null-safe operator(?.).\n" +
                 "Error: (line:13, column:8) lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:14, column:8) this.lastname is a non-nullable variable. But null value is assigned to it.\n" +
                 "Error: (line:15, column:8) User.this.lastname is a non-nullable variable. But null value is assigned to it.\n" +

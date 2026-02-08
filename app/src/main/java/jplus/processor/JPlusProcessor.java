@@ -383,7 +383,7 @@ public class JPlusProcessor {
         NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable, sourceMappingEntrySet, javaProcessor.getMethodInvocationManager().get(0));
         nullabilityChecker.visit(parseTree);
         nullabilityChecked = true;
-        return nullabilityChecker.getIssues();
+        return nullabilityChecker.getIssues().stream().sorted().toList();
     }
 
     public String generateJavaCode() {

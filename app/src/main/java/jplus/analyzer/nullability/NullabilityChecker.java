@@ -94,7 +94,13 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     private String packageName;
     private boolean hasPassed = true;
 
-    public record NullabilityIssue(int line, int column, int offset, String message) {
+    public record NullabilityIssue(int line, int column, int offset, String message) implements Comparable<NullabilityIssue> {
+
+        @Override
+        public int compareTo(NullabilityIssue other) {
+            return Integer.compare(this.offset, other.offset);
+        }
+
         @Override
         public String toString() {
             return String.format("Error: (line:%d, column:%d) %s", line, column, message);
@@ -108,9 +114,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         this.currentSymbolTable = globalSymbolTable;
     }
 
-    private final List<NullabilityIssue> issues = new ArrayList<>();
+    private final Set<NullabilityIssue> issues = new HashSet<>();
 
-    public List<NullabilityIssue> getIssues() {
+    public Set<NullabilityIssue> getIssues() {
         return issues;
     }
 
@@ -377,7 +383,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         }*/
 
         if (methodSymbolInfo == null) {
-            throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
+            //throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
+            return null;
         }
 
         enterSymbolTable(methodSymbolInfo.getSymbol());
@@ -2005,7 +2012,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         String methodName = Utils.getTokenString(ctx.methodName());
         System.err.println("[handlePrimaryNoNewArrayMethodInvocation] methodName = " + methodName);
 
-        if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
+        //if (!Objects.equals(methodName, currentStep.symbol)) throw new IllegalStateException();
+
+        while (!Objects.equals(methodName, currentStep.symbol) && cursor.hasNext()) {
+            currentStep = cursor.consume();
+        }
+
+        System.err.println("[processImplicitReceiverMethodInvocationSignature] currentStep = " + currentStep);
+
+        //if (!cursor.hasNext()) throw new IllegalStateException();
 
         System.err.println("[handlePrimaryNoNewArrayMethodInvocation] methodInvocationInfo = " + currentStep.invocationInfo);
 
@@ -2272,9 +2287,15 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
     }
 
     private void processThis(PrimaryNoNewArrayContextAdapter ctx, StepCursor cursor) {
-        //System.err.println("[processThis]");
+
         ResolvedChain.Step step = cursor.consume();
-        if (!step.symbol.equals(ctx.THIS().toString())) throw new IllegalStateException();
+        while (!step.symbol.equals(ctx.THIS().toString()) && cursor.hasNext()) {
+            step = cursor.consume();
+        }
+
+        System.err.println("[processThis] step = " + step);
+
+        if (!cursor.hasNext()) throw new IllegalStateException();
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
     }

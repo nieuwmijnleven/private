@@ -106,6 +106,7 @@ public class JPlusTest9 {
                         "Error: (line:24, column:46) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
                         "Error: (line:25, column:41) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
                         "Error: (line:42, column:16) The 1st argument of the jplus.example.Switch.println() is a non-nullable variable, but a null value is assigned to it.\n" +
+                        "Error: (line:42, column:24) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
                         "Error: (line:49, column:8) result is a non-nullable variable. But nullable value is assigned to it. Change the type to String? or add a null check.\n"
         );
     }

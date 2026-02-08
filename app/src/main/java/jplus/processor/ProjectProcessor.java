@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ProjectProcessor {
     private final Path sourceDir;

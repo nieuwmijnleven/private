@@ -174,8 +174,8 @@ class JPlusTest2 {
                 "Error: (line:203, column:58) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:203, column:110) The 1st argument of the jplus.example.AddressAnnotation constructor is a non-nullable variable, but a null value is assigned to it.\n" +
                 "Error: (line:206, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:208, column:8) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n" +
-                "Error: (line:208, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
+                "Error: (line:208, column:8) The 1st argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator.updateAddress() is a non-nullable variable, but a null value is assigned to it.\n" +
+                "Error: (line:208, column:8) The 2nd argument of the jplus.example.UserMethodParamAnnotationForCodeGenerator constructor is a non-nullable variable, but a null value is assigned to it.\n", outContent.toString());
     }
 
     @Test
