@@ -607,6 +607,56 @@ With JADEx, you can easily enforce null-safety in Java code. JADEx fully support
 
 ## FAQ
 
+#### Q2. How is this different from Valhalla’s non-null types?
+
+---
+
+① Valhalla’s **non-null is opt-in and conservative**
+
+```java
+Point! p;
+```
+
+* Developers must explicitly opt in
+* Data-flow analysis is limited
+* It does not change Java as a whole
+
+👉 **The default is still nullable**
+
+> In other words, Valhalla introduces non-null selectively, without redefining Java’s baseline assumptions.
+
+---
+
+② JADEx is **non-null by default**
+
+```java
+String name;    // non-null
+String? nick;   // nullable
+```
+
+This difference is immediately noticeable in daily development.
+
+> “Java, where every type must be doubted”
+> vs
+> “JADEx, where you only add ? when you actually mean nullable”
+
+---
+
+③ Valhalla barely changes the language syntax
+
+* `?.` (safe navigation)
+* `?:` (Elvis operator)
+* smart-cast
+
+👉 These features are explicitly outside Valhalla’s scope
+
+> JADEx, by contrast, focuses on expressiveness and ergonomics at the source-code level.
+
+
+
+
+
+
 ### Q: Why not just use Kotlin?
 
 **A:** Kotlin is an excellent language but **it requires leaving Java**.
