@@ -607,7 +607,29 @@ With JADEx, you can easily enforce null-safety in Java code. JADEx fully support
 
 ## FAQ
 
-#### Q2. How is this different from Valhalla’s non-null types?
+#### Q: Shouldn’t we just wait for Project Valhalla?
+
+Valhalla is the future of the JVM and JADEx lets you experience Valhalla-style null-safety in today’s Java. 
+
+However, JADEx is not a temporary workaround while waiting for Valhalla. It is a tool that remains valuable even after Valhalla arrives.
+
+From a null-safety perspective, the key difference is this:
+- **Valhalla helps you avoid null**. it does not eliminate null.
+- **JADEx Make NPEs structurally impossible to write**.
+
+|                     | Valhalla               | JADEx                     |
+| ------------------- | ---------------------- | ------------------------- |
+| Default             | nullable               | **non-null**              |
+| Primary goal        | Performance / modeling | **NPE elimination**       |
+| Target code         | Mostly new code        | **Legacy code**           |
+| Null-safe operators | ❌                      | **`?.`, `?:`**            |
+| Gradual adoption    | Limited                | **Core design principle** |
+| Output focus        | Bytecode               | **Human-readable Java**   |
+
+
+---
+
+#### Q: How is this different from Valhalla’s non-null types?
 
 ---
 
@@ -636,21 +658,12 @@ String? nick;   // nullable
 
 This difference is immediately noticeable in daily development.
 
-> “Java, where every type must be doubted”
+> **“Java, where every type must be doubted”**
 > vs
-> “JADEx, where you only add ? when you actually mean nullable”
+> **“JADEx, where you only add ? when you actually mean nullable”**
 
 ---
 
-③ Valhalla barely changes the language syntax
-
-* `?.` (safe navigation)
-* `?:` (Elvis operator)
-* smart-cast
-
-👉 These features are explicitly outside Valhalla’s scope
-
-> JADEx, by contrast, focuses on expressiveness and ergonomics at the source-code level.
 
 
 
