@@ -44,6 +44,8 @@ Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 * Incremental Adoption: Apply null-safety only where you need it.
 * Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
 
+**JADEx makes your Java code safer, more maintainable, and future-proof without compromise**.
+
 ---
 
 ## 💡 How to make your java code null-safe
@@ -76,10 +78,11 @@ The typical JADEx workflow for producing Java source code with enhanced null-saf
 * Existing Java source files are copied unchanged into `.jadex` files. JADEx null-safety operators are then applied to the JADEx sources to explicitly annotate and enforce null-safety semantics. These annotated JADEx sources are subsequently compiled by the JADEx compiler into Java source code with enhanced null-safety guarantees.
  
 * Essentially, **all you need to do is review the null-safety analysis results and apply the null-safety operators** in your `.jadex` files. The JADEx IntelliJ plugin takes care of the rest automatically.
+
 ### JADEx IntelliJ Plugin Installation
 The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply null-safety operators without leaving your familiar IDE. Follow the steps below to install it.
 
-<img width="1122" height="210" alt="Jadex-Plugin" src="https://github.com/user-attachments/assets/32afb71b-7e19-4a8f-a3f0-a1d5ec337b1d" />
+![image](https://github.com/user-attachments/assets/32afb71b-7e19-4a8f-a3f0-a1d5ec337b1d)
 
 * Step1: Launch your IntelliJ IDEA IDE.
 * Step2: Navigate to File → Settings → Plugins → Marketplace.
@@ -286,6 +289,17 @@ public class Main {
 > The expression `s1?.length() ?: 0` is translated into a nested conditional check in Java:  
 > `java.util.Optional.ofNullable(s1).map(t0 -> t0.length()).orElseGet(() -> 0)`, ensuring safe execution.
 
+#### 📌 Summary
+
+This example demonstrates a **natural combination** of the following features:
+
+- ✅ **Null-safe method call** (`s1?.length()`)  
+  Ensures safe access to nullable variables without throwing `NullPointerException`.
+
+- ✅ **Default fallback value** (`?: 0`)  
+  Provides a default value when an expression evaluates to `null`, improving code safety and readability.
+
+JADEx allows even complex null-handling logic to be expressed **safely and concisely** with its extended syntax.
 
 ### 📚 Basic Examples
 
