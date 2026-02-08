@@ -180,7 +180,7 @@ class User {
 
     // Safely get the city name of the address
     @org.jspecify.annotations.Nullable String getCity() {
-        return java.util.Optional.ofNullable(address).map(t0 -> t0.city).orElse(null);
+        return jadex.runtime.SafeAccess.ofNullable(address).map(t0 -> t0.city).orElse(null);
     }
 
     // Get the display name of the user
@@ -190,8 +190,7 @@ class User {
 
     // Address class
     static class Address {
-        // City can be null
-        @org.jspecify.annotations.Nullable String city;
+        @org.jspecify.annotations.Nullable String city; // City can be null
 
         Address(@org.jspecify.annotations.Nullable String city) {
             this.city = city;
@@ -256,7 +255,7 @@ class User {
 
     // Safely get the city name of the address
     @org.jspecify.annotations.Nullable String getCity() {
-        return java.util.Optional.ofNullable(address).map(t0 -> t0.city).orElseGet(() -> "No City");
+        return jadex.runtime.SafeAccess.ofNullable(address).map(t0 -> t0.city).orElseGet(() -> "No City");
     }
 
     // Get the display name of the user
@@ -266,8 +265,7 @@ class User {
 
     // Address class
     static class Address {
-        // City can be null
-        @org.jspecify.annotations.Nullable String city;
+        @org.jspecify.annotations.Nullable String city; // City can be null
 
         Address(@org.jspecify.annotations.Nullable String city) {
             this.city = city;
