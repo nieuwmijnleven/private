@@ -29,6 +29,7 @@ package jplus.plugin.intellij;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -39,7 +40,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import jplus.plugin.intellij.annotator.JPlusIntelliJProjectUtil;
 import jplus.processor.JPlusProcessor;
-import com.intellij.openapi.module.Module;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -95,9 +95,13 @@ public class JPlusFileService {
             String javaFileName = jplusPath.getFileName().toString().replaceFirst("\\.jadex$", ".java");
             Path javaFilePath = jplusPath.resolveSibling(javaFileName);
 
+            Path sourceRoot = jplusProject.getSourceDirs().get(0);
             ApplicationManager.getApplication().invokeLater(() -> {
                 WriteCommandAction.runWriteCommandAction(project, () -> {
                     try {
+                        var jadexRuntime = sourceRoot.resolve("jadex/runtime/SafeAccess.java").toFile();
+                        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(jadexRuntime);
+
                         VirtualFile javaVirtualFile = LocalFileSystem.getInstance()
                                 .findFileByPath(javaFilePath.toString());
                         if (javaVirtualFile == null) {
