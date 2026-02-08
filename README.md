@@ -605,7 +605,41 @@ With JADEx, you can easily enforce null-safety in Java code. JADEx fully support
 
 ---
 
-## Q & A
+## FAQ
+
+### Q: Why not just use Kotlin?
+
+**A:** Kotlin is an excellent language but **it requires leaving Java**.
+
+JADEx is for teams that:
+
+* cannot rewrite existing Java code
+* want Java syntax preserved
+* need gradual, low-risk adoption
+* generate readable Java code for audits/debugging
+
+---
+
+### Q: Can JADEx and Java coexist in the same project?
+
+**A:** Yes.
+Unmodified Java files compile as-is.
+JADEx features can be enabled **incrementally**, file by file.
+
+---
+
+### Q: Is JADEx trying to replace Kotlin or Java?
+
+**A:** No.
+
+* Kotlin → another JVM language
+* JADEx → **Java language extension**
+
+---
+
+### Q: What about performance?
+
+**A:** JADEx generates standard Java constructs. There is **no runtime overhead beyond what you’d write manually.**
 
 
 
