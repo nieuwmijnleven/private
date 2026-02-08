@@ -1736,9 +1736,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     try {
                         var constructorBody = (JPlus25Parser.ConstructorBodyContext) invocationDefCtx.invocationBody();
 
-                        if (constructorBody.blockStatements() != null) visit(constructorBody.blockStatements());
+                        if (constructorBody.blockStatements(0) != null) visit(constructorBody.blockStatements(0));
                         if (constructorBody.explicitConstructorInvocation() != null) visit(constructorBody.explicitConstructorInvocation());
-                        if (constructorBody.blockStatement() != null) visit(constructorBody.blockStatement());
+                        if (constructorBody.blockStatements(1) != null) visit(constructorBody.blockStatements(1));
                     } finally {
                         currentSymbolTable = saved;
                     }
