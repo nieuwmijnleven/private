@@ -37,15 +37,14 @@ JADEx (Java Advanced Development Extension) is **a practical solution for Java n
 
 > Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 
+> **JADEx is not designed to replace Java. It is designed to strengthen Java's null-related type system without leaving it**
+
 ### Key Benefits
 
 * Familiar Syntax: **No new language to learn, just safer Java.**
 * Seamless Integration: Works with existing Java projects with minimal changes.
 * Incremental Adoption: Apply null-safety only where you need it.
 * Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
-
-
-> **JADEx is not designed to replace Java. It is designed to strengthen Java's null-related type system without leaving it**
 
 > **JADEx makes your Java code safer, more maintainable, and future-proof without compromise**.
 ---
