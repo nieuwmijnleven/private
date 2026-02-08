@@ -35,7 +35,7 @@ JADEx (Java Advanced Development Extension) is **a practical solution for Java n
           |  null-safety guarantees)  |
           +---------------------------+
 
-Analogy: Java + JADEx  ≅  JavaScript + TypeScript
+> Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 
 ### Key Benefits
 
@@ -44,8 +44,10 @@ Analogy: Java + JADEx  ≅  JavaScript + TypeScript
 * Incremental Adoption: Apply null-safety only where you need it.
 * Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
 
-**JADEx makes your Java code safer, more maintainable, and future-proof without compromise**.
 
+> **JADEx is not designed to replace Java. It is designed to strengthen Java's null-related type system without leaving it**
+
+> **JADEx makes your Java code safer, more maintainable, and future-proof without compromise**.
 ---
 
 ## 💡 How to make your java code null-safe
