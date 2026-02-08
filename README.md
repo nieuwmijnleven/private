@@ -317,29 +317,6 @@ These examples focus on common patterns such as nullable fields, safe access (`?
 
 [Step-by-Step: Adding Null-Safety to Java with JADEx](./BasicExample.md)
 
-## JADEx IntelliJ plugin Installation
-
-#### Installation From Jetbrains MarketPlace
-
-![image](https://github.com/user-attachments/assets/32afb71b-7e19-4a8f-a3f0-a1d5ec337b1d)
-
-- Open IntelliJ
-- Go to `File > Settings > Plugins > Marketplace`
-- Type **`JADEx`** in the search bar and locate the plugin
-- Click Install and wait for the installation to complete
-- Restart IntelliJ
-
-#### (Alternative) Manual Installation
-
-- Download [intellij-plugin-0.26.zip](https://github.com/user-attachments/files/25161928/intellij-plugin-0.26.zip)
-- Open IntelliJ
-- Go to `File > Settings > Plugin > ⚙️ > Install Plugin from Disk`
-- Select the downloaded `intellij-plugin-0.25.zip`
-- Restart IntelliJ
-
-
----
-
 ## Open the example project in IntelliJ
 - Go to `File > New > Project from Version Control`
 - Enter `https://github.com/nieuwmijnleven/JADExExample`
