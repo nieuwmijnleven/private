@@ -48,7 +48,6 @@ public class Main {
         List<Path> classPathList = List.of("/home/user/OnTheGoDatabase/onthego.database/app/build/classes/java/main", "/home/user/JPlus/intellij-plugin/build/idea-sandbox/IC-2025.1.4.1/plugins/intellij-plugin/lib/jspecify-1.0.0.jar").stream().map(Path::of).toList();
         //List<Path> classPathList = List.of("/home/user/JPlus/app/out/production/classes", "/home/user/.gradle/caches/modules-2/files-2.1/org.antlr/antlr4/4.12.0/860de2cce023b8175245fa8232b078513a0741d1/antlr4-4.12.0.jar", "/home/user/.gradle/caches/modules-2/files-2.1/org.antlr/antlr4-runtime/4.12.0/dd105cf6ac9f7417b3782c178f6dbd06bf75df57/antlr4-runtime-4.12.0.jar", "/home/user/.gradle/caches/modules-2/files-2.1/org.jspecify/jspecify/1.0.0/7425a601c1c7ec76645a78d22b8c6a627edee507/jspecify-1.0.0.jar", "/home/user/.gradle/caches/modules-2/files-2.1/org.abego.treelayout/org.abego.treelayout.core/1.0.3/457216e8e6578099ae63667bb1e4439235892028/org.abego.treelayout.core-1.0.3.jar").stream().map(Path::of).toList();
 
-        //String className = "NullabilityChecker";
 
         //String className = "SimpleConsole";
         //String className = "Database";
@@ -59,14 +58,21 @@ public class Main {
 
         //String className = "StandardTable";
 
-        String className = "StandardTablespaceManager";
+        //String className = "StandardTablespaceManager";
+
+        String className = "BPlusTreeIndex";
+
+        //String className = "NullabilityChecker";
 
         Project project = new Project(srcDirList, classPathList);
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.console", className);
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.database", className);
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.sqlprocessor", className);
+
         //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.table", className);
-        JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.tablespace.manager", className);
+        //JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.tablespace.manager", className);
+
+        JPlusProcessor processor = new JPlusProcessor(project, "onthego.database.core.index", className);
 
         //JPlusProcessor processor = new JPlusProcessor(project, "jplus.analyzer.nullability", className);
 

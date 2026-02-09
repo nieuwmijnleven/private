@@ -1023,8 +1023,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         var conditionResult = new ConditionVisitor(this, entry.copy()).visit(ctx.expression());
 
-        //System.err.println("[IfThenElse][then] whenTrue SymbolTable = " + conditionResult.whenTrue);
-        //System.err.println("[IfThenElse][else] whenFalse SymbolTable = " + conditionResult.whenFalse);
+        System.err.println("[IfThenElse][then] whenTrue SymbolTable(" + ctx.getStart().getLine() + ") = " + conditionResult.whenTrue);
+        System.err.println("[IfThenElse][else] whenFalse SymbolTable(" + ctx.getStart().getLine() + ") = " + conditionResult.whenFalse);
 
         currentSymbolTable = conditionResult.whenTrue;
         enterSymbolTable("^then$" + ctx.getStart().getLine());
@@ -1737,7 +1737,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                         var constructorBody = (JPlus25Parser.ConstructorBodyContext) invocationDefCtx.invocationBody();
 
                         if (constructorBody.blockStatements(0) != null) visit(constructorBody.blockStatements(0));
-                        if (constructorBody.explicitConstructorInvocation() != null) visit(constructorBody.explicitConstructorInvocation()); 
+                        if (constructorBody.explicitConstructorInvocation() != null) visit(constructorBody.explicitConstructorInvocation());
                         if (constructorBody.blockStatements(1) != null) visit(constructorBody.blockStatements(1));
                     } finally {
                         currentSymbolTable = saved;
