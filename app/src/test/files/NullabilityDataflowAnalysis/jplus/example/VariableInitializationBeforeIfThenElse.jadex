@@ -1,0 +1,64 @@
+package jadex.example;
+
+public class VariableInitializationBeforeIfThenElse {
+
+    public static void initialized() {
+        int number = 0;
+        String s;
+
+        if (number > 0) {
+            s = "Positive";
+        } else {
+            if (number < 0) {
+                s = "Negative";
+            } else {
+                s = "Zero";
+            }
+        }
+    }
+
+    public static void nonInitialized1() {
+        int number = 0;
+        String s;
+
+        if (number > 0) {
+            //s = "Positive";
+        } else {
+            if (number < 0) {
+                s = "Negative";
+            } else {
+                s = "Zero";
+            }
+        }
+    }
+
+    public static void nonInitialized2() {
+        int number = 0;
+        String s;
+
+        if (number > 0) {
+            s = "Positive";
+        } else {
+            if (number < 0) {
+                //s = "Negative";
+            } else {
+                s = "Zero";
+            }
+        }
+    }
+
+    public static void nonInitialized3() {
+        int number = 0;
+        String s;
+
+        if (number > 0) {
+            s = "Positive";
+        } else {
+            if (number < 0) {
+                s = "Negative";
+            } else {
+                //s = "Zero";
+            }
+        }
+    }
+}

@@ -85,6 +85,18 @@ public class JPlusTest9 {
     }
 
     @Test
+    void testVariableInitializationBeforeIfThenElse() throws Exception {
+        checkNullability(
+                "./src/test/files/NullabilityDataflowAnalysis",
+                "jplus.example",
+                "VariableInitializationBeforeIfThenElse",
+                "Error: (line:22, column:8) Variable 's' might not have been initialized.\n" +
+                        "Error: (line:37, column:8) Variable 's' might not have been initialized.\n" +
+                        "Error: (line:52, column:8) Variable 's' might not have been initialized.\n"
+        );
+    }
+
+    @Test
     void testConstructors() throws Exception {
         checkNullability(
                 "./src/test/files/NullableAnnotation",

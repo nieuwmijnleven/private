@@ -47,7 +47,6 @@ import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
 import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
-import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -954,6 +953,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     //System.err.println("[NullabilityChecker][LocalVariable] updated symbolInfo = " + currentSymbolTable.resolve(symbol));
 
                     reportIssue(
+                            IssueCode.UNINITIALIZED_NONNULL_VARIABLE,
                             ctx.getStart(),
                             String.format("Variable '%s' might not have been initialized.", symbol)
                     );
@@ -1272,6 +1272,74 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         System.err.println("[IfThenElse][join] SymbolTable(" + ctx.getStart().getLine() + ") = " + currentSymbolTable);
 
+        var variableInitializationCtx = findLocalVariableDeclarationBeforeIf(ctx);
+        if (variableInitializationCtx != null) {
+
+            var varDeclList = variableInitializationCtx.variableDeclaratorList().variableDeclarator();
+            for (var variableDeclaratorContext : varDeclList) {
+
+                var symbol = Utils.getTokenString(variableDeclaratorContext.variableDeclaratorId());
+                var symbolInfo = currentSymbolTable.resolveInCurrent(symbol);
+                if (symbolInfo == null) {
+                    throw new IllegalStateException("could not find symbol(%s) in the current context.".formatted(symbol));
+                }
+
+                if (symbolInfo.getNullState() == NullState.NON_NULL) {
+
+                    var unInitNonNullVariableIssueOpt =
+                            issues.stream()
+                                    .filter(issue -> issue.line == symbolInfo.getRange().startLine())
+                                    .filter(issue -> issue.column == symbolInfo.getRange().startIndex())
+                                     .filter(issue -> issue.issueCode == IssueCode.UNINITIALIZED_NONNULL_VARIABLE)
+                                    .findFirst();
+
+                    unInitNonNullVariableIssueOpt.ifPresent(issue -> issues.remove(issue));
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private JPlus25Parser.LocalVariableDeclarationContext findLocalVariableDeclarationBeforeIf(JPlus25Parser.IfThenElseStatementContext ctx) {
+
+        ParserRuleContext current = ctx;
+        while (current != null &&
+                !(current instanceof JPlus25Parser.StatementContext)) {
+            current = current.getParent();
+        }
+        //System.err.println("[getVarDeclCtxRelatedToIfStmt] current =  " + current.getClass().getSimpleName());
+
+        if (current == null) return null;
+
+        ParserRuleContext blockStmtCtx = current.getParent();
+        if (!(blockStmtCtx instanceof JPlus25Parser.BlockStatementContext)) {
+            return null;
+        }
+        //System.err.println("[getVarDeclCtxRelatedToIfStmt] blockStmtCtx =  " + blockStmtCtx.getClass().getSimpleName());
+
+        ParserRuleContext blockStmtsCtx = blockStmtCtx.getParent();
+        if (!(blockStmtsCtx instanceof JPlus25Parser.BlockStatementsContext)) {
+            return null;
+        }
+        //System.err.println("[getVarDeclCtxRelatedToIfStmt] blockStmtsCtx =  " + blockStmtsCtx.getClass().getSimpleName());
+
+        JPlus25Parser.BlockStatementsContext blockStatements = (JPlus25Parser.BlockStatementsContext) blockStmtsCtx;
+
+        List<JPlus25Parser.BlockStatementContext> blockStatementList = blockStatements.blockStatement();
+
+        int index = blockStatementList.indexOf(blockStmtCtx);
+        if (index <= 0) return null;
+
+        JPlus25Parser.BlockStatementContext prevBlockStmt = blockStatementList.get(index - 1);
+        //System.err.println("[getVarDeclCtxRelatedToIfStmt] prevBlockStmt =  " + prevBlockStmt.getClass().getSimpleName());
+
+        if (prevBlockStmt.localVariableDeclarationStatement() != null) {
+            return prevBlockStmt
+                    .localVariableDeclarationStatement()
+                    .localVariableDeclaration();
+        }
+
         return null;
     }
 
@@ -1358,7 +1426,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             var sa = a.resolveInCurrent(symbol);
             var sb = b.resolveInCurrent(symbol);
 
-            if (sa == null) {
+            /*if (sa == null) {
                 joined.declare(symbol, sb);
                 continue;
             }
@@ -1366,15 +1434,28 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             if (sb == null) {
                 joined.declare(symbol, sa);
                 continue;
-            }
+            }*/
+
+            if (sa == null) sa = a.resolve(symbol);
+            if (sb == null) sb = b.resolve(symbol);
+
+            NullState ns = NullState.join(
+                    sa != null ? sa.getNullState() : NullState.UNKNOWN,
+                    sb != null ? sb.getNullState() : NullState.UNKNOWN
+            );
+
+            joined.declare(
+                    symbol,
+                    (sa != null ? sa : sb).toBuilder().nullState(ns).symbolTable(joined).build()
+            );
 
 
-            NullState ns = NullState.join(sa.getNullState(), sb.getNullState());
+            /*NullState ns = NullState.join(sa.getNullState(), sb.getNullState());
 
             joined.declare(
                     symbol,
                     sa.toBuilder().nullState(ns).symbolTable(joined).build()
-            );
+            );*/
         }
 
         return joined;
@@ -1692,6 +1773,56 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         //System.err.println("[updateNullState] resolvedChain = " + resolvedChain);
 
         var prevNullState = NullState.UNKNOWN;
+        var cursor = resolvedChain.stepCursor();
+
+        StringBuilder pathBuilder = new StringBuilder();
+
+        while (cursor.hasNext()) {
+            var step = cursor.consume();
+
+            if (!pathBuilder.isEmpty()) {
+                pathBuilder.append(".");
+            }
+            pathBuilder.append(step.symbol);
+
+            String currentPath = pathBuilder.toString();
+            boolean isLast = !cursor.hasNext();
+
+            NullState stateToApply = isLast ? nullState : NullState.NON_NULL;
+
+            SymbolInfo symbolInfo = symbolTable.resolve(currentPath);
+
+            System.err.println("[updateNullState] currentPath = " + currentPath);
+            System.err.println("[updateNullState] symbolInfo = " + symbolInfo);
+
+            if (symbolInfo == null) {
+                symbolTable.declare(
+                        currentPath,
+                        SymbolInfo.builder()
+                                .symbol(currentPath)
+                                .typeInfo(step.typeInfo)
+                                .symbolTable(symbolTable)
+                                .nullState(stateToApply)
+                                .build()
+                );
+            } else {
+                if (isLast) {
+                    prevNullState = symbolInfo.getNullState();
+                }
+
+                symbolTable.declare(
+                        currentPath,
+                        symbolInfo.toBuilder()
+                                .nullState(stateToApply)
+                                .build()
+                );
+            }
+        }
+
+
+
+
+        /*var prevNullState = NullState.UNKNOWN;
         var step = resolvedChain.first();
         SymbolInfo symbolInfo = symbolTable.resolve(step.symbol);
         System.err.println("[updateNullState] step.symbol = " + step.symbol);
@@ -1706,7 +1837,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             symbolTable.declare(symbolInfo.getSymbol(), updated);
             System.err.println("[updateNullState] updated symbolInfo = " + symbolTable.resolveInCurrent(symbolInfo.getSymbol()));
-        }
+        }*/
 
         return prevNullState;
     }
