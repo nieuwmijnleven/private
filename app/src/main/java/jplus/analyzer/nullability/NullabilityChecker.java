@@ -1179,7 +1179,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(null));
+        ifContextStack.push(new SymbolTable(entry));
 
         visit(ctx.statement());
 
@@ -1225,7 +1225,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(null));
+        ifContextStack.push(new SymbolTable(entry));
 
         visit(ctx.statementNoShortIf());
 
@@ -1242,7 +1242,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
         conditionResult.whenFalse.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(null));
+        ifContextStack.push(new SymbolTable(entry));
 
         visit(ctx.statement());
 
@@ -1294,7 +1294,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(null));
+        ifContextStack.push(new SymbolTable(entry));
 
         visit(ctx.statementNoShortIf(0));
 
@@ -1311,7 +1311,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
         conditionResult.whenFalse.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(null));
+        ifContextStack.push(new SymbolTable(entry));
 
         visit(ctx.statementNoShortIf(1));
 
@@ -1559,9 +1559,20 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     private void processSwitchBlkStmtGrp(List<JPlus25Parser.SwitchBlockStatementGroupContext> switchBlkStmtGrpList, JPlus25Parser.ExpressionContext selector, SymbolTable selectorScope) {
 
+        if (switchBlkStmtGrpList.isEmpty()) return;
+
+        SymbolTable entry = currentSymbolTable.copy();       // 기준 상태
+        List<SymbolTable> branchTables = new ArrayList<>();  // branch별 저장
+
         for (var switchBlkStmtGrpCtx : switchBlkStmtGrpList) {
-            enterSymbolTable("^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")));
-            //System.err.println("[SwitchStatement] enclosing = " + "^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining("")));
+
+            currentSymbolTable = entry.copy();
+
+            String blockName = "^block$" + switchBlkStmtGrpCtx.switchLabel().stream().map(Utils::getTokenString).map(tokenStr -> tokenStr.replaceAll("case\\s+", "").replace(" ", "")).collect(Collectors.joining(""));
+
+            enterSymbolTable(blockName);
+
+            //System.err.println("[SwitchStatement] enclosing = " + blockName);
 
             for (var switchLabelCtx : switchBlkStmtGrpCtx.switchLabel()) {
                 for (var caseConstCtx : switchLabelCtx.caseConstant()) {
@@ -1577,8 +1588,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
             if (switchBlkStmtGrpCtx.blockStatements() != null) visit(switchBlkStmtGrpCtx.blockStatements());
 
+            branchTables.add(currentSymbolTable);
+
             exitSymbolTable();
+
         }
+
+        var joinedBranchTable = branchTables.stream().reduce(new SymbolTable(entry.copy()), this::join);
+        currentSymbolTable = joinedBranchTable.promoteLocalSymbols();
     }
 
     private boolean isNullLiteral(JPlus25Parser.CaseConstantContext ctx) {
@@ -1603,7 +1620,12 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         var switchContext = new SwitchContext();
         switchContextStack.push(switchContext);
 
+        List<SymbolTable> branchTables = new ArrayList<>();
+        SymbolTable entry = currentSymbolTable.copy();
+
         for (var switchRuleCtx : switchRuleList) {
+
+            currentSymbolTable = entry.copy();
             enterSymbolTable("^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""));
             //System.err.println("[SwitchStatement] enclosing = " + "^block$" + Utils.getTokenString(switchRuleCtx.switchLabel()).replaceAll("case\\s+", "").replace(" ", ""));
 
@@ -1670,8 +1692,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                 visit(switchRuleCtx.throwStatement());
             }
 
+            branchTables.add(currentSymbolTable);
             exitSymbolTable();
         }
+
+        SymbolTable joinedTable = branchTables.stream()
+                .reduce(new SymbolTable(entry.copy()), this::join);
+
+        currentSymbolTable = joinedTable.promoteLocalSymbols();
 
         try {
             //System.err.println("[processSwitchRule] switchContext = " + switchContext);
