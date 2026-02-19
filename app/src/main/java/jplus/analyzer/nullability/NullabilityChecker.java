@@ -1179,7 +1179,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(entry));
+        ifContextStack.push(new SymbolTable(conditionResult.whenTrue));
 
         visit(ctx.statement());
 
@@ -1225,7 +1225,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(entry));
+        //ifContextStack.push(new SymbolTable(entry));
+        ifContextStack.push(new SymbolTable(conditionResult.whenTrue));
 
         visit(ctx.statementNoShortIf());
 
@@ -1242,7 +1243,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
         conditionResult.whenFalse.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(entry));
+        //ifContextStack.push(new SymbolTable(entry));
+        ifContextStack.push(new SymbolTable(conditionResult.whenFalse));
 
         visit(ctx.statement());
 
@@ -1294,7 +1296,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^then$" + ctx.getStart().getLine());
 
         conditionResult.whenTrue.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(entry));
+        //ifContextStack.push(new SymbolTable(entry));
+        ifContextStack.push(new SymbolTable(conditionResult.whenTrue));
 
         visit(ctx.statementNoShortIf(0));
 
@@ -1311,7 +1314,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         enterSymbolTable("^else$" + ctx.getStart().getLine());
 
         conditionResult.whenFalse.transplantLocalSymbols(currentSymbolTable);
-        ifContextStack.push(new SymbolTable(entry));
+        //ifContextStack.push(new SymbolTable(entry));
+        ifContextStack.push(new SymbolTable(conditionResult.whenFalse));
 
         visit(ctx.statementNoShortIf(1));
 
