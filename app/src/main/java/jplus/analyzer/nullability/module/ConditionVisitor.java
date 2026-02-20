@@ -24,8 +24,9 @@
  * a commercial license. See the CLA file in the project root for details.
  */
 
-package jplus.analyzer.nullability;
+package jplus.analyzer.nullability.module;
 
+import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.analyzer.nullability.dataflow.NullState;
 import jplus.base.JPlus25Parser;
 import jplus.base.JPlus25ParserBaseVisitor;
@@ -34,19 +35,18 @@ import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-class ConditionVisitor
-    extends JPlus25ParserBaseVisitor<ConditionResult> {
+public class ConditionVisitor extends JPlus25ParserBaseVisitor<ConditionResult> {
 
     private final NullabilityChecker nullabilityChecker;
 
     private final SymbolTable before;
 
-    ConditionVisitor(NullabilityChecker nullabilityChecker) {
+    public ConditionVisitor(NullabilityChecker nullabilityChecker) {
         this.nullabilityChecker = nullabilityChecker;
         this.before = nullabilityChecker.getCurrentSymbolTable();
     }
 
-    ConditionVisitor(NullabilityChecker nullabilityChecker, SymbolTable before) {
+    public ConditionVisitor(NullabilityChecker nullabilityChecker, SymbolTable before) {
         this.nullabilityChecker = nullabilityChecker;
         this.before = before;
     }
@@ -286,12 +286,12 @@ class ConditionVisitor
                 visit(ctx.inclusiveOrExpression(0));
 
         ConditionResult right =
-                new ConditionVisitor(nullabilityChecker, left.whenTrue.copy())
+                new ConditionVisitor(nullabilityChecker, left.whenTrue().copy())
                         .visit(ctx.inclusiveOrExpression(1));
 
         return new ConditionResult(
-                right.whenTrue,
-                nullabilityChecker.join(left.whenFalse, right.whenFalse)
+                right.whenTrue(),
+                nullabilityChecker.join(left.whenFalse(), right.whenFalse())
         );
     }
 
@@ -307,12 +307,12 @@ class ConditionVisitor
                 visit(ctx.conditionalAndExpression(0));
 
         ConditionResult right =
-                new ConditionVisitor(nullabilityChecker, left.whenFalse.copy())
+                new ConditionVisitor(nullabilityChecker, left.whenFalse().copy())
                         .visit(ctx.conditionalAndExpression(1));
 
         return new ConditionResult(
-                nullabilityChecker.join(left.whenTrue, right.whenTrue),
-                right.whenFalse
+                nullabilityChecker.join(left.whenTrue(), right.whenTrue()),
+                right.whenFalse()
         );
     }
 }

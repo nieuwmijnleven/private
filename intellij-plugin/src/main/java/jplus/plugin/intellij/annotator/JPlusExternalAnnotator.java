@@ -37,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import jplus.analyzer.nullability.NullabilityChecker;
+import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.plugin.intellij.JPlusFile;
 import jplus.processor.JPlusProcessor;
 import org.jetbrains.annotations.NotNull;
@@ -107,8 +108,7 @@ public class JPlusExternalAnnotator
                 indicator.setFraction(0.6);
             }
 
-            List<NullabilityChecker.NullabilityIssue> issues =
-                    processor.checkNullability();
+            List<NullabilityIssue> issues = processor.checkNullability();
 
             if (indicator != null) {
                 indicator.setFraction(1.0);
@@ -130,7 +130,7 @@ public class JPlusExternalAnnotator
     ) {
         if (result == null) return;
 
-        for (NullabilityChecker.NullabilityIssue issue : result.issues()) {
+        for (NullabilityIssue issue : result.issues()) {
             holder.newAnnotation(
                             HighlightSeverity.WARNING,
                             issue.message()

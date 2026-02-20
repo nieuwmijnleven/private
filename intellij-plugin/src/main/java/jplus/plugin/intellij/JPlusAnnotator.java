@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import jplus.analyzer.nullability.NullabilityChecker;
+import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.base.Project;
 import jplus.processor.JPlusProcessor;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +74,7 @@ public class JPlusAnnotator implements Annotator {
             var issues = processor.checkNullability();
             if (!issues.isEmpty()) {
                 System.err.println("nullability warning");
-                for (NullabilityChecker.NullabilityIssue issue : issues) {
+                for (NullabilityIssue issue : issues) {
                     System.out.println(issue);
                     holder.newAnnotation(HighlightSeverity.ERROR, issue.message())
                             .range(new TextRange(issue.offset(), issue.offset()))

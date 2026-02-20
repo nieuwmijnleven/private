@@ -24,21 +24,15 @@
  * a commercial license. See the CLA file in the project root for details.
  */
 
-package jplus.analyzer.nullability;
+package jplus.analyzer.nullability.module;
 
 import jplus.base.SymbolTable;
+import org.jspecify.annotations.NonNull;
 
-class ConditionResult {
-    SymbolTable whenTrue;
-    SymbolTable whenFalse;
-
-    public ConditionResult(SymbolTable whenTrue, SymbolTable whenFalse) {
-        this.whenTrue = whenTrue;
-        this.whenFalse = whenFalse;
-    }
+public record ConditionResult(SymbolTable whenTrue, SymbolTable whenFalse) {
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return "ConditionResult{" +
                 "whenTrue=" + whenTrue +
                 ", whenFalse=" + whenFalse +

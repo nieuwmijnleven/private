@@ -66,6 +66,7 @@ public class JPlusTest9 {
                 "jplus.example",
                 "DataFlowInitialState",
                 "Error: (line:6, column:8) Variable 'u' might not have been initialized.\n" +
+                        "Error: (line:12, column:16) Non-null variable 'u' is dereferenced before being initialized. This may cause a NullPointerException.\n" +
                         "Error: (line:15, column:12) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
                         "Error: (line:20, column:16) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +
                         "Error: (line:24, column:16) s is a nullable variable. But it directly accesses length(). Consider using null-safe operator(?.).\n" +

@@ -24,13 +24,28 @@
  * a commercial license. See the CLA file in the project root for details.
  */
 
-package jplus.plugin.intellij.annotator;
+package jplus.analyzer.nullability.issue;
 
-import jplus.analyzer.nullability.NullabilityChecker;
-import jplus.analyzer.nullability.issue.NullabilityIssue;
+public enum IssueCode {
+    NULLABLE_DEREFERENCE(Severity.WARNING),
+    PRIMITIVE_RESULT_SAFE_NAVIGATION_REQUIRES_ELVIS(Severity.ERROR),
+    UNINITIALIZED_NONNULL_VARIABLE(Severity.WARNING),
+    UNINITIALIZED_NONNULL_FIELD(Severity.WARNING),
+    NULL_ASSIGNMENT_TO_NONNULL_VARIABLE(Severity.WARNING),
+    NULLABLE_ASSIGNMENT_TO_NONNULL_VARIABLE(Severity.WARNING),
+    NULL_ARGUMENT_TO_NONNULL_PARAMETER(Severity.WARNING),
+    NULLABLE_SWITCH_SELECTOR(Severity.WARNING),
+    NULLABLE_SWITCH_GUARD(Severity.WARNING),
+    NULL_RETURN_IN_NONNULL_METHOD(Severity.WARNING),
+    DEREFERENCE_OF_UNINITIALIZED_VARIABLE(Severity.ERROR);
 
-import java.util.List;
+    private final Severity severity;
 
-public record JPlusAnnotationResult(
-        List<NullabilityIssue> issues
-) {}
+    IssueCode(Severity severity) {
+        this.severity = severity;
+    }
+
+    public Severity getSeverity() {
+        return severity;
+    }
+}

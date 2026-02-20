@@ -28,6 +28,7 @@ package jplus.processor;
 
 import jplus.analyzer.UnresolvedReferenceScanner;
 import jplus.analyzer.nullability.NullabilityChecker;
+import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.base.JPlus25Lexer;
 import jplus.base.JPlus25Parser;
 import jplus.base.Project;
@@ -377,7 +378,7 @@ public class JPlusProcessor {
         symbolsAnalyzed = true;
     }
 
-    public List<NullabilityChecker.NullabilityIssue> checkNullability() {
+    public List<NullabilityIssue> checkNullability() {
         assertAnalyzed();
 
         NullabilityChecker nullabilityChecker = new NullabilityChecker(globalSymbolTable, sourceMappingEntrySet, javaProcessor.getMethodInvocationManager().get(0));
