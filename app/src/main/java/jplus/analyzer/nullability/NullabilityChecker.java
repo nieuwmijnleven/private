@@ -124,17 +124,9 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         issues.add(new NullabilityIssue(issueCode, issueCode.getSeverity(), token.getLine(), token.getCharPositionInLine(), token.getStartIndex(), msg));
     }
 
-    /*private void reportIssue(Token token, String msg) {
-        reportIssue(null, token, msg);
-    }*/
-
     private void reportIssue(@NonNull IssueCode issueCode, int line, int column, int offset, String msg) {
         issues.add(new NullabilityIssue(issueCode, line, column, offset, msg));
     }
-
-    /*private void reportIssue(int line, int column, int offset, String msg) {
-        reportIssue(null, line, column, offset, msg);
-    }*/
 
     @Override
     public Void visitStart_(JPlus25Parser.Start_Context ctx) {
@@ -185,27 +177,47 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         Map<String, InvocationDeclarationContext> ctorNameToContextMap = null;
 
         if (ctx.normalClassDeclaration() != null) {
+
             typeName = Utils.getTokenString(ctx.normalClassDeclaration().typeIdentifier());
             //System.err.println("[NullabilityChecker][ClassDecl] className = " + typeName);
 
             classBodyDefCtxList = ctx.normalClassDeclaration().classBody().classBodyDeclaration();
-            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromNormalClass(classBodyDefCtxList));
+
+            var allMethodDefList = new ArrayList<InvocationDeclarationContext>();
+            allMethodDefList.addAll(getCtorDefListFromNormalClass(classBodyDefCtxList));
+            allMethodDefList.addAll(getMethodDefListFromNormalClass(classBodyDefCtxList));
+
+            ctorNameToContextMap = getMethodNameToContextMap(allMethodDefList);
+
         } else if (ctx.enumDeclaration() != null) {
             typeName = Utils.getTokenString(ctx.enumDeclaration().typeIdentifier());
             //System.err.println("[NullabilityChecker][ClassDecl] enumName = " + typeName);
 
             classBodyDefCtxList = ctx.enumDeclaration().enumBody().enumBodyDeclarations().classBodyDeclaration();
-            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromEnum(classBodyDefCtxList));
+
+            var allMethodDefList = new ArrayList<InvocationDeclarationContext>();
+            allMethodDefList.addAll(getCtorDefListFromEnum(classBodyDefCtxList));
+            allMethodDefList.addAll(getMethodDefListFromNormalClass(classBodyDefCtxList));
+
+            ctorNameToContextMap = getMethodNameToContextMap(allMethodDefList);
+
         } else if (ctx.recordDeclaration() != null) {
             typeName = Utils.getTokenString(ctx.recordDeclaration().typeIdentifier());
             //System.err.println("[NullabilityChecker][ClassDecl] recordName = " + typeName);
 
-            classBodyDefCtxList = ctx.recordDeclaration().recordBody().recordBodyDeclaration().stream().map(JPlus25Parser.RecordBodyDeclarationContext::classBodyDeclaration).toList();
-            ctorNameToContextMap = getMethodNameToContextMap(getCtorDefListFromRecord(ctx.recordDeclaration().recordBody().recordBodyDeclaration()));
-        }
+            var recordBodyDeclaration = ctx.recordDeclaration().recordBody().recordBodyDeclaration();
 
-        //System.err.println("[NullabilityChecker][ClassDecl] classBodyDefCtxList = " + classBodyDefCtxList.stream().map(Utils::getTokenString).toList());
-        //System.err.println("[NullabilityChecker][ClassDecl] ctorNameToContextMap = " + ctorNameToContextMap);
+            classBodyDefCtxList =
+                    recordBodyDeclaration.stream()
+                            .map(JPlus25Parser.RecordBodyDeclarationContext::classBodyDeclaration)
+                            .toList();
+
+            var allMethodDefList = new ArrayList<InvocationDeclarationContext>();
+            allMethodDefList.addAll(getCtorDefListFromRecord(recordBodyDeclaration));
+            allMethodDefList.addAll(getMethodDefListFromNormalClass(classBodyDefCtxList));
+
+            ctorNameToContextMap = getMethodNameToContextMap(allMethodDefList);
+        }
 
         if (typeName == null) {
             return null;
@@ -234,8 +246,11 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             //System.err.println("[ClassDef] ClassContext = " + classContext);
 
             classContext.integrateFieldInitResults();
+
             if (classContext.hasUninitializedNonNullField()) {
+
                 for (SymbolInfo fieldInfo : classContext.getUninitializedFieldList()) {
+
                     reportIssue(
                             IssueCode.UNINITIALIZED_NONNULL_FIELD,
                             fieldInfo.getRange().startLine(),
@@ -297,15 +312,29 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
     private List<InvocationDeclarationContext> getCtorDefListFromNormalClass(List<JPlus25Parser.ClassBodyDeclarationContext> classBodyDeclarationContexts) {
 
-        List<InvocationDeclarationContext> normalClassDefList = new ArrayList<>();
-
+        List<InvocationDeclarationContext> normalClassCtorDefList = new ArrayList<>();
         for (var normalClassDeclarationContext : classBodyDeclarationContexts) {
+
             if (normalClassDeclarationContext.constructorDeclaration() == null) continue;
 
-            normalClassDefList.add(InvocationDeclarationContext.from(normalClassDeclarationContext.constructorDeclaration()));
+            normalClassCtorDefList.add(InvocationDeclarationContext.from(normalClassDeclarationContext.constructorDeclaration()));
         }
 
-        return normalClassDefList;
+        return normalClassCtorDefList;
+    }
+
+    private List<InvocationDeclarationContext> getMethodDefListFromNormalClass(List<JPlus25Parser.ClassBodyDeclarationContext> classBodyDeclarationContexts) {
+
+        List<InvocationDeclarationContext> normalClassMethodDefList = new ArrayList<>();
+        for (var normalClassDeclarationContext : classBodyDeclarationContexts) {
+
+            var classMemberDeclaration = normalClassDeclarationContext.classMemberDeclaration();
+            if (classMemberDeclaration == null || classMemberDeclaration.methodDeclaration() == null) continue;
+
+            normalClassMethodDefList.add(InvocationDeclarationContext.from(classMemberDeclaration.methodDeclaration()));
+        }
+
+        return normalClassMethodDefList;
     }
 
     private List<InvocationDeclarationContext> getCtorDefListFromRecord(List<JPlus25Parser.RecordBodyDeclarationContext> recordBodyDeclarationContexts) {
@@ -384,11 +413,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         //SymbolInfo methodSymbolInfo = currentSymbolTable.resolveInCurrent(methodSymbol);
         SymbolInfo methodSymbolInfo = currentSymbolTable.resolve(methodSymbol);
 
-        /*SymbolInfo methodSymbolInfo = currentSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS).resolveInCurrent(methodSymbol);
-        if (ctx.modifiers().contains(Modifier.STATIC)) {
-            methodSymbolInfo = currentSymbolTable.getEnclosingSymbolTable(SymbolTable.STATIC_NS).resolveInCurrent(methodSymbol);
-        }*/
-
         if (methodSymbolInfo == null) {
             //throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
             return null;
@@ -449,52 +473,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                         typeInfo,
                         rhsState
                 );
-
-                //var uninitNonNullVarIssueOpt = suppressUninitNonNullVarIssue(decl.variableInitializer().start.getStartIndex());
-
-                /*if (typeInfo.getType() == TypeInfo.Type.Primitive && rhsState != NullState.NON_NULL) {
-
-                    var nullaleDereferencingIssueOpt =
-                            findIssue(
-                                    IssueCode.NULLABLE_DEREFERENCE,
-                                    decl.variableInitializer().getStart().getStartIndex()
-                            );
-
-                    var dereferenceUninitializedVariableOpt =
-                            findIssue(
-                                    IssueCode.DEREFERENCE_OF_UNINITIALIZED_VARIABLE,
-                                    decl.variableInitializer().getStart().getStartIndex()
-                            );
-
-                    if (nullaleDereferencingIssueOpt.isEmpty() && dereferenceUninitializedVariableOpt.isEmpty() && !isTopLevelNullCoalescing(decl.variableInitializer().expression())) {
-
-                        reportIssue(
-                                IssueCode.PRIMITIVE_RESULT_SAFE_NAVIGATION_REQUIRES_ELVIS,
-                                ctx.getStart(),
-                                "Nullable result of safe access(?.) assigned to primitive type '%s' may cause NullPointerException due to auto-unboxing. Use '?:' to provide a default value.".formatted(typeInfo.getName())
-                        );
-                    }
-
-                } else {
-
-                    if (!typeInfo.isNullable() && rhsState == NullState.NULL) {
-
-                        reportIssue(
-                                IssueCode.NULL_ASSIGNMENT_TO_NONNULL_VARIABLE,
-                                ctx.getStart(),
-                                "%s is a non-nullable variable. But null value is assigned to it.".formatted(symbol)
-                        );
-                    }
-
-                    if (!typeInfo.isNullable() && rhsState == NullState.UNKNOWN) {
-
-                        reportIssue(
-                                IssueCode.NULLABLE_ASSIGNMENT_TO_NONNULL_VARIABLE,
-                                ctx.getStart(),
-                                "%s is a non-nullable variable. But nullable value is assigned to it. Change the type to %s? or add a null check.".formatted(symbol, CodeUtils.getSimpleName(typeInfo.getName()))
-                        );
-                    }
-                }*/
 
                 SymbolInfo updated = symbolInfo.toBuilder()
                         .nullState(rhsState)
@@ -730,10 +708,7 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
 
         for (String candidate : candidates) {
-            //Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
-            //Optional<SymbolInfo> methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate, EnumSet.of(TypeInfo.Type.Constructor, TypeInfo.Type.Method));
 
-            //var methodSymbolInfo = classSymbolTable.resolveInCurrent(candidate);
             var methodSymbolInfo = classSymbolTable.resolve(candidate);
             System.err.println("[resolveMethod] methodSymbolInfo = " + methodSymbolInfo);
             
@@ -779,7 +754,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             System.err.println("[validateMethodArguments] argState = " + argState);
 
             if (isInvalidNullAssignment(paramTypes[i], argState)) {
-                reportInvalidNull(ctx.originalContext(), info, i + 1);
+                //reportInvalidNull(ctx.originalContext(), info, i + 1);
+                reportInvalidNull(argumentList.get(i), info, i + 1);
             }
         }
 
@@ -790,7 +766,8 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             NullState argState = evalRHS(argumentList.get(i), currentSymbolTable);
 //            if (argState != NullState.NON_NULL) {
             if (isInvalidNullAssignment(paramTypes[fixedVariableCnt], argState)) {
-                reportInvalidNull(ctx.originalContext(), info, i + 1);
+                //reportInvalidNull(ctx.originalContext(), info, i + 1);
+                reportInvalidNull(argumentList.get(i), info, i + 1);
             }
         }
 
@@ -835,12 +812,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
             throw new IllegalStateException("cannot find a mapping java code range.");
             //return super.visitUnqualifiedClassInstanceCreationExpression(ctx);
         }
-
-        /*Optional<ResolvedChain> chain = currentSymbolTable.findResolvedChain(transformedRange.get());
-        if (chain.isPresent()) {
-            // 이미 PrimaryNoNewArray에서 처리됨
-            return null;
-        }*/
 
         Optional<MethodInvocationInfo> invocationInfo = methodInvocationManager.findInvocationInfo(currentSymbolTable, transformedRange.get());
         if (invocationInfo.isEmpty()) {
@@ -1055,8 +1026,10 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
 
         SymbolInfo symbolInfo = currentSymbolTable.resolve(symbol);
         if (symbolInfo == null) {
+
             var symbolInfoOpt = resolveSymbolInfo(ctx.leftHandSide());
             if (symbolInfoOpt.isPresent()) {
+
                 symbolInfo = symbolInfoOpt.get();
                 log("[NullabilityChecker][Assignment] symbolInfo = " + symbolInfo);
             } else {
@@ -1108,13 +1081,14 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
                     symbolInfo.getSymbol(),
                     updated
             );
+
+            var constructorContext = constructorContextStack.peek();
+            if (constructorContext != null) {
+
+                constructorContext.put(symbolInfo.getSymbol(), InitState.INIT);
+            }
         }
 
-        var constructorContext = constructorContextStack.peek();
-        if (constructorContext != null) {
-
-            constructorContext.put(symbolInfo.getSymbol(), InitState.INIT);
-        }
 
         return null;
     }
@@ -1147,11 +1121,6 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         while (cursor.hasNext()) {
             var step = cursor.consume();
             log("[resolvedSymbolInfo] step = " + step.symbol);
-            /*if ("this".equals(step.symbol)) {
-                var symInfo = globalSymbolTable.resolveInCurrent(step.typeInfo.getName());
-                symbolTable = symInfo.getSymbolTable().getEnclosingSymbolTable(symInfo.getSymbol());
-                continue;
-            }*/
 
             if (step.kind == ResolvedChain.Kind.IDENTIFIER || step.kind == ResolvedChain.Kind.FIELD) {
                 log("[resolvedSymbolInfo] symbolTable = " + symbolTable);
@@ -2360,6 +2329,39 @@ public class NullabilityChecker extends JPlus25ParserBaseVisitor<Void> {
         validateMethodArgumentNullability(ctx, receiverTypeInfo.getName(), currentStep);
 
         handlePNNA(PNNAContextAdapter.from(ctx.pNNA()), cursor);
+
+        //invocation from a constructor
+        if (classContextStack.isEmpty()) return;
+
+        System.err.println("[processImplicitReceiverMethodInvocationSignature] invocation from a constructor = " + methodName);
+
+        String methodSymbol = "^" + methodName + "$~" + String.join("~", currentStep.invocationInfo.paramTypes);
+        System.err.println("[processImplicitReceiverMethodInvocationSignature] methodSymbol = " + methodSymbol);
+
+        String simpleMethodSymbol = "^" + methodName + "$~" + String.join("~", currentStep.invocationInfo.paramTypes.stream().map(CodeUtils::getSimpleName).toList());
+        System.err.println("[processImplicitReceiverMethodInvocationSignature] simpleMethodSymbol = " + simpleMethodSymbol);
+
+        var classContext = classContextStack.peek();
+        classContext.getCtorDefContext(simpleMethodSymbol)
+                .ifPresent(invocationDefCtx -> {
+
+                    var saved = currentSymbolTable;
+
+                    currentSymbolTable =
+                            classContext.getClassSymbolTable()
+                                    .getEnclosingSymbolTable(methodSymbol)
+                                    .getEnclosingSymbolTable("^block$")
+                                    .copy();
+
+                    try {
+                        var methodBody = (JPlus25Parser.BlockContext) invocationDefCtx.invocationBody();
+
+                        if (methodBody.blockStatements() != null) visit(methodBody.blockStatements());
+
+                    } finally {
+                        currentSymbolTable = saved;
+                    }
+                });
     }
 
     private void handlePrimaryNoNewArrayMethodInvocation(JPlus25Parser.PrimaryNoNewArrayExprMethodInvocationContext ctx, StepCursor cursor) {
