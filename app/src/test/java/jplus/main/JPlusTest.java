@@ -234,102 +234,102 @@ class JPlusTest {
 
     @Test
     void testNullsafeOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator.jadex", "6X0GPwo/VGZbfcmFLtoUVwDwrDs=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator.jadex", "TijVyfgTW1Tdt22x80dz33gicb4=");
     }
 
     @Test
     void testNullsafeOperator2() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jadex", "Y3M3phRcJnwj0ZGVjzpioztHGA0=");
+        checkGeneratedCode("./src/test/samples/NullsafeOperator2.jadex", "4Hv0pW9vIEHS3j6paNJ1VWDyzME=");
     }
 
     @Test
     void testElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/ElvisOperator.jadex", "k0iX8ukmy6g/gJOKZgt6ojaedb8=");
+        checkGeneratedCode("./src/test/samples/ElvisOperator.jadex", "AL0aBpZroiatomausu8e2frX7qw=");
     }
 
     @Test
     void testCascadingElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jadex", "BCH/1gAg8J+9QKL6ukO+ANB2PiY=");
+        checkGeneratedCode("./src/test/samples/CascadingElvisOperator.jadex", "9XsleZwkeCcBefEzroFgN8boNFg=");
     }
 
     @Test
     void testNullsafeWithElvisOperator() throws Exception {
-        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jadex", "zmIeKgsvvDQto6szVgrTqcwscMw=");
+        checkGeneratedCode("./src/test/samples/NullsafeWithElvisOperator.jadex", "aIGbfZc2w17DZm4D78925bSSl6c=");
     }
 
     @Test
     void testApplyGetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyGetter.jadex", "MV6G93vfFanhqfVKg/ghPsz+k1M=");
+        checkGeneratedCode("./src/test/samples/ApplyGetter.jadex", "A5Gvl2lI+ydhH/ti0ZX2sxD+2uM=");
     }
 
     @Test
     void testApplySetter() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplySetter.jadex", "teNBR7ECr3zs2hLm6p0taFrB2eg=");
+        checkGeneratedCode("./src/test/samples/ApplySetter.jadex", "kIVUTpvDCm93X+eEZVuX8R6jkQU=");
     }
 
     @Test
     void testApplyEquals() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquals.jadex", "Sg7AQwziIRkRU3sZYzVF7LsfHkY=");
+        checkGeneratedCode("./src/test/samples/ApplyEquals.jadex", "qOs8oK/I41ApIQFtURbTRDa+/9Y=");
     }
 
     @Test
     void testApplyEquality() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyEquality.jadex", "RCnh0xM+Jcr0QczqbshCsblpPWI=");
+        checkGeneratedCode("./src/test/samples/ApplyEquality.jadex", "mK6ihnWZiJSw//iT1fSlnF2w2I4=");
     }
 
     @Test
     void testApplyData() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyData.jadex", "G8fPpmySrXKm3E9HfVxJIaBIukI=");
+        checkGeneratedCode("./src/test/samples/ApplyData.jadex", "BIir59bo+/1XfgN6I8spb7q5gp0=");
     }
 
     @Test
     void testApplyToString() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyToString.jadex", "a5FZFg5a01CGPjgTSb3JcNhhHm8=");
+        checkGeneratedCode("./src/test/samples/ApplyToString.jadex", "/QVzFS6fZls9182SmmZ16FNAtoU=");
     }
 
     @Test
     void testApplyHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyHashCode.jadex", "qZiqrE6iKL2a0U/uq0j6HVUlGTM=");
+        checkGeneratedCode("./src/test/samples/ApplyHashCode.jadex", "rbDR59oWQcHWpaEj4Dmde/ydr10=");
     }
 
     @Test
     void testApplyConstructorWithRequired() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequired.jadex", "vCcH9o2CeuZKzJiTbqGX5FZiZ1M=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequired.jadex", "/u7XMZXJ0+n790tyLYk89uwEP6E=");
     }
 
     @Test
     void testApplyConstructorWithAll() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAll.jadex", "k0fzofdQ4voAV/Ts6Nc+MpA0KDg=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAll.jadex", "azvxsqhw78QejONm+KWMFo1VpUM=");
     }
 
     @Test
     void testApplyConstructorWithNo() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jadex", "IqD/xBOT4kP6qX3sqSe89Xg7M08=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNo.jadex", "kXck5+iZHAmz2b1B8AoTesPdNeM=");
     }
 
     @Test
     void testApplyConstructorWithNoInSingleClass() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jadex", "YkgEUGFKaLAWUgtdiQNcP8YCZUQ=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoInSingleClass.jadex", "8CFaXm1HYqgyT3d3OJ0bZn3fO1Y=");
     }
 
     @Test
     void testApplyConstructorWithAllAndBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAllAndBuilder.jadex", "nTNOi8LrE76rUygIQH34PtqThHU=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithAllAndBuilder.jadex", "+WXeToTgvwLQkY2Bm9ieZUP4+kE=");
     }
 
     @Test
     void testApplyConstructorWithRequiredAndBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequiredAndBuilder.jadex", "CuNp/GLFV7wgjhmcF32pDHAz1Uc=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithRequiredAndBuilder.jadex", "yY90RriomIajVnn6Ujrj+u0R3nQ=");
     }
 
     @Test
     void testApplyConstructorWithNoAndBuilder() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoAndBuilder.jadex", "nTNOi8LrE76rUygIQH34PtqThHU=");
+        checkGeneratedCode("./src/test/samples/ApplyConstructorWithNoAndBuilder.jadex", "+WXeToTgvwLQkY2Bm9ieZUP4+kE=");
     }
 
     @Test
     void testApplyDuplicatedHashCode() throws Exception {
-        checkGeneratedCode("./src/test/samples/ApplyDuplicatedHashCode.jadex", "qZiqrE6iKL2a0U/uq0j6HVUlGTM=");
+        checkGeneratedCode("./src/test/samples/ApplyDuplicatedHashCode.jadex", "rbDR59oWQcHWpaEj4Dmde/ydr10=");
     }
 
     private void checkGeneratedCode(String fileName, String expected) throws Exception {

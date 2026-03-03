@@ -238,8 +238,10 @@ public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
         return fragmentedText.toString()
                 .transform(generated -> generated.replace("org.jspecify.annotations.", ""))
                 .transform(generated -> generated.replace("jadex.runtime.", ""))
+                .transform(generated -> addImport(generated, "org.jspecify.annotations.NullMarked"))
                 .transform(generated -> addImport(generated, "org.jspecify.annotations.Nullable"))
-                .transform(generated -> addImport(generated, "jadex.runtime.SafeAccess"));
+                .transform(generated -> addImport(generated, "jadex.runtime.SafeAccess"))
+                .transform(generated -> addNullMarkedToTopLevel(generated));
 
     }
 
@@ -271,5 +273,22 @@ public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
         }
 
         return "import " + newImport + ";\n" + source;
+    }
+
+    private String addNullMarkedToTopLevel(String source) {
+        Pattern classPattern = Pattern.compile(
+                "(?m)^\\s*(?:public|protected|private|abstract|final|\\s)*class\\s+\\w+.*"
+        );
+        Matcher matcher = classPattern.matcher(source);
+
+        if (matcher.find()) {
+            StringBuffer sb = new StringBuffer();
+            String replacement = "\n@NullMarked\n" + matcher.group(0).stripLeading();
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+            matcher.appendTail(sb);
+            return sb.toString();
+        }
+
+        return source;
     }
 }

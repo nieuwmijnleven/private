@@ -103,7 +103,7 @@ public class JPlusTest9 {
                 "./src/test/files/Immutability",
                 "jadex.example",
                 "Immutability",
-                "R7qUiR7AY1ihEE0SB242caOV0nI="
+                "nkJVEYZTNktHDF9/Xp3FYyLeXYw="
         );
     }
 
