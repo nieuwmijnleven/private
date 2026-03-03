@@ -35,6 +35,7 @@ import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.editor.FragmentedText;
+import jplus.editor.TextChangeRange;
 import jplus.generator.apply.ApplyFeature;
 import jplus.generator.apply.ApplyFeatureProcessingContext;
 import jplus.generator.apply.ApplyFeatureProcessor;

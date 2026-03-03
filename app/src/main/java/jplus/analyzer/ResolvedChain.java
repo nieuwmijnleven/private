@@ -28,7 +28,7 @@ package jplus.analyzer;
 
 import jplus.base.MethodInvocationInfo;
 import jplus.base.TypeInfo;
-import jplus.generator.TextChangeRange;
+import jplus.editor.TextChangeRange;
 
 import java.util.ArrayList;
 import java.util.List;

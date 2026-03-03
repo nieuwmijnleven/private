@@ -27,7 +27,7 @@
 
 package jplus.base;
 
-import jplus.generator.TextChangeRange;
+import jplus.editor.TextChangeRange;
 import jplus.util.Utils;
 
 import java.util.HashMap;

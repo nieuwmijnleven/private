@@ -29,7 +29,6 @@ package jplus.util;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.VariableTree;
-import jplus.generator.TextChangeRange;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import javax.lang.model.element.Element;
@@ -38,7 +37,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import java.lang.reflect.AnnotatedType;
 
 public class CodeUtils {
     private CodeUtils() {}

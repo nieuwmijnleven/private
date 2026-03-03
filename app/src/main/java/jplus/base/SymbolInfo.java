@@ -27,12 +27,10 @@
 package jplus.base;
 
 import jplus.analyzer.nullability.dataflow.NullState;
-import jplus.generator.TextChangeRange;
+import jplus.editor.TextChangeRange;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SymbolInfo {
     private final String symbol;

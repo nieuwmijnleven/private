@@ -26,10 +26,7 @@
 
 package jplus.util;
 
-import jplus.analyzer.nullability.dataflow.NullState;
-import jplus.base.SymbolInfo;
-import jplus.base.SymbolTable;
-import jplus.generator.TextChangeRange;
+import jplus.editor.TextChangeRange;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 
@@ -37,9 +34,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

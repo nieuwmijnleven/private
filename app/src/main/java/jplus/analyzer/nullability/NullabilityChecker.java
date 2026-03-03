@@ -55,7 +55,7 @@ import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
 import jplus.generator.SourceMappingEntry;
-import jplus.generator.TextChangeRange;
+import jplus.editor.TextChangeRange;
 import jplus.util.CodeGenUtils;
 import jplus.util.CodeUtils;
 import jplus.util.MethodUtils;
@@ -63,7 +63,6 @@ import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayDeque;

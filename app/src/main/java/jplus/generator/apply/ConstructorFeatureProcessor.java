@@ -30,9 +30,7 @@ import jplus.base.Modifier;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
-import jplus.generator.TextChangeRange;
 import jplus.util.CodeGenUtils;
-import jplus.util.CodeUtils;
 
 import java.util.ArrayList;
 import java.util.List;

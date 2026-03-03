@@ -24,9 +24,7 @@
  * a commercial license. See the CLA file in the project root for details.
  */
 
-package jplus.generator;
-
-import java.util.Objects;
+package jplus.editor;
 
 public record TextChangeRange(int startLine, int startIndex, int endLine, int inclusiveEndIndex) {
 
@@ -53,22 +51,6 @@ public record TextChangeRange(int startLine, int startIndex, int endLine, int in
                 (this.endLine() == other.startLine() && this.inclusiveEndIndex() < other.startIndex()) ||
                 (this.startLine() == other.endLine() && this.startIndex() > other.inclusiveEndIndex()));
     }
-
-    /*@Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TextChangeRange)) return false;
-        TextChangeRange that = (TextChangeRange) o;
-        return this.startLine() == that.startLine()
-                && this.startIndex() == that.startIndex()
-                && this.endLine() == that.endLine()
-                && this.inclusiveEndIndex() == that.inclusiveEndIndex();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(startLine(), startIndex(), endLine(), inclusiveEndIndex());
-    }*/
 
     @Override
     public String toString() {

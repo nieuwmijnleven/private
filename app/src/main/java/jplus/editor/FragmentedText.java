@@ -27,7 +27,6 @@
 package jplus.editor;
 
 import jplus.generator.SourceMappingEntry;
-import jplus.generator.TextChangeRange;
 import jplus.util.Utils;
 
 import java.util.ArrayDeque;

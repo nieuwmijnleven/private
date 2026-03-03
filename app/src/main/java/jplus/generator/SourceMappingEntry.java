@@ -26,6 +26,8 @@
 
 package jplus.generator;
 
+import jplus.editor.TextChangeRange;
+
 public class SourceMappingEntry {
     private String source;
     private TextChangeRange originalRange;

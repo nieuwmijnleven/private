@@ -27,7 +27,7 @@
 package jplus.base;
 
 import jplus.analyzer.ResolvedChain;
-import jplus.generator.TextChangeRange;
+import jplus.editor.TextChangeRange;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,11 +60,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     private List<ResolvedChain> resolvedChains = new ArrayList<>();
 
-    private Map<String, SymbolInfo> ifContextMap = new HashMap<>();
-
     public enum ExecutionContext {
         STATIC,
         INSTANCE;
+
     }
 
     /*enum TableKind {
@@ -72,7 +71,6 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         METHOD,
         BLOCK
     }*/
-
     public SymbolTable(SymbolTable parent, ExecutionContext context) {
         this.parent = parent;
         this.context = context;
@@ -142,10 +140,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
         }
         return symbolInfo;
     }*/
+
     public void setSuperClassTable(SymbolTable superClassTable) {
         this.superClassTable = superClassTable;
     }
-
     public boolean hasSuperClassTable() {
         return this.superClassTable != null;
     }
@@ -160,6 +158,10 @@ public class SymbolTable implements Iterable<SymbolInfo> {
 
     public List<SymbolTable> getSuperInterfaceTables() {
         return Collections.unmodifiableList(this.superInterfaceTables);
+    }
+
+    public ExecutionContext getContext() {
+        return context;
     }
 
     public SymbolInfo resolve(String name) {
