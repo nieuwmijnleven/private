@@ -134,6 +134,10 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             return processDefaultText();
         }
 
+        if (ctx.originalContext().getParent() instanceof JADEx25Parser.ForInitContext) {
+            return processDefaultText();
+        }
+
         ensureChildTextInitialized();
 
         List<String> modifierList = new ArrayList<>();
