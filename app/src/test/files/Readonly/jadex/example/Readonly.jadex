@@ -1,0 +1,39 @@
+package jadex.example;
+
+apply readonly;
+
+public class Readonly {
+
+    private int capacity = 2; // readonly
+    private String? msg = "readonly"; // readonly
+
+    private int uninitializedCapacity; // error (uninitilaized readonly)
+    private String uninitializedMsg; // error (uninitilaized readonly)
+
+    private mutable String? mutableMsg = "mutable";  // mutable
+
+    public static void printMessages(String? mutableParam, String? readonlyParam) {
+
+        mutableParam = "try to change"; //error
+        readonlyParam = "try to change"; //error
+
+        System.out.println("mutableParam: " + mutableParam);
+        System.out.println("readonlyParam: " + readonlyParam);
+    }
+
+    public static void main(String[] args) {
+        var readonly = new Readonly();
+        String? mutableMsg = "changed mutable";
+
+        readonly.capacity = 10; //error
+        readonly.msg = "new readonly"; //error
+
+        readonly.mutableMsg = mutableMsg;
+
+        printMessages(readonly.msg, mutableMsg);
+
+        System.out.println("mutableMsg: " + readonly.mutableMsg);
+        System.out.println("capacity: " + readonly.capacity);
+        System.out.println("msg: " + readonly.msg);
+    }
+}
