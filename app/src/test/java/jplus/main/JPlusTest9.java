@@ -114,6 +114,7 @@ public class JPlusTest9 {
                 "jadex.example",
                 "Readonly",
                 "Error: (line:11, column:4) Final field 'uninitializedMsg' is not initialized in one or more constructors of class 'Readonly'\n" +
+                        "Error: (line:18, column:8) cannot assign a value to final variable readonlyParam\n" +
                         "Error: (line:28, column:8) cannot assign a value to final variable capacity\n" +
                         "Error: (line:29, column:8) cannot assign a value to final variable msg\n"
         );

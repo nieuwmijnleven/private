@@ -119,13 +119,13 @@ class CodeGenContextTest {
     }
 
     @Test
-    void isImmutableMode() {
+    void isReadonlyMode() {
         CodeGenContext.push();
         CodeGenContext ctx = CodeGenContext.current();
 
-        assertFalse(ctx.isImmutableMode());
-        ctx.setImmutableMode(true);
-        assertTrue(ctx.isImmutableMode());
+        assertFalse(ctx.isReadonlyMode());
+        ctx.setReadonlyMode(true);
+        assertTrue(ctx.isReadonlyMode());
     }
 
     @Test
@@ -133,11 +133,11 @@ class CodeGenContextTest {
         CodeGenContext.push();
         CodeGenContext ctx = CodeGenContext.current();
 
-        ctx.setImmutableMode(true);
-        assertTrue(ctx.isImmutableMode());
+        ctx.setReadonlyMode(true);
+        assertTrue(ctx.isReadonlyMode());
 
-        ctx.setImmutableMode(false);
-        assertFalse(ctx.isImmutableMode());
+        ctx.setReadonlyMode(false);
+        assertFalse(ctx.isReadonlyMode());
     }
 
     @Test

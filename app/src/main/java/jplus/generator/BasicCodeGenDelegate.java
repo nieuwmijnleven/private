@@ -71,7 +71,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         return switch (ctx) {
 
             case ApplyDeclarationContext applyDeclarationCtx -> {
-                checkImmutableMode(applyDeclarationCtx);
+                checkReadonlyMode(applyDeclarationCtx);
                 yield replaceApplyStatementWithComment(applyDeclarationCtx);
             }
 
@@ -106,11 +106,11 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         };
     }
 
-    private String processFormalParameterContext(JADEx25Parser.FormalParameterContext ctx) {
+    protected String processFormalParameterContext(JADEx25Parser.FormalParameterContext ctx) {
         return processVariableDeclarationContext(VariableDeclarationContextAdapter.from(ctx));
     }
 
-    protected void checkImmutableMode(ApplyDeclarationContext applyDeclarationCtx) {
+    protected void checkReadonlyMode(ApplyDeclarationContext applyDeclarationCtx) {
 
         if (!(applyDeclarationCtx.applyStatement() instanceof JADEx25Parser.ApplyStatementContext applyStmtCtx)) return;
 
@@ -119,7 +119,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             if ( "readonly".equalsIgnoreCase(Utils.getTokenString(applyFeatureContext.identifier())) ) {
 
                 var codeGenCtx = CodeGenContext.current();
-                codeGenCtx.setImmutableMode(true);
+                codeGenCtx.setReadonlyMode(true);
 
                 System.err.println("readonly feature detected.");
                 break;
@@ -130,7 +130,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     private String processVariableDeclarationContext(VariableDeclarationContextAdapter ctx) {
 
         var codeGenCtx = CodeGenContext.current();
-        if (!codeGenCtx.isImmutableMode()) {
+        if (!codeGenCtx.isReadonlyMode()) {
             return processDefaultText();
         }
 
@@ -149,12 +149,6 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
 
             if (modifierContext.MUTABLE() != null) {
                 hasMutable = true;
-
-                var modifierRange = Utils.getTextChangeRange(getOriginalText(), modifierContext.originalContext());
-                var mutableModifierRange = new TextChangeRange(modifierRange.startLine(), modifierRange.startIndex(), modifierRange.endLine(), modifierRange.inclusiveEndIndex() + 1);
-
-                updateFragmentedText(mutableModifierRange, "");
-
                 continue;
             }
 
@@ -179,7 +173,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         String replaced =
                 modifierList.stream()
                         .collect(Collectors.joining(" "));
-        replaced += " ";
+        if (!replaced.isBlank()) replaced += " ";
 
         String type = Utils.getTokenString(ctx.variableType());
         if (ctx.unannType() instanceof UnannTypeContext unannTypeCtx) {

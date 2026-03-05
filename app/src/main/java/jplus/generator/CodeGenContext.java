@@ -42,7 +42,7 @@ public class CodeGenContext {
 
     private boolean semanticMode = false;
 
-    private boolean immutableMode = false;
+    private boolean readonlyMode = false;
 
     private CodeGenContext() {}
 
@@ -75,12 +75,12 @@ public class CodeGenContext {
         this.semanticMode = semanticMode;
     }
 
-    public boolean isImmutableMode() {
-        return immutableMode;
+    public boolean isReadonlyMode() {
+        return readonlyMode;
     }
 
-    public void setImmutableMode(boolean immutableMode) {
-        this.immutableMode = immutableMode;
+    public void setReadonlyMode(boolean readonlyMode) {
+        this.readonlyMode = readonlyMode;
     }
 
     public void addSourceMappingEntry(SourceMappingEntry entry) {

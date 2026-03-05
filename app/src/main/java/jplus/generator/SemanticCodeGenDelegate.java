@@ -26,6 +26,7 @@
 
 package jplus.generator;
 
+import jplus.base.JADEx25Parser;
 import jplus.base.JADEx25Parser.ApplyDeclarationContext;
 import jplus.base.JADEx25Parser.ExpressionNameContext;
 import jplus.base.JADEx25Parser.FieldAccessContext;
@@ -54,7 +55,7 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
         return switch (ctx) {
 
             case ApplyDeclarationContext applyDeclarationCtx -> {
-                checkImmutableMode(applyDeclarationCtx);
+                checkReadonlyMode(applyDeclarationCtx);
                 yield replaceApplyStatementWithComment(applyDeclarationCtx);
             }
 
@@ -63,6 +64,9 @@ public class SemanticCodeGenDelegate extends BasicCodeGenDelegate {
 
             case LocalVariableDeclarationContext locDeclCtx
                     -> processLocalVariableDeclarationContext(locDeclCtx);
+
+            case JADEx25Parser.FormalParameterContext formalParamCtx
+                    -> processFormalParameterContext(formalParamCtx);
 
             case UnannTypeContext unannTypeCtx when unannTypeCtx.unannReferenceType() != null
                     -> replaceNullType(unannTypeCtx);

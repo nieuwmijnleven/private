@@ -12,9 +12,9 @@ public class Readonly {
 
     private mutable String? mutableMsg = "mutable";  // mutable
 
-    public static void printMessages(String? mutableParam, String? readonlyParam) {
+    public static void printMessages(mutable String? mutableParam, String? readonlyParam) {
 
-        mutableParam = "try to change"; //error
+        mutableParam = "try to change";
         readonlyParam = "try to change"; //error
 
         System.out.println("mutableParam: " + mutableParam);
