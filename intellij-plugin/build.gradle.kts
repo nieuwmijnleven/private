@@ -32,13 +32,14 @@ plugins {
 }
 
 group = "jplus.plugin.intellij"
-version = "0.42"
+version = "0.49"
 
 repositories {
     mavenCentral()
     intellijPlatform {
         defaultRepositories()
     }
+    maven { url = uri("https://jitpack.io") }
 }
 
 // Configure IntelliJ Platform Gradle Plugin
@@ -56,7 +57,8 @@ dependencies {
     antlr("org.antlr:antlr4:4.12.0") { // use ANTLR version 4
         exclude(group="com.ibm.icu", module="icu4j")
     }
-    implementation("org.antlr:antlr4-intellij-adaptor:0.1")
+    //implementation("org.antlr:antlr4-intellij-adaptor:0.1")
+    implementation("com.github.nieuwmijnleven:antlr4-intellij-adaptor:-SNAPSHOT")
     implementation("org.jspecify:jspecify:1.0.0")
     implementation("org.bitbucket.cowwoc:diff-match-patch:1.2")
 }
