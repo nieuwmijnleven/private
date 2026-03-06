@@ -43,12 +43,18 @@ public class IdentifierPsiElement extends ANTLRPsiLeafNode implements PsiNamedEl
     }
 
     @Override
-    public PsiElement setName(@NlsSafe @NotNull String s) throws IncorrectOperationException {
-        return null;
+    public PsiElement setName(@NlsSafe @NotNull String newName) throws IncorrectOperationException {
+        if (newName.isEmpty()) {
+            throw new IncorrectOperationException("Identifier name cannot be empty");
+        }
+
+        IdentifierPsiElement newIdentifier = new IdentifierPsiElement(getNode().getElementType(), newName);
+        return (PsiElement) this.replace(newIdentifier);
     }
 
     @Override
     public PsiReference getReference() {
-        return new JPlusPsiReference(this, new TextRange(0, getTextLength()));
+        //return new JPlusPsiReference(this, new TextRange(0, getTextLength()));
+        return null;
     }
 }
