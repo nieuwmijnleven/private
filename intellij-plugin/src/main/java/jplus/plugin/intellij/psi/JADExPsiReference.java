@@ -26,39 +26,33 @@
 
 package jplus.plugin.intellij.psi;
 
-import com.intellij.openapi.util.NlsSafe;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.IncorrectOperationException;
-import org.antlr.intellij.adaptor.psi.ANTLRPsiLeafNode;
+import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.antlr.intellij.adaptor.psi.ScopeNode;
 import org.jetbrains.annotations.NotNull;
 
-public class IdentifierPsiElement extends ANTLRPsiLeafNode implements PsiNamedElement {
+public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
 
-    public IdentifierPsiElement(IElementType type, CharSequence text) {
-        super(type, text);
+    public JADExPsiReference(@NotNull PsiElement element) {
+        super(element);
     }
 
     @Override
-    public String getName() {
-        return getText();
-    }
+    public PsiElement resolve() {
 
-    @Override
-    public PsiElement setName(@NlsSafe @NotNull String newName) throws IncorrectOperationException {
-        if (newName.isEmpty()) {
-            throw new IncorrectOperationException("Identifier name cannot be empty");
+        ScopeNode scope = PsiTreeUtil.getParentOfType(myElement, ScopeNode.class);
+        while (scope != null) {
+            System.err.println("[ScopeNode] scope = " + scope.getClass().getSimpleName());
+            var psiElement = scope.resolve((PsiNamedElement) myElement);
+            if (psiElement != null) {
+                return psiElement;
+            }
+
+            scope = PsiTreeUtil.getParentOfType(scope, ScopeNode.class);
         }
 
-        IdentifierPsiElement newIdentifier = new IdentifierPsiElement(getNode().getElementType(), newName);
-        return this.replace(newIdentifier);
-    }
-
-    @Override
-    public PsiReference getReference() {
-        return new JADExPsiReference(this);
+        return null;
     }
 }
