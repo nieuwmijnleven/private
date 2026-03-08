@@ -102,23 +102,27 @@ public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
     }
 
     private String getResolvedFQN(PsiElement resolved) {
+
         if (resolved instanceof PsiClass psiClass) {
             return psiClass.getQualifiedName();
         }
+
         if (resolved instanceof PsiMethod psiMethod) {
             PsiClass clazz = psiMethod.getContainingClass();
             return clazz != null ? clazz.getQualifiedName() + "." + psiMethod.getName() : null;
         }
+
         if (resolved instanceof PsiField psiField) {
             PsiClass clazz = psiField.getContainingClass();
             return clazz != null ? clazz.getQualifiedName() + "." + psiField.getName() : null;
         }
+
         if (resolved instanceof PsiVariable psiVariable) {
-            // 로컬 변수, 파라미터 등: 소속 메서드 또는 클래스 + 이름
             PsiElement scope = psiVariable.getParent();
             String name = psiVariable.getName();
+
             if (psiVariable instanceof PsiParameter) {
-                // 파라미터
+
                 PsiMethod method = PsiTreeUtil.getParentOfType(psiVariable, PsiMethod.class);
                 if (method != null) {
                     PsiClass clazz = method.getContainingClass();
@@ -126,7 +130,7 @@ public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
                     return classFQN != null ? classFQN + "." + method.getName() + "." + name : method.getName() + "." + name;
                 }
             } else if (psiVariable instanceof PsiLocalVariable) {
-                // 로컬 변수
+
                 PsiMethod method = PsiTreeUtil.getParentOfType(psiVariable, PsiMethod.class);
                 if (method != null) {
                     PsiClass clazz = method.getContainingClass();
@@ -134,9 +138,10 @@ public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
                     return classFQN != null ? classFQN + "." + method.getName() + "." + name : method.getName() + "." + name;
                 }
             }
-            // 그 외 변수 (필드 아닌 경우)
+
             return name;
         }
-        return null; // 로컬 변수나 기타는 FQN 없음
+
+        return null;
     }
 }
