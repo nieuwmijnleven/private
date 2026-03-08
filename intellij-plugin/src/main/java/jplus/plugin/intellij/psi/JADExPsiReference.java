@@ -26,12 +26,24 @@
 
 package jplus.plugin.intellij.psi;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.PsiVariable;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.antlr.intellij.adaptor.psi.ScopeNode;
+import jplus.plugin.intellij.util.JPlusUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
 
@@ -42,17 +54,89 @@ public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
     @Override
     public PsiElement resolve() {
 
-        ScopeNode scope = PsiTreeUtil.getParentOfType(myElement, ScopeNode.class);
-        while (scope != null) {
-            System.err.println("[ScopeNode] scope = " + scope.getClass().getSimpleName());
-            var psiElement = scope.resolve((PsiNamedElement) myElement);
-            if (psiElement != null) {
-                return psiElement;
+        Project project = myElement.getProject();
+        PsiFile jadexPsiFile = myElement.getContainingFile();
+
+        PsiJavaFile javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jadexPsiFile);
+
+        String currentFQN = javaFile.getClasses()[0].getQualifiedName();
+
+        int mapOffset = JPlusUtil.findMapOffset(jadexPsiFile.getText(), javaFile.getText(), myElement.getTextRange().getStartOffset());
+        PsiElement javaPsiElement = JPlusUtil.findCorrespondingPsiElement(javaFile, mapOffset);
+
+        if (javaPsiElement == null) return null;
+
+        if (!(javaPsiElement instanceof PsiIdentifier)) {
+
+            var javaPsiElementOpt =
+                PsiTreeUtil.getChildrenOfTypeAsList(javaPsiElement, PsiIdentifier.class).stream()
+                          .filter(psiIdentifier -> Objects.equals(psiIdentifier.getText(), myElement.getText()))
+                        .findFirst();
+
+            if (javaPsiElementOpt.isEmpty()) return null;
+
+            javaPsiElement = javaPsiElementOpt.get();
+        }
+
+        var psiJavaCodeReferenceElement = PsiTreeUtil.getParentOfType(javaPsiElement, false, PsiJavaCodeReferenceElement.class);
+
+        PsiElement resolved = null;
+        if (psiJavaCodeReferenceElement != null) {
+
+            var reference = psiJavaCodeReferenceElement.getReference();
+            if (reference == null) return null;
+
+            resolved = reference.resolve();
+            if (resolved == null) return null;
+
+            String qualifiedName = getResolvedFQN(resolved);
+            if (qualifiedName == null || !qualifiedName.startsWith(currentFQN)) {
+                return resolved;
             }
 
-            scope = PsiTreeUtil.getParentOfType(scope, ScopeNode.class);
+            int jadexMapOffset = JPlusUtil.findMapOffset(javaFile.getText(), jadexPsiFile.getText(), resolved.getTextRange().getStartOffset());
+            return JPlusUtil.findCorrespondingPsiElement(jadexPsiFile, jadexMapOffset);
         }
 
         return null;
+    }
+
+    private String getResolvedFQN(PsiElement resolved) {
+        if (resolved instanceof PsiClass psiClass) {
+            return psiClass.getQualifiedName();
+        }
+        if (resolved instanceof PsiMethod psiMethod) {
+            PsiClass clazz = psiMethod.getContainingClass();
+            return clazz != null ? clazz.getQualifiedName() + "." + psiMethod.getName() : null;
+        }
+        if (resolved instanceof PsiField psiField) {
+            PsiClass clazz = psiField.getContainingClass();
+            return clazz != null ? clazz.getQualifiedName() + "." + psiField.getName() : null;
+        }
+        if (resolved instanceof PsiVariable psiVariable) {
+            // 로컬 변수, 파라미터 등: 소속 메서드 또는 클래스 + 이름
+            PsiElement scope = psiVariable.getParent();
+            String name = psiVariable.getName();
+            if (psiVariable instanceof PsiParameter) {
+                // 파라미터
+                PsiMethod method = PsiTreeUtil.getParentOfType(psiVariable, PsiMethod.class);
+                if (method != null) {
+                    PsiClass clazz = method.getContainingClass();
+                    String classFQN = clazz != null ? clazz.getQualifiedName() : null;
+                    return classFQN != null ? classFQN + "." + method.getName() + "." + name : method.getName() + "." + name;
+                }
+            } else if (psiVariable instanceof PsiLocalVariable) {
+                // 로컬 변수
+                PsiMethod method = PsiTreeUtil.getParentOfType(psiVariable, PsiMethod.class);
+                if (method != null) {
+                    PsiClass clazz = method.getContainingClass();
+                    String classFQN = clazz != null ? clazz.getQualifiedName() : null;
+                    return classFQN != null ? classFQN + "." + method.getName() + "." + name : method.getName() + "." + name;
+                }
+            }
+            // 그 외 변수 (필드 아닌 경우)
+            return name;
+        }
+        return null; // 로컬 변수나 기타는 FQN 없음
     }
 }
