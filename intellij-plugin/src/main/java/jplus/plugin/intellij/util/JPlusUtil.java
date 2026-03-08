@@ -54,21 +54,15 @@ public class JPlusUtil {
         jplus.base.Project jplusProject = JPlusIntelliJProjectUtil.buildJPlusProject(ideaProject, module);
 
         JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusFile.getText());
-        String javaText = processor.compile();
-        if (javaText == null || javaText.isEmpty()) return null;
 
-//        LightVirtualFile vFile = new LightVirtualFile(
-//                "Temp.java",
-//                JavaFileType.INSTANCE,
-//                javaText
-//        );
-//        return (PsiJavaFile) PsiManager.getInstance(project).findFile(vFile);
+        //String javaText = processor.compile();
+        String javaText = processor.transformJADExToJava();
 
         return (PsiJavaFile) PsiFileFactory.getInstance(project)
                 .createFileFromText("Temp.java", JavaFileType.INSTANCE, javaText);
     }
 
-    public static int findNewOffset(String oldText, String newText, int oldOffset) {
+    public static int findMapOffset(String oldText, String newText, int oldOffset) {
         DiffMatchPatch dmp = new DiffMatchPatch();
         LinkedList<DiffMatchPatch.Diff> diffs = dmp.diffMain(oldText, newText);
 //        dmp.diffCleanupSemantic(diffs);
