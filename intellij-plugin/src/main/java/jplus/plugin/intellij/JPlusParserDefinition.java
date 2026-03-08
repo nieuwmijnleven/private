@@ -44,7 +44,6 @@ import jplus.plugin.intellij.psi.ApplyBlockPsiElement;
 import jplus.plugin.intellij.psi.ApplyStatementPsiElement;
 import jplus.plugin.intellij.psi.MethodDeclarationPsiElement;
 import jplus.plugin.intellij.psi.NormalClassDeclarationPsiElement;
-import jplus.plugin.intellij.psi.TypeIdentifierPsiElement;
 import jplus.plugin.intellij.psi.VariableDeclaratorPsiElement;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.adaptor.lexer.TokenIElementType;
