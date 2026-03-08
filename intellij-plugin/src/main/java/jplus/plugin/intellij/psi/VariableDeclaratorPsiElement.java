@@ -31,39 +31,29 @@ import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import jplus.base.JADEx25Parser;
-import jplus.plugin.intellij.JPlusLanguage;
-import jplus.plugin.intellij.JPlusTokenTypes;
 import jplus.plugin.intellij.util.PsiUtils;
-import org.antlr.intellij.adaptor.lexer.RuleIElementType;
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode;
-import org.antlr.intellij.adaptor.psi.ScopeNode;
-import org.antlr.intellij.adaptor.psi.Trees;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Objects;
+public class VariableDeclaratorPsiElement extends ANTLRPsiNode implements PsiNameIdentifierOwner {
 
-public class NormalClassDeclarationPsiElement extends ANTLRPsiNode implements PsiNameIdentifierOwner, ScopeNode {
-
-    public NormalClassDeclarationPsiElement(@NotNull ASTNode node) {
+    public VariableDeclaratorPsiElement(@NotNull ASTNode node) {
         super(node);
     }
 
     @Override
     public @Nullable PsiElement getNameIdentifier() {
 
-        PsiElement typeIdentifierNode = findChildByType(PsiUtils.getIElementType(JADEx25Parser.RULE_typeIdentifier));
-        if (typeIdentifierNode == null) return null;
+        PsiElement variableDeclaratorIdNode = findChildByType(PsiUtils.getIElementType(JADEx25Parser.RULE_variableDeclaratorId));
+        if (variableDeclaratorIdNode == null) return null;
 
-        return PsiTreeUtil.findChildOfType(
-                typeIdentifierNode,
-                IdentifierPsiElement.class
-        );
+        ASTNode identifierNode = variableDeclaratorIdNode.getNode().findChildByType(PsiUtils.getIElementType(JADEx25Parser.RULE_identifier));
+        if (identifierNode == null) return null;
+
+        return identifierNode.getPsi();
     }
 
     @Override
@@ -81,27 +71,5 @@ public class NormalClassDeclarationPsiElement extends ANTLRPsiNode implements Ps
         }
 
         return this;
-    }
-
-    @Override
-    public @Nullable PsiElement resolve(PsiNamedElement element) {
-
-        String name = element.getName();
-        if (name == null) return null;
-
-        Collection<PsiNameIdentifierOwner> ids =
-                PsiTreeUtil.findChildrenOfType(this, PsiNameIdentifierOwner.class);
-
-        for (PsiNameIdentifierOwner id : ids) {
-
-            ScopeNode scope = PsiTreeUtil.getParentOfType(id, ScopeNode.class);
-            if (scope != this) continue;
-
-            if (Objects.equals(name, id.getName())) {
-                return id;
-            }
-        }
-
-        return null;
     }
 }
