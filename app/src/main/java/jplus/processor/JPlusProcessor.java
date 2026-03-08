@@ -128,18 +128,23 @@ public class JPlusProcessor {
     // Main processing pipeline
     // --------------------------------------------------------------
 
+    private void buildParseTree() {
+
+        CharStream input = CharStreams.fromString(originalText);
+        JADEx25Lexer lexer = new JADEx25Lexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+        parser = new JADEx25Parser(tokens);
+        parseTree = parser.start_();
+    }
+
     public List<Issue> process() throws Exception {
         if (processed) return null;
 
         CodeGenContext.push();
         try {
 
-            CharStream input = CharStreams.fromString(originalText);
-            JADEx25Lexer lexer = new JADEx25Lexer(input);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            parser = new JADEx25Parser(tokens);
-
-            parseTree = parser.start_();
+            buildParseTree();
             processed = true;
 
             generateRuntime();
@@ -420,6 +425,22 @@ public class JPlusProcessor {
         return nullabilityChecker.getIssues().stream().sorted().toList();
     }
 
+    public String transformJADExToJava() {
+
+        if (parseTree == null) buildParseTree();
+
+        CodeGenContext.push();
+        try {
+
+            CodeGenContext.current().setSemanticMode(false);
+            CodeGenContext.current().setFragmentedText(new FragmentedText(originalText));
+
+            return parseTree.getText();
+        } finally {
+            CodeGenContext.pop();
+        }
+    }
+
     public String generateJavaCode() {
         //if (!symbolsAnalyzed || !nullabilityChecked) {
         if (!symbolsAnalyzed) {
@@ -427,17 +448,7 @@ public class JPlusProcessor {
             throw new IllegalStateException("Must perform symbol analysis first.");
         }
 
-        CodeGenContext.push();
-        String generated = null;
-        try {
-            CodeGenContext.current().setSemanticMode(false);
-            CodeGenContext.current().setFragmentedText(new FragmentedText(originalText));
-
-            generated = parseTree.getText();
-        } finally {
-            CodeGenContext.pop();
-        }
-
+        String generated = transformJADExToJava();
         //System.err.println("[generateJavaCode] javaCode = " + generated);
 
         int startIndex = parseTree.start.getStartIndex();
