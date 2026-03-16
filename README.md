@@ -16,24 +16,24 @@ JADEx (Java Advanced Development Extension) is a practical **Java safety layer**
 
 * JADEx is a **Java safety layer** that strengthens the language’s type system by enforcing **null-safety** and **readonly (final-by-default)** semantics. It brings compile-time guarantees to your existing Java code without requiring a full rewrite, while fully leveraging existing Java libraries and tools.
 
-				+---------------------------+
-				|       Existing Java       |
-				| (potentially unsafe)      |
-				+------------+--------------+
-						 	 |
-						 	 v
-		+----------------------------------------+
-		|       JADEx (Java Safety Layer)        |
-		| (strengthens type system, applies      |
-		|  null-safety & readonly operators)     |
-		+------------------+---------------------+
-							 |
-							 v
-			    +---------------------------+
-			    |   Safe & Robust Java Code |
-			    | (compile-time enforcement |
-			    | of null-safety & readonly)|
-			    +---------------------------+
+    			+---------------------------+
+    			|       Existing Java       |
+    			| (potentially unsafe)      |
+    			+------------+--------------+
+    					 	 |
+    					 	 v
+    	+----------------------------------------+
+    	|       JADEx (Java Safety Layer)        |
+    	| (strengthens type system, applies      |
+    	|  null-safety operators & readonly)     |
+    	+------------------+---------------------+
+    						 |
+    						 v
+    		    +---------------------------+
+    		    |   Safe & Robust Java Code |
+    		    | (compile-time enforcement |
+    		    | of null-safety & readonly)|
+    		    +---------------------------+
 
 > **JADEx is not designed to replace Java. It acts as a practical Java safety layer, strengthening Java’s null-related type system and providing optional readonly semantics, all without leaving the existing Java ecosystem**.
 
@@ -45,13 +45,8 @@ JADEx (Java Advanced Development Extension) is a practical **Java safety layer**
 * Enhanced Code Safety: Catch potential null-pointer issues at compile time, not runtime.
 
 > **JADEx makes your Java code safer, more maintainable, and future-proof without compromise**.
----
 
-## 💡 How to make your java code null-safe
-
-Making your existing Java code null-safe with JADEx is simple and straightforward. The process guides you from analyzing potential null-pointer issues to applying null-safety operators, and finally generating safe, standard Java code without rewriting your code or leaving the Java ecosystem.
-
-### Workflow (with JADEx IntelliJ Plugin)
+### Workflow (with JADEx IntelliJ Plugin and Gradle Plugin)
 
 The typical JADEx workflow for producing Java source code with enhanced null-safety guarantees is as follows:
 
@@ -77,6 +72,10 @@ The typical JADEx workflow for producing Java source code with enhanced null-saf
 * Existing Java source files are copied unchanged into `.jadex` files. JADEx null-safety operators are then applied to the JADEx sources to explicitly annotate and enforce null-safety semantics. These annotated JADEx sources are subsequently compiled by the JADEx compiler into Java source code with enhanced null-safety guarantees.
 
 * Essentially, **all you need to do is review the null-safety analysis results and apply the null-safety operators** in your `.jadex` files. The JADEx IntelliJ plugin takes care of the rest automatically.
+
+---
+
+## Installation
 
 ### JADEx IntelliJ Plugin Installation
 The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply null-safety operators without leaving your familiar IDE. Follow the steps below to install it.
@@ -105,6 +104,76 @@ The JADEx IntelliJ plugin allows you to easily analyze your Java code and apply 
 - Restart IntelliJ
 
 ---
+
+### JADEx Gradle Plugin Installation
+
+The JADEx Gradle plugin allows you to compile `.jadex` files into standard Java source files as part of your existing Gradle build pipeline.
+
+**Prerequisites**
+
+- JDK 21 or above
+- Gradle 8.0 or above
+
+**Installation**
+
+Add the plugin to your `build.gradle`:
+```groovy
+plugins {
+    id 'io.github.nieuwmijnleven.jadex' version '0.14'
+}
+```
+
+Or in `build.gradle.kts`:
+```kotlin
+plugins {
+    id("io.github.nieuwmijnleven.jadex") version "0.14"
+}
+```
+
+**Available Tasks**
+
+| Task | Description |
+|---|---|
+| `compileJadex` | Compiles `.jadex` source files into standard Java source files with enhanced null-safety |
+
+**Basic Usage**
+
+Place your `.jadex` files under `src/main/jadex`, then run:
+```bash
+./gradlew compileJadex
+```
+
+The generated Java source files will be output to
+`build/generated/sources/jadex/main/java` and automatically included
+in subsequent Java compilation.
+
+The generated Java source files will be output to the build directory and automatically included in subsequent Java compilation.
+
+**(Optional) Custom Configuration**
+
+To override the default source or output directory, add a `jadex` block to your `build.gradle`:
+```groovy
+jadex {
+    sourceDir = "src/main/jadex"
+    outputDir = "build/generated/sources/jadex/main/java"
+}
+```
+
+Or in `build.gradle.kts`:
+```kotlin
+jadex {
+    sourceDir = "src/main/jadex"
+    outputDir = "build/generated/sources/jadex/main/java"
+}
+```
+
+> **Tip:** Use the Gradle plugin in your CI/CD pipeline to enforce null-safety checks and readonly semantics on every build, and the IntelliJ plugin locally for interactive analysis and operator application.
+
+---
+
+## 💡 How to make your java code null-safe
+
+Making your existing Java code null-safe with JADEx is simple and straightforward. The process guides you from analyzing potential null-pointer issues to applying null-safety operators, and finally generating safe, standard Java code without rewriting your code or leaving the Java ecosystem.
 
 ### 📚 Essential Examples
 - Simple, focused examples showing how to use JADEx null-safety operators.
@@ -343,7 +412,7 @@ JADEx allows even complex null-handling logic to be expressed **safely and conci
 - Hands-on examples that demonstrate the core JADEx null-safety features in everyday Java code.  
   These examples focus on common patterns such as nullable fields, safe access (`?.`), and evis operator (`?:`) to help you quickly understand how to write null-safe code with JADEx.
 
-	[Making Your Java Code Null-Safe without Rewriting it](https://github.com/nieuwmijnleven/JADEx/blob/master/BasicExample.md)
+  [Making Your Java Code Null-Safe without Rewriting it](https://github.com/nieuwmijnleven/JADEx/blob/master/BasicExample.md)
 
 ---
 
@@ -351,13 +420,13 @@ JADEx allows even complex null-handling logic to be expressed **safely and conci
 
 - This section demonstrates how to apply **JADEx** to a larger, real-world Java codebase and resolve null-safety issues reported by the tool.
 
-	[Applying JADEx to a Real Java Project: Making OntheGoDataBase Null-Safe](https://github.com/nieuwmijnleven/JADEx/blob/master/RealworldExample.md)
+  [Applying JADEx to a Real Java Project: Making OntheGoDataBase Null-Safe](https://github.com/nieuwmijnleven/JADEx/blob/master/RealworldExample.md)
 
 ---
 
 ## 💡 How to make your Java code readonly
 
-JADEx allows you to optionally make fields, local variables, and method parameters **readonly (final-by-default)**. This helps prevent accidental reassignment and enforces immutability where you choose to apply it. 
+JADEx allows you to optionally make fields, local variables, and method parameters **readonly (final-by-default)**. This helps prevent accidental reassignment and enforces immutability where you choose to apply it.
 
 The process is straightforward:
 
@@ -599,11 +668,11 @@ This difference is immediately noticeable in daily development.
 **2. Why They Work Well Together**
 
 - **No conflicts arise** between Valhalla and JADEx; they operate at different layers:
-  - Valhalla → runtime and memory optimizations (JVM Level)
-  - JADEx → source-level null-safety and expressiveness (Source Code Level)
+    - Valhalla → runtime and memory optimizations (JVM Level)
+    - JADEx → source-level null-safety and expressiveness (Source Code Level)
 
-- After Valhalla is released, JADEx-generated code **can include Valhalla’s `nonnull` annotations** automatically.  
-    - This means that developers **gain clear, explicit information about which types are nullable or non-nullable** directly in the source code.  
+- After Valhalla is released, JADEx-generated code **can include Valhalla’s `nonnull` annotations** automatically.
+    - This means that developers **gain clear, explicit information about which types are nullable or non-nullable** directly in the source code.
 
     - As a result, developers can write safer and more predictable code, **confidently knowing which variables can or cannot be null**, without extra manual annotations or runtime checks.
 
@@ -617,8 +686,8 @@ This difference is immediately noticeable in daily development.
 
 **A:** Yes.
 
-- **Unmodified Java files** continue to **compile as-is** without any changes.  
-- **JADEx features** can be **enabled incrementally**, allowing developers to adopt them **file by file**.  
+- **Unmodified Java files** continue to **compile as-is** without any changes.
+- **JADEx features** can be **enabled incrementally**, allowing developers to adopt them **file by file**.
 - This approach makes it easy to **gradually introduce null-safety** into an existing Java codebase without disrupting existing functionality.
 
 ---
@@ -643,8 +712,8 @@ Instead, it makes nullability explicit at the usage boundary and enforces safe a
 
 **A:** No.
 
-- **Kotlin** : a separate JVM language, designed independently  
-- **JADEx** : a **Java language extension**, enhancing Java with **null-safety and type expressiveness**  
+- **Kotlin** : a separate JVM language, designed independently
+- **JADEx** : a **Java language extension**, enhancing Java with **null-safety and type expressiveness**
 
 **Key Point:**  
 JADEx does **not aim to replace Java**; it simply **extends Java**, making it safer and more expressive while staying fully compatible with existing Java code.
@@ -654,14 +723,14 @@ JADEx does **not aim to replace Java**; it simply **extends Java**, making it sa
 
 #### Q: What about performance?
 
-**A:** JADEx operates at the **source code level**, producing **Java source files with enhanced null-safety**.  
+**A:** JADEx operates at the **source code level**, producing **Java source files with enhanced null-safety**.
 
-- The workflow generates **standard Java constructs**, enhanced with null-safety operators.  
-- JADEx itself **does not generate bytecode**; the resulting Java source is then compiled using a **regular Java compiler**.  
-- Since JADEx only modifies source code, there is **no runtime overhead** beyond what a developer would write manually.  
+- The workflow generates **standard Java constructs**, enhanced with null-safety operators.
+- JADEx itself **does not generate bytecode**; the resulting Java source is then compiled using a **regular Java compiler**.
+- Since JADEx only modifies source code, there is **no runtime overhead** beyond what a developer would write manually.
 
-**Key Point:**  
-- JADEx improves **null-safety at the source level**, **without affecting runtime performance**.  
+**Key Point:**
+- JADEx improves **null-safety at the source level**, **without affecting runtime performance**.
 - Developers can safely adopt JADEx while ensuring that the resulting code runs as efficiently as standard Java code.
 
 ---

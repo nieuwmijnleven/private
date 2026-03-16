@@ -24,26 +24,27 @@
  * a commercial license. See the CLA file in the project root for details.
  */
 
-package jplus.plugin.intellij.gradle;
+package jadex.gradle;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import jplus.plugin.intellij.settings.JadexProjectSettings;
+public class JadexExtension {
 
-import java.util.List;
+    private String sourceDir = "src/main/jadex";
 
-public class JadexPathManager {
+    private String outputDir = "build/generated/sources/jadex/main/java";
 
-    public static void refresh(Project project) {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            JadexPathResolver resolver = JadexPathResolver.getInstance(project);
-            resolver.invalidateCache();
+    public String getSourceDir() {
+        return sourceDir;
+    }
 
-            List<ResolvedPaths> paths = resolver.resolve(project);
-            System.out.println("[JadexPathManager] refresh()");
-            paths.forEach(System.out::println);
+    public void setSourceDir(String sourceDir) {
+        this.sourceDir = sourceDir;
+    }
 
-            JadexProjectSettings.getInstance(project).update(paths);
-        });
+    public String getOutputDir() {
+        return outputDir;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
     }
 }
