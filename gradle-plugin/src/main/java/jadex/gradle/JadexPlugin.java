@@ -32,6 +32,7 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import javax.inject.Inject;
+import java.net.URISyntaxException;
 
 public class JadexPlugin implements Plugin<Project> {
 
@@ -51,10 +52,6 @@ public class JadexPlugin implements Plugin<Project> {
 
         registry.register(new JadexModelBuilder());
 
-//        project.getPlugins().withType(ToolingModelBuilderRegistry.class, registry -> {
-//            registry.register(new JadexModelBuilder());
-//        });
-
         project.getTasks().register("compileJadex", JadexCompileTask.class, task -> {
 
             task.setSourceDir(project.file(extension.getSourceDir()));
@@ -65,6 +62,9 @@ public class JadexPlugin implements Plugin<Project> {
         project.getTasks()
                 .named("compileJava")
                 .configure(t -> t.dependsOn("compileJadex"));
+
+        project.getRepositories().mavenCentral();
+        project.getDependencies().add("compileOnly", "org.jspecify:jspecify:1.0.0");
 
         project.afterEvaluate(p -> {
 
@@ -82,15 +82,6 @@ public class JadexPlugin implements Plugin<Project> {
             javaExt.getSourceSets()
                     .getByName("main")
                     .getJava().getSrcDirs().stream().forEach(file -> System.out.println("[JadexPluin][JADEx] sourceDirs = " + file.toString()));
-
         });
-
-        /*JavaPluginExtension javaExt =
-                project.getExtensions().getByType(JavaPluginExtension.class);
-
-        javaExt.getSourceSets()
-                .getByName("main")
-                .getJava()
-                .srcDir(extension.getOutputDir());*/
     }
 }

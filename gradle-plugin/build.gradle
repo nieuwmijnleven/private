@@ -43,7 +43,7 @@ plugins {
 }
 
 group = "io.github.nieuwmijnleven.jadex"
-version = "0.14"
+version = "0.59"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -101,7 +101,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates("io.github.nieuwmijnleven.jadex", "jadex-gradle-plugin", "0.14")
+    coordinates("io.github.nieuwmijnleven.jadex", "jadex-gradle-plugin", "0.59")
 
     pom {
         name = 'JADEx Gradle Plugin'
