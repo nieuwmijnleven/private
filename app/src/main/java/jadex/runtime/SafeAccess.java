@@ -14,6 +14,11 @@ public final class SafeAccess<T> {
         T get() throws Exception;
     }
 
+    @FunctionalInterface
+    public interface CheckedConsumer<T> {
+        void accept(T value) throws Exception;
+    }
+
     private sealed interface State<T> permits Present, Empty, Failed {}
 
     private static final class Present<T> implements State<T> {
@@ -91,6 +96,22 @@ public final class SafeAccess<T> {
             case Empty<T> e -> supplier.get();
             case Failed<T> f -> sneakyThrow(f.exception);
         };
+    }
+
+    public void ifPresent(CheckedConsumer<? super T> consumer) {
+        switch (state) {
+            case Present<T> p -> {
+                try {
+                    consumer.accept(p.value);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    sneakyThrow(e);
+                }
+            }
+            case Empty<T> e -> {}
+            case Failed<T> f -> sneakyThrow(f.exception);
+        }
     }
 
     // isPresent (optional)
