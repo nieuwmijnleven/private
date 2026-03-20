@@ -26,8 +26,10 @@
 
 package jplus.plugin.intellij.psi;
 
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
@@ -62,13 +64,13 @@ public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
         Project project = myElement.getProject();
         PsiFile jadexPsiFile = myElement.getContainingFile();
 
+        if (!isCommitted()) return null;
+
 //        PsiJavaFile javaFile = JPlusUtil.createJavaPsiFromJPlus(project, jadexPsiFile, true);
 //        if (javaFile == null) return null;
 
         PsiJavaFile javaFile = getCachedJavaFile(project, jadexPsiFile);
         if (javaFile == null) return null;
-
-        String currentFQN = javaFile.getClasses()[0].getQualifiedName();
 
         int mapOffset = JPlusUtil.findMapOffset(jadexPsiFile.getText(), javaFile.getText(), myElement.getTextRange().getStartOffset());
         PsiElement javaPsiElement = JPlusUtil.findCorrespondingPsiElement(javaFile, mapOffset);
@@ -87,10 +89,22 @@ public class JADExPsiReference extends PsiReferenceBase<PsiElement> {
             javaPsiElement = javaPsiElementOpt.get();
         }
 
+        String currentFQN = javaFile.getClasses()[0].getQualifiedName();
         var resolved = resolveReferencePsiElement(jadexPsiFile, javaFile, javaPsiElement, currentFQN, PsiReferenceExpression.class);
+
         if (resolved != null) return resolved;
 
         return resolveReferencePsiElement(jadexPsiFile, javaFile, javaPsiElement, currentFQN, PsiJavaCodeReferenceElement.class);
+    }
+
+    private boolean isCommitted() {
+
+        var project = myElement.getProject();
+        var document = PsiDocumentManager
+                .getInstance(project)
+                .getDocument(myElement.getContainingFile());
+
+        return document != null && PsiDocumentManager.getInstance(project).isCommitted(document);
     }
 
     private PsiElement resolveReferencePsiElement(PsiFile jadexPsiFile, PsiJavaFile javaFile, PsiElement javaPsiElement, String currentFQN, Class<? extends PsiElement> psiReferenceClass) {
