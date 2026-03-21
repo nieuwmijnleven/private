@@ -34,6 +34,8 @@ import jplus.base.JavaMethodInvocationManager;
 import jplus.base.MethodInvocationInfo;
 import jplus.base.Project;
 import jplus.base.SymbolTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -45,7 +47,10 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import java.io.File;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,11 +59,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
 public class JavaProcessor {
 
-    private static WeakReference<JavaCompiler> cachedCompilerRef;
+    private static final Logger log = LoggerFactory.getLogger(JavaProcessor.class);
+
+    private static final Object COMPILER_LOCK = new Object();
+    private static SoftReference<JavaCompiler> cachedCompilerRef;
 
     private final Project project;
 
@@ -102,29 +111,118 @@ public class JavaProcessor {
         this(project, Files.readString(filePath, StandardCharsets.UTF_8));
     }
 
-    private synchronized JavaCompiler getCachedJavaCompiler() {
+    private JavaCompiler getOrLoadJavaCompiler() {
+
         if (cachedCompilerRef != null) {
             JavaCompiler cached = cachedCompilerRef.get();
             if (cached != null) return cached;
         }
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler != null) {
-            cachedCompilerRef = new WeakReference<>(compiler);
+        synchronized (COMPILER_LOCK) {
+
+            if (cachedCompilerRef != null) {
+                JavaCompiler cached = cachedCompilerRef.get();
+                if (cached != null) return cached;
+            }
+
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+            if (compiler == null && project != null && project.getJdkHome() != null) {
+                compiler = loadJavaCompilerFromJdkHome();
+            }
+
+            if (compiler == null) {
+                throw new IllegalStateException(
+                        "No Java compiler available. Ensure a JDK (not JRE) is used.");
+            }
+
+            cachedCompilerRef = new SoftReference<>(compiler);
+            return compiler;
         }
-        return compiler;
+    }
+
+    private JavaCompiler loadJavaCompilerFromJdkHome() {
+        Path jdkHome = Path.of(project.getJdkHome());
+
+        Path javacBin = jdkHome.resolve("bin").resolve(
+                System.getProperty("os.name").toLowerCase().contains("win") ? "javac.exe" : "javac"
+        );
+
+        if (!Files.exists(javacBin)) {
+            throw new IllegalStateException(
+                    "javac not found in JDK home: " + jdkHome + ". Ensure a JDK (not JRE) is installed.");
+        }
+
+        // JDK 8: tools.jar
+        Path toolsJar = jdkHome.resolve("lib").resolve("tools.jar");
+        if (Files.exists(toolsJar)) {
+            return loadFromToolsJar(toolsJar);
+        }
+
+        // JDK 9+: java modules
+        return loadFromModularJdk(jdkHome);
+    }
+
+    private JavaCompiler loadFromToolsJar(Path toolsJar) {
+        try {
+            URLClassLoader classLoader = new URLClassLoader(
+                    new URL[]{toolsJar.toUri().toURL()},
+                    ClassLoader.getPlatformClassLoader()
+            );
+            Class<?> javacClass = Class.forName(
+                    "com.sun.tools.javac.api.JavacTool", true, classLoader);
+            return (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load JavaCompiler from tools.jar: " + toolsJar, e);
+        }
+    }
+
+    private JavaCompiler loadFromModularJdk(Path jdkHome) {
+
+        List<Path> candidates = List.of(
+                jdkHome.resolve("lib").resolve("modules"),        // Standard JDK
+                jdkHome.resolve("jmods").resolve("java.compiler.jmod"), // jmod
+                jdkHome.resolve("lib").resolve("tools.jar")
+        );
+
+        List<URL> urls = new ArrayList<>();
+        for (Path candidate : candidates) {
+            if (Files.exists(candidate)) {
+                try {
+                    urls.add(candidate.toUri().toURL());
+                } catch (Exception ignored) {}
+            }
+        }
+
+        try {
+            urls.add(jdkHome.resolve("lib").toUri().toURL());
+        } catch (Exception ignored) {}
+
+        try {
+            URLClassLoader classLoader = new URLClassLoader(
+                    urls.toArray(new URL[0]),
+                    ClassLoader.getPlatformClassLoader()
+            );
+
+            JavaCompiler compiler = ServiceLoader.load(JavaCompiler.class, classLoader)
+                    .findFirst()
+                    .orElse(null);
+
+            if (compiler != null) return compiler;
+
+            Class<?> javacClass = Class.forName(
+                    "com.sun.tools.javac.api.JavacTool", true, classLoader);
+            return (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to load JavaCompiler from JDK home: " + jdkHome, e);
+        }
     }
 
     public List<Diagnostic<? extends JavaFileObject>> process() throws Exception {
 
-        JavaCompiler compiler = getCachedJavaCompiler();
-        if (compiler == null && project.getJdkHome() != null) {
-
-            compiler = loadJavaCompiler();
-            if (compiler == null) {
-                throw new IllegalStateException("No system Java compiler available (JDK required)");
-            }
-        }
+        JavaCompiler compiler = getOrLoadJavaCompiler();
 
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
 
@@ -154,13 +252,13 @@ public class JavaProcessor {
 
                 fileManager.getLocation(javax.tools.StandardLocation.CLASS_PATH).forEach(mergedClassPathDirs::add);
                 mergedClassPathDirs.addAll(classPathDirs);
-                ////System.err.println("classPathDirs = " + mergedClassPathDirs);
+                ////log.debug("classPathDirs = " + mergedClassPathDirs);
 
                 fileManager.setLocation(javax.tools.StandardLocation.CLASS_PATH, mergedClassPathDirs);
             }
         }
 
-        //System.err.println("task before");
+        //log.debug("task before");
         task = (JavacTask) compiler.getTask(
                 null,
                 fileManager,
@@ -170,49 +268,24 @@ public class JavaProcessor {
                 javaFiles
         );
 
-        //System.err.println("task after");
+        //log.debug("task after");
 
-        //System.err.println("task.parse()");
+        //log.debug("task.parse()");
         asts = task.parse();
         
-        //System.err.println("task.analyze()");
+        //log.debug("task.analyze()");
         task.analyze();
         
-        //System.err.println("Trees.instance(task)");
+        //log.debug("Trees.instance(task)");
         trees = Trees.instance(task);
         
-        //System.err.println("task.getElements()");
+        //log.debug("task.getElements()");
         elements = task.getElements();
         
-        //System.err.println("task.getTypes()");
+        //log.debug("task.getTypes()");
         types = task.getTypes();
 
         return diagnostics.getDiagnostics();
-    }
-
-    private synchronized JavaCompiler loadJavaCompiler() {
-        if (cachedCompilerRef != null) {
-            JavaCompiler cached = cachedCompilerRef.get();
-            if (cached != null) {
-                return cached;
-            }
-        }
-
-        try {
-            ClassLoader jdkClassLoader = new java.net.URLClassLoader(
-                    new java.net.URL[]{new File(project.getJdkHome() + "/lib/tools.jar").toURI().toURL()},
-                    ToolProvider.class.getClassLoader()
-            );
-            Class<?> javacClass = Class.forName("com.sun.tools.javac.api.JavacTool", true, jdkClassLoader);
-            JavaCompiler compiler = (JavaCompiler) javacClass.getDeclaredConstructor().newInstance();
-
-            // WeakReference로 저장
-            cachedCompilerRef = new WeakReference<>(compiler);
-
-            return compiler;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load JavacTool from JDK", e);
-        }
     }
 
     public void analyzeSymbols() {
