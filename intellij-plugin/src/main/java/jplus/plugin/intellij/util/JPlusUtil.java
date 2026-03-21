@@ -51,8 +51,6 @@ public class JPlusUtil {
 
     private JPlusUtil() {}
 
-    private static final String DUMMY_IDENTIFIER = "IntellijIdeaRulezzz";
-
     public static PsiJavaFile createJavaPsiFromJPlus(Project project, PsiFile jplusFile, boolean checkParsible) {
 
         Project ideaProject = jplusFile.getProject();
