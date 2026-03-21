@@ -31,6 +31,8 @@ import jplus.analyzer.nullability.NullabilityChecker;
 import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.base.JADEx25Lexer;
 import jplus.base.JADEx25Parser;
+import jplus.base.JADExLexer;
+import jplus.base.JADExParser;
 import jplus.base.Project;
 import jplus.base.SymbolTable;
 import jplus.editor.FragmentedText;
@@ -133,17 +135,17 @@ public class JPlusProcessor {
 
     public boolean canParse() {
         CharStream input = CharStreams.fromString(originalText);
-        JADEx25Lexer lexer = new JADEx25Lexer(input);
+        var lexer = new JADExLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        parser = new JADEx25Parser(tokens);
+        var parser = new JADExParser(tokens);
         parser.setBuildParseTree(false);
 
         parser.removeErrorListeners();
         parser.setErrorHandler(new BailErrorStrategy());
 
         try {
-            parser.start_();
+            parser.compilationUnit();
         } catch (Exception e) {
             return false;
         }
