@@ -28,20 +28,14 @@ package jplus.plugin.intellij.annotator;
 
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.ui.update.MergingUpdateQueue;
-import com.intellij.util.ui.update.Update;
 import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.analyzer.nullability.issue.Severity;
 import jplus.plugin.intellij.JPlusFile;
@@ -55,12 +49,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JPlusExternalAnnotator
         extends ExternalAnnotator<JPlusAnnotationInput, JPlusAnnotationResult> {
 
+    private static final Logger LOG = Logger.getInstance(JPlusExternalAnnotator.class);
+
     private static final ConcurrentHashMap<String, jplus.base.Project> projectCache = new ConcurrentHashMap<>();
 
     @Override
     public @Nullable JPlusAnnotationInput collectInformation(
             @NotNull PsiFile file
     ) {
+        LOG.debug("collectInformation called: " + file.getName());
+
         if (!(file instanceof JPlusFile)) return null;
 
         String filePath = file.getVirtualFile().getPath();
@@ -88,34 +86,40 @@ public class JPlusExternalAnnotator
     public @Nullable JPlusAnnotationResult doAnnotate(
             JPlusAnnotationInput input
     ) {
+        LOG.debug("doAnnotate called");
 
         ProgressIndicatorProvider.checkCanceled();
 
         try {
-
             JPlusProcessor processor = new JPlusProcessor(
-                    input.project(),
-                    input.packageName(),
-                    input.className()
+                    input.project(), input.packageName(), input.className()
             );
+            LOG.debug("processor created");
 
             ProgressIndicatorProvider.checkCanceled();
-            if (!processor.canParse()) return null;
+            boolean canParse = processor.canParse();
+            LOG.debug("canParse = " + canParse);
+            if (!canParse) return null;
 
             ProgressIndicatorProvider.checkCanceled();
             var diagnostics = processor.process();
+            LOG.debug("process done, diagnostics = " + diagnostics.size());
 
             ProgressIndicatorProvider.checkCanceled();
             processor.analyzeSymbols();
+            LOG.debug("analyzeSymbols done");
 
             ProgressIndicatorProvider.checkCanceled();
             List<NullabilityIssue> issues = processor.checkNullability();
+            LOG.debug("checkNullability done, issues = " + issues.size());
 
             return new JPlusAnnotationResult(diagnostics, issues);
 
         } catch (ProcessCanceledException pce) {
+            LOG.warn("doAnnotate cancelled by PCE");  // ← PCE도 잠깐 찍고 rethrow
             throw pce;
         } catch (Exception e) {
+            LOG.warn("doAnnotate failed", e);
             return null;
         }
     }
@@ -126,6 +130,7 @@ public class JPlusExternalAnnotator
             JPlusAnnotationResult result,
             @NotNull com.intellij.lang.annotation.AnnotationHolder holder
     ) {
+        LOG.debug("apply called");
         if (result == null) return;
 
         for (var diagnostic : result.diagnostics()) {

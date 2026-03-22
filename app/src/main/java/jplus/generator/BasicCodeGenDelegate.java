@@ -42,6 +42,8 @@ import jplus.editor.TextChangeRange;
 import jplus.util.ParserUtils;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -51,6 +53,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BasicCodeGenDelegate implements CodeGenDelegate {
+
+    private static final Logger log = LoggerFactory.getLogger(BasicCodeGenDelegate.class);
 
     protected boolean processed = false;
 
@@ -121,7 +125,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
                 var codeGenCtx = CodeGenContext.current();
                 codeGenCtx.setReadonlyMode(true);
 
-                System.err.println("readonly feature detected.");
+                log.debug("readonly feature detected.");
                 break;
             }
         }
@@ -199,14 +203,14 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     }
 
     private String processMethodInvocation(MethodInvocationContext methodInvocationCtx) {
-        //System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx));
+        //log.debug("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx));
 
         ensureChildTextInitialized();
 
         if (methodInvocationCtx.primary() != null) {
             String primaryPart = methodInvocationCtx.primary().getText();
-            //System.err.println("[processMethodInvocation] primaryPart = " + primaryPart);
-            //System.err.println("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx.primary()));
+            //log.debug("[processMethodInvocation] primaryPart = " + primaryPart);
+            //log.debug("[processMethodInvocation] contextString = " + Utils.getTokenString(methodInvocationCtx.primary()));
             String replaced = primaryPart;
             if (!ParserUtils.usesNullSafety(methodInvocationCtx.primary())) {
                 String methodPart = getMethodPart(methodInvocationCtx);
@@ -257,7 +261,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         if (ParserUtils.usesNullSafety(expressionNameCtx)) {
             replaced = processNullsafety(expressionNameCtx, expressionNameCtx.getParent());
         }
-        //System.err.println("[ExpressionNameContext] replaced = " + replaced);
+        //log.debug("[ExpressionNameContext] replaced = " + replaced);
         return updateContextString(expressionNameCtx, replaced);
     }
 
@@ -271,11 +275,11 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         ensureChildTextInitialized();
 
         String replaced = Utils.getTokenString(ctx);
-        //System.err.println("[processPrimaryNoNewArray] before replaced = " + replaced);
+        //log.debug("[processPrimaryNoNewArray] before replaced = " + replaced);
         if (ParserUtils.usesNullSafety(ctx)) {
             replaced = replaceBaseWithOptional(PrimaryNoNewArrayContextAdapter.from(ctx), Optional.ofNullable(ctx.getParent()).map(ParserRuleContext::getParent).orElse(null));
         }
-        //System.err.println("[processPrimaryNoNewArray] replaced = " + replaced);
+        //log.debug("[processPrimaryNoNewArray] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -316,7 +320,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         }
 
         String identifier = Utils.getTokenString(expressionNameContextDeque.removeFirst().identifier());
-        //System.err.println("[processNullSafety] identifier = " + identifier);
+        //log.debug("[processNullSafety] identifier = " + identifier);
         //String replaced = "java.util.Optional.ofNullable(" + identifier;
         String replaced = "jadex.runtime.SafeAccess.ofNullable(" + identifier;
         //String replaced = "SafeAccess.ofNullable(" + identifier;
@@ -325,7 +329,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             String curTVar = "t" + i;
             var expressionNameContext = expressionNameContextDeque.removeFirst();
             String member = Utils.getTokenString(expressionNameContext.identifier());
-            //System.err.println("[processNullSafety] member = " + member);
+            //log.debug("[processNullSafety] member = " + member);
             if (expressionNameContext.NULLSAFE() != null) {
                 replaced += ").map(" + curTVar + " -> " + curTVar + "." + member;
                 ++i;
@@ -336,7 +340,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
 
         if (ruleCtx instanceof MethodInvocationContext miCtx) {
             String method = getMethodPart(miCtx);
-            //System.err.println("[processNullsafety] method = " + method);
+            //log.debug("[processNullsafety] method = " + method);
 
             String curTVar = "t" + i;
             replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
@@ -344,7 +348,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         } else if (ruleCtx instanceof PrimaryNoNewArrayContext pnnaCtx) {
             String contextString = Utils.getTokenString(pnnaCtx);
             String remainderPart = contextString.substring(Utils.getTokenString(ctx).length()).replaceAll("^(\\.|\\?\\.)", "");
-            //System.err.println("[processNullsafety] remainderPart = " + remainderPart);
+            //log.debug("[processNullsafety] remainderPart = " + remainderPart);
             String curTVar = "t" + i;
             var pnnaCtxAdapter = PrimaryNoNewArrayContextAdapter.from(pnnaCtx);
             if (pnnaCtxAdapter.NULLSAFE() != null) {
@@ -362,21 +366,21 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     protected String updateContextString(ParserRuleContext ctx, String replaced) {
         TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
         //_getParent().ifPresent(parent -> parent.addTextChangeRange(range, replaced));
-        //System.err.println("[updateContextString] before debugString = " + getDebugString());
+        //log.debug("[updateContextString] before debugString = " + getDebugString());
         updateFragmentedText(range, replaced);
-        //System.err.println("[updateContextString] after debugString = " + getDebugString());
+        //log.debug("[updateContextString] after debugString = " + getDebugString());
         this.updatedContextString = replaced;
         return replaced;
     }
 
     protected String forceUpdateContextString(ParserRuleContext ctx) {
-        //System.err.println("[forceUpdateContextString] ParserRuleContext = " + ctx.getClass().getSimpleName());
+        //log.debug("[forceUpdateContextString] ParserRuleContext = " + ctx.getClass().getSimpleName());
         try {
             TextChangeRange range = Utils.getTextChangeRange(getOriginalText(), ctx);
             String contextString = Utils.getTokenString(ctx);
             String replaced = projectUpdatesOn(range, contextString);
-            //System.err.println("[forceUpdateContextString] contextString = " + contextString);
-            //System.err.println("[forceUpdateContextString] replaced = " + replaced);
+            //log.debug("[forceUpdateContextString] contextString = " + contextString);
+            //log.debug("[forceUpdateContextString] replaced = " + replaced);
             return updateContextString(ctx, replaced);
         } catch(Exception e) {
             return null;
@@ -409,7 +413,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
     }
 
     protected String replaceElvisOperator(NullCoalescingExpressionContext ctx) {
-        //System.err.println("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
+        //log.debug("[replaceElvisOperator] contextString = " + Utils.getTokenString(ctx));
         ensureChildTextInitialized();
 
         Optional<String> conditionalOrExpressionString = getRangeText(ctx.conditionalOrExpression());
@@ -427,7 +431,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
             replaced += ".orElseGet(() -> " + rhsExpressionString.orElse("null") + ")";
         }
 
-        //System.err.println("[replaceElvisOperator] replaced = " + replaced);
+        //log.debug("[replaceElvisOperator] replaced = " + replaced);
         return updateContextString(ctx, replaced);
     }
 
@@ -462,16 +466,16 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         }
 
         String base = getBase(ctx);
-        //System.err.println("[replaceBaseWithOptional] base = " + base);
-        //System.err.println("[replaceBaseWithOptional] ruleCtx = " + ruleCtx.getClass().getSimpleName());
+        //log.debug("[replaceBaseWithOptional] base = " + base);
+        //log.debug("[replaceBaseWithOptional] ruleCtx = " + ruleCtx.getClass().getSimpleName());
 
         if (ctx.NULLSAFE() != null) {
             String[] tokens = base.split("\\?\\.");
             String instance = tokens[0];
             String member = tokens[1];
 
-            //System.err.println("[replaceBaseWithOptional] instance = " + instance);
-            //System.err.println("[replaceBaseWithOptional] member = " + member);
+            //log.debug("[replaceBaseWithOptional] instance = " + instance);
+            //log.debug("[replaceBaseWithOptional] member = " + member);
 
             //return "java.util.Optional.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
             return "jadex.runtime.SafeAccess.ofNullable(" + instance + ").map(t0 -> t0." + member +  replacePNNAWithOptional(PNNAContextAdapter.from(ctx.pNNA()), 1, ruleCtx);
@@ -497,7 +501,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
                 }
             } else if (ruleCtx instanceof MethodInvocationContext miCtx) {
                 String method = getMethodPart(miCtx);
-                //System.err.println("[replacePNNAWithOptional] method = " + method);
+                //log.debug("[replacePNNAWithOptional] method = " + method);
 
                 String curTVar = "t" + index;
                 replaced += ").ifPresent(" + curTVar + " -> " + curTVar + "." + method + ")";
@@ -508,7 +512,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         }
 
         String member = getBase(ctx);
-        //System.err.println("[replaceNullsafeOperator] member = " + member);
+        //log.debug("[replaceNullsafeOperator] member = " + member);
 
         String curTVar = "t" + index;
         if (ctx.NULLSAFE() != null) {
@@ -524,7 +528,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         String argumentList = Optional.ofNullable(miCtx.argumentList()).map(ParserRuleContext::getText).orElse("");
 
         String methodPart = typeArgument + identifier + "(" + argumentList + ")";
-        //System.err.println("[getMethodPart] methodPart = " + methodPart);
+        //log.debug("[getMethodPart] methodPart = " + methodPart);
         return methodPart;
     }
 
@@ -568,7 +572,7 @@ public class BasicCodeGenDelegate implements CodeGenDelegate {
         if (ctx instanceof JADEx25Parser.Start_Context) {
 
             FragmentedText fragmentedText = getCurrentFragmentedText();
-            //System.err.println("debugString = " + fragmentedText.debugString());
+            //log.debug("debugString = " + fragmentedText.debugString());
 
             return this.updatedContextString = fragmentedText.toString();
 

@@ -44,10 +44,14 @@ import jplus.plugin.intellij.annotator.JPlusIntelliJProjectUtil;
 import jplus.processor.JPlusProcessor;
 import jplus.util.CodeGenUtils;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 
-public class JPlusUtil {
+public final class JPlusUtil {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JPlusUtil.class);
 
     private JPlusUtil() {}
 
@@ -65,7 +69,7 @@ public class JPlusUtil {
 
         //String javaText = processor.compile();
         String javaText = processor.transformJADExToJava();
-        System.err.println("[createJavaPsiFromJPlus] javaText = " + javaText);
+        LOG.debug("[createJavaPsiFromJPlus] javaText = " + javaText);
 
         return (PsiJavaFile) PsiFileFactory.getInstance(project)
                 .createFileFromText("Temp.java", JavaFileType.INSTANCE, javaText);
@@ -83,14 +87,15 @@ public class JPlusUtil {
 
         if (checkParsible && !processor.canParse()) return null;
 
-        System.err.println("[createJavaPsiFromJPlus] JadexText = " + jplusFile.getText());
+        LOG.debug("[createJavaPsiFromJADExForCodeCompletion] JadexText = " + jplusFile.getText());
+
         String javaText = processor.transformJADExToJava();
 
         javaText =
                 javaText.transform( s -> s.replace("?.", "."))
                         .transform(s -> s.replace("?:", "? :"));
 
-        System.err.println("[createJavaPsiFromJPlus] javaText = " + javaText);
+        LOG.debug("[createJavaPsiFromJADExForCodeCompletion] javaText = " + javaText);
 
         return (PsiJavaFile) PsiFileFactory.getInstance(project)
                 .createFileFromText("Temp.java", JavaFileType.INSTANCE, javaText);

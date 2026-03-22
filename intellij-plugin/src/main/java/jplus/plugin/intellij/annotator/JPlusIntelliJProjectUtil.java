@@ -43,12 +43,16 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.jetbrains.cef.remote.thrift.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class JPlusIntelliJProjectUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(JPlusIntelliJProjectUtil.class);
 
     public static jplus.base.Project buildJPlusProject(com.intellij.openapi.project.Project ideaProject, Module module) {
         List<Path> sourceDirs = new ArrayList<>();
@@ -68,7 +72,7 @@ public final class JPlusIntelliJProjectUtil {
                 .map(s -> s.replaceAll("!/$", ""))
                 .map(Path::of)
                 .toList();
-        System.err.println("classPathList = " + classPathList);
+        log.debug("classPathList = " + classPathList);
 
         var jplusProject = new jplus.base.Project(sourceDirs, classPathList);
 

@@ -72,8 +72,12 @@ import jplus.base.SymbolTable;
 import jplus.util.Utils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConditionVisitor extends JADEx25ParserBaseVisitor<ConditionResult> {
+
+    private static final Logger log = LoggerFactory.getLogger(ConditionVisitor.class);
 
     private final NullabilityChecker nullabilityChecker;
 
@@ -105,13 +109,13 @@ public class ConditionVisitor extends JADEx25ParserBaseVisitor<ConditionResult> 
         }
 
         var lhs = extractLValue(ctx.equalityExpression());
-        System.err.println("[ConditionVisitor][visitEqualityExpression] lhs = " + Utils.getTokenString(lhs));
+        log.debug("[ConditionVisitor][visitEqualityExpression] lhs = " + Utils.getTokenString(lhs));
         if (lhs == null) {
             return new ConditionResult(thenTable, elseTable);
         }
 
         if (ctx.NOTEQUAL() != null) {
-            System.err.println("[ConditionVisitor][visitEqualityExpression] NotEqual");
+            log.debug("[ConditionVisitor][visitEqualityExpression] NotEqual");
             nullabilityChecker.updateNullState(lhs, thenTable, NullState.NON_NULL);
             nullabilityChecker.updateNullState(lhs, elseTable, NullState.NULL);
 
@@ -119,7 +123,7 @@ public class ConditionVisitor extends JADEx25ParserBaseVisitor<ConditionResult> 
         }
 
         if (ctx.EQUAL() != null) {
-            System.err.println("[ConditionVisitor][visitEqualityExpression] equal");
+            log.debug("[ConditionVisitor][visitEqualityExpression] equal");
             nullabilityChecker.updateNullState(lhs, thenTable, NullState.NULL);
             nullabilityChecker.updateNullState(lhs, elseTable, NullState.NON_NULL);
 
@@ -147,7 +151,7 @@ public class ConditionVisitor extends JADEx25ParserBaseVisitor<ConditionResult> 
     }
 
     ParserRuleContext extractLValue(ParseTree expr) {
-        System.err.println("[extractLValue] expr = " + expr.getClass().getSimpleName());
+        log.debug("[extractLValue] expr = " + expr.getClass().getSimpleName());
         if (expr == null) return null;
 
         if (expr instanceof EqualityExpressionContext eq) {
@@ -279,7 +283,7 @@ public class ConditionVisitor extends JADEx25ParserBaseVisitor<ConditionResult> 
     public ConditionResult visitRelationalExpression(RelationalExpressionContext ctx) {
 
         if (ctx.INSTANCEOF() != null) {
-            System.err.println("[InstanceOf]");
+            log.debug("[InstanceOf]");
             SymbolTable t = before.copy();
             SymbolTable f = before.copy();
 

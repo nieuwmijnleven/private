@@ -30,11 +30,15 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.net.URISyntaxException;
 
 public class JadexPlugin implements Plugin<Project> {
+
+    private static final Logger log = LoggerFactory.getLogger(JadexPlugin.class);
 
     private final ToolingModelBuilderRegistry registry;
 
@@ -95,7 +99,7 @@ public class JadexPlugin implements Plugin<Project> {
                     .getByName("main")
                     .getJava()
                     .getSrcDirs()
-                    .forEach(file -> System.out.println("[JadexPluin][JADEx] sourceDirs = " + file.toString()));
+                    .forEach(file -> log.debug("[JadexPluin][JADEx] sourceDirs = " + file.toString()));
         });
     }
 }

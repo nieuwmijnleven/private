@@ -48,9 +48,9 @@ import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -61,6 +61,8 @@ import java.util.Locale;
 import java.util.Set;
 
 public class JPlusProcessor {
+
+    private static final Logger log = LoggerFactory.getLogger(JPlusProcessor.class);
 
     private final Project project;
     private final String originalText;
@@ -356,7 +358,7 @@ public class JPlusProcessor {
     private List<Issue> runInitialJavaProcessing() throws Exception {
 
         String javaCode = generateJavaCodeForSemanticMode();
-        System.err.println("[JPlusProcessor][runInitialJavaProcessing] javaCode = " + javaCode);
+        log.debug("[JPlusProcessor][runInitialJavaProcessing] javaCode = " + javaCode);
 
         CodeGenContext ctx = CodeGenContext.current();
         sourceMappingEntrySet = ctx.getFragmentedText().buildSourceMap();
@@ -448,7 +450,7 @@ public class JPlusProcessor {
         for (SymbolTable symbolTable : symbolTableList) {
             UnresolvedReferenceScanner scanner = new UnresolvedReferenceScanner(symbolTable);
             List<UnresolvedReferenceScanner.UnresolvedReferenceInfo> unresolvedReferenceInfoList = scanner.findUnresolvedReference();
-            //unresolvedReferenceInfoList.forEach(unsolvedType -> System.err.println("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
+            //unresolvedReferenceInfoList.forEach(unsolvedType -> log.debug("[UnresolvedReferenceScanner] unsolvedType = " + unsolvedType.className));
             allUnresolvedReferenceInfoList.addAll(unresolvedReferenceInfoList);
         }
         return allUnresolvedReferenceInfoList;
@@ -517,12 +519,12 @@ public class JPlusProcessor {
         }
 
         String generated = transformJADExToJava();
-        //System.err.println("[generateJavaCode] javaCode = " + generated);
+        //log.debug("[generateJavaCode] javaCode = " + generated);
 
         int startIndex = parseTree.start.getStartIndex();
         String startWhiteSpace = originalText.substring(0, startIndex);
         String fullyGenerated = startWhiteSpace + generated;
-        ////System.err.println("fullyGenerated = " + fullyGenerated);
+        ////log.debug("fullyGenerated = " + fullyGenerated);
 
         FragmentedText fragmentedText = new FragmentedText(fullyGenerated);
         BoilerplateCodeGenerator generator = new BoilerplateCodeGenerator(symbolTable, fragmentedText);

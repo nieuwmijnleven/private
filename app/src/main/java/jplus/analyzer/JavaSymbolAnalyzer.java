@@ -40,6 +40,8 @@ import jplus.editor.TextChangeRange;
 import jplus.util.MethodUtils;
 import jplus.util.TypeUtils;
 import jplus.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -60,6 +62,8 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
+
+    private static final Logger log = LoggerFactory.getLogger(JavaSymbolAnalyzer.class);
 
     private final String source;
     private final CompilationUnitTree ast;
@@ -270,8 +274,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             if (e == null) return;
 
             TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
-            //System.err.println("[IdentifierTree] ti = " + ti);
-            //System.err.println("[IdentifierTree] IdentifierTree = " + id.toString());
+            //log.debug("[IdentifierTree] ti = " + ti);
+            //log.debug("[IdentifierTree] IdentifierTree = " + id.toString());
 
             chain.addStep(new ResolvedChain.Step(
                     ResolvedChain.Kind.IDENTIFIER,
@@ -290,8 +294,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             if (e == null) return;
 
             TypeInfo ti = TypeUtils.fromTypeMirror(e.asType(), e);
-            //System.err.println("[MemberSelect] ti = " + ti);
-            //System.err.println("[MemberSelect] MemberSelect = " + ms.toString());
+            //log.debug("[MemberSelect] ti = " + ti);
+            //log.debug("[MemberSelect] MemberSelect = " + ms.toString());
 
 
             chain.addStep(new ResolvedChain.Step(
@@ -532,10 +536,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             currentSymbolTable.declare("^TopLevelClass$", classSymbolInfo);
         }
         declareClassSymbol(classSymbolInfo);
-        //System.err.println("[JavaSymbolAnalyzer] currentSymbolTable = " + currentSymbolTable);
-        //System.err.println("[JavaSymbolAnalyzer] classSymbolInfo = " + classSymbolInfo);
+        //log.debug("[JavaSymbolAnalyzer] currentSymbolTable = " + currentSymbolTable);
+        //log.debug("[JavaSymbolAnalyzer] classSymbolInfo = " + classSymbolInfo);
 
-        //System.err.println("[JavaSymbolAnalyzer] node.getSimpleName().toString() = " + node.getSimpleName().toString());
+        //log.debug("[JavaSymbolAnalyzer] node.getSimpleName().toString() = " + node.getSimpleName().toString());
         enterSymbolTable(node.getSimpleName().toString());
 
         currentSymbolTable.declare("^ClassDef$", classSymbolInfo);
@@ -652,11 +656,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
 
         SymbolInfo fieldSymbolInfo = createSymbolInfo(node.getName().toString(), node.getModifiers().getFlags(), typeInfo, node, currentSymbolTable);
-        //System.err.println("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
+        //log.debug("[JavaSymbolAnalyzer] fieldSymbolInfo = " + fieldSymbolInfo);
 
         currentSymbolTable.declare(fieldSymbolInfo.getSymbol(), fieldSymbolInfo);
-        //System.err.println("[JavaSymbolAnalyzer] currentSymbolTable = " + currentSymbolTable);
-        //System.err.println("[JavaSymbolAnalyzer] currentSymbolTable.instanceTable = " + currentSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS));
+        //log.debug("[JavaSymbolAnalyzer] currentSymbolTable = " + currentSymbolTable);
+        //log.debug("[JavaSymbolAnalyzer] currentSymbolTable.instanceTable = " + currentSymbolTable.getEnclosingSymbolTable(SymbolTable.INSTANCE_NS));
 
         ExpressionTree initializer = node.getInitializer();
         if (initializer != null) {
@@ -689,7 +693,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         try {
             return Utils.computeTextChangeRange(source, start, end - 1);
         } catch(IllegalArgumentException iae) {
-            //System.err.println(iae.getMessage());
+            //log.debug(iae.getMessage());
             return TextChangeRange.EMPTY;
         }
     }
@@ -752,11 +756,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         JavaSymbolResolver resolver = new JavaSymbolResolver(globalSymbolTable, elements, types);
         SymbolInfo symbolInfo = resolver.resolveClass(qualifiedName);
-        //System.err.println("[NewClass] symbolInfo = " + symbolInfo);
+        //log.debug("[NewClass] symbolInfo = " + symbolInfo);
 
         MethodInvocationInfo info = buildMethodInvocationInfo(node, qualifiedName, qualifiedName);
         javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
-        //System.err.println("[NewClass] methodInvocationInfo = " + info);
+        //log.debug("[NewClass] methodInvocationInfo = " + info);
 
         for (ExpressionTree arg : node.getArguments()) {
             buildChain(arg);
@@ -902,7 +906,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             enterSymbolTable("^block$" + _case.getLabels().toString().replace(" ", ""));
 
             for (var label : _case.getLabels()) {
-                //System.err.println("label = " + label + ", " + label.getClass().getSimpleName());
+                //log.debug("label = " + label + ", " + label.getClass().getSimpleName());
                 if (label instanceof PatternCaseLabelTree patternLabel) {
                     // BindingPatternTree로 캐스팅 가능
                     if (patternLabel.getPattern() instanceof BindingPatternTree binding) {
@@ -925,7 +929,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
             Tree body = _case.getBody();
             if (body != null) {
-                //System.err.println("body = " + body + ", " + body.getClass().getSimpleName());
+                //log.debug("body = " + body + ", " + body.getClass().getSimpleName());
 
                 //TreePath path = trees.getPath(ast, body);
                 //scan(path, null);
@@ -969,7 +973,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 enterSymbolTable("^block$" + _case.getLabels().toString().replace(" ", ""));
 
                 for (var label : _case.getLabels()) {
-                    //System.err.println("label = " + label + ", " + label.getClass().getSimpleName());
+                    //log.debug("label = " + label + ", " + label.getClass().getSimpleName());
                     if (label instanceof PatternCaseLabelTree patternLabel) {
 
                         if (patternLabel.getPattern() instanceof BindingPatternTree binding) {
@@ -992,7 +996,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
                 Tree body = _case.getBody();
                 if (body != null) {
-                    //System.err.println("body = " + body + ", " + body.getClass().getSimpleName());
+                    //log.debug("body = " + body + ", " + body.getClass().getSimpleName());
 
                     //TreePath path = trees.getPath(ast, body);
                     //scan(path, null);
@@ -1012,14 +1016,14 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             } else {
                 var scopeName = "^block$" + (_case.getExpressions().isEmpty() ? "default" : _case.getExpressions().toString().replace(" ", ""));
 
-                //System.err.println("[JavaSymbol][Switch] expressions = " + scopeName);
+                //log.debug("[JavaSymbol][Switch] expressions = " + scopeName);
 
                 enterSymbolTable(scopeName);
 
                 _case.getExpressions().forEach(this::buildChain);
 
                 for (var statement : _case.getStatements()) {
-                    //System.err.println("[JavaSymbol][Switch] statememt = " + statement.getClass().getSimpleName());
+                    //log.debug("[JavaSymbol][Switch] statememt = " + statement.getClass().getSimpleName());
 //                    if (statement instanceof ExpressionStatementTree exprStmt) {
 //                        buildChain(exprStmt.getExpression());
 //                    }
@@ -1038,10 +1042,10 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
     @Override
     public Void visitMethod(MethodTree node, Void unused) {
         if (node.getReturnType() == null) {
-            ////System.err.println("Constructor: " + node.getName());
+            ////log.debug("Constructor: " + node.getName());
             return visitConstructorDeclaration(node, unused);
         } else {
-            ////System.err.println("method: " + node.getName());
+            ////log.debug("method: " + node.getName());
             return visitMethodDeclaration(node, unused);
         }
     }
@@ -1076,14 +1080,14 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             //TypeMirror typeMirror = trees.getTypeMirror(TreePath.getPath(ast, param.getType()));
             TypeMirror typeMirror = element.asType();
             TypeInfo typeInfo = buildTypeInfo(typeMirror, element);
-            //System.err.println("[method] typeInfo = " + typeInfo);
+            //log.debug("[method] typeInfo = " + typeInfo);
 
             //String typeNameWithNullability = typeInfo.getFullname() + (typeInfo.isNullable() ? "?" : "");
             String typeNameWithNullability = typeInfo.getFullname() + (isJavaApi ? "?" : (typeInfo.isNullable() ? "?" : ""));
-            //System.err.println("[method] typeNameWithNullability = " + typeNameWithNullability);
+            //log.debug("[method] typeNameWithNullability = " + typeNameWithNullability);
             //String simpleTypeNameWithNullability = param.getType().toString().replace(", ", ",") + (typeInfo.isNullable() ? "?" : "");
             String simpleTypeNameWithNullability = param.getType().toString().replace(", ", ",") + (isJavaApi ? "?" : (typeInfo.isNullable() ? "?" : ""));
-            ////System.err.println("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
+            ////log.debug("[method] simpleTypeNameWithNullability = " + simpleTypeNameWithNullability);
             typeNameList.add(typeNameWithNullability);
             simpleTypeNameList.add(simpleTypeNameWithNullability);
 
@@ -1112,9 +1116,9 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         }
 
         String symbolName = "^" + methodName + "$~" + String.join("~", typeNameList);
-        ////System.err.println("[method] symbolName = " + symbolName);
+        ////log.debug("[method] symbolName = " + symbolName);
         String symbolNameWithSimpleTypeName = "^" + methodName + "$~" + String.join("~", simpleTypeNameList);
-        ////System.err.println("[method] symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
+        ////log.debug("[method] symbolNameWithSimpleTypeName = " + symbolNameWithSimpleTypeName);
 
         boolean isNullableReturn = node.getModifiers().getAnnotations().stream()
                 .map(a -> a.getAnnotationType().toString())
@@ -1122,7 +1126,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         name.endsWith(".Nullable")
                                 //|| name.equals("org.jspecify.annotations.Nullable")
                 );
-        //System.err.println("[processCallable] isNullableReturn = " + isNullableReturn);
+        //log.debug("[processCallable] isNullableReturn = " + isNullableReturn);
 
 
         TypeInfo returnTypeInfo;
@@ -1158,8 +1162,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         currentSymbolTable.declare(symbolName, symbolInfo);
         currentSymbolTable.declare(symbolNameWithSimpleTypeName, symbolInfo);
-        //System.err.println("[method] symbolInfo = "  + symbolInfo);
-        //System.err.println("[method] currentSymbolTable = "  + currentSymbolTable);
+        //log.debug("[method] symbolInfo = "  + symbolInfo);
+        //log.debug("[method] currentSymbolTable = "  + currentSymbolTable);
 
         enterSymbolTable(symbolName, methodSymbolTable);
         try {
@@ -1210,11 +1214,11 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                                 //|| name.equals("org.jspecify.annotations.Nullable")
                 );
 
-        System.err.println("[handleLocalVariable] contextString = " + node.toString());
-        //System.err.println("[handleLocalVariable] isNullable = " + isNullable);
+        log.debug("[handleLocalVariable] contextString = " + node.toString());
+        //log.debug("[handleLocalVariable] isNullable = " + isNullable);
 
         typeInfo = typeInfo.toBuilder().isNullable(isNullable).build();
-        System.err.println("[handleLocalVariable] typeInfo = " + typeInfo);
+        log.debug("[handleLocalVariable] typeInfo = " + typeInfo);
 
         SymbolInfo symbolInfo = SymbolInfo.builder()
                 .symbol(node.getName().toString())
@@ -1227,7 +1231,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 .build();
 
         currentSymbolTable.declare(symbolInfo.getSymbol(), symbolInfo);
-        System.err.println("[handleLocalVariable] currentSymbolTable = " + currentSymbolTable);
+        log.debug("[handleLocalVariable] currentSymbolTable = " + currentSymbolTable);
 
         return super.visitVariable(node, unused);
     }
@@ -1247,7 +1251,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         var symbol = variableTree.getName().toString();
         var symbolInfo = currentSymbolTable.resolveInCurrent(symbol);
-        //System.err.println("[EnhancedForLoop] symbolInfo = " + symbolInfo);
+        //log.debug("[EnhancedForLoop] symbolInfo = " + symbolInfo);
 
         currentSymbolTable.declare(
                 symbol,
@@ -1265,7 +1269,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
         buildChain(node);
 
-        //System.err.println("[JavaSymbolAnalyzer] code = " + node.getMethodSelect().toString());
+        //log.debug("[JavaSymbolAnalyzer] code = " + node.getMethodSelect().toString());
 
         //SymbolInfo ownerType = resolveExpressionChain(node.getMethodSelect());
         SymbolInfo ownerType = buildResolvedChain(
@@ -1273,13 +1277,13 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                         ? mst.getExpression()
                         : node.getMethodSelect()
         );
-        //System.err.println("[JavaSymbolAnalyzer] ownerType = " + ownerType);
+        //log.debug("[JavaSymbolAnalyzer] ownerType = " + ownerType);
 
         Element e = trees.getElement(getCurrentPath());
         if (e instanceof ExecutableElement method) {
 
             String methodName = method.getSimpleName().toString();
-            //System.err.println("[JavaSymbolAnalyzer] methodName = " + methodName);
+            //log.debug("[JavaSymbolAnalyzer] methodName = " + methodName);
 
             MethodInvocationInfo info =
                     buildMethodInvocationInfo(
@@ -1293,7 +1297,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
             }
 
             javaMethodInvocationManager.addInvocationInfo(currentSymbolTable, info);
-            //System.err.println("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);
+            //log.debug("[JavaSymbolAnalyzer] methodInvocationInfo = " + info);
         }
 
         return super.visitMethodInvocation(node, unused);
@@ -1347,7 +1351,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
         if (expr instanceof IdentifierTree) {
 
             if (e instanceof TypeElement type) {
-                //System.err.println("[resolveExpressionChain] identifer = " + type.getQualifiedName().toString());
+                //log.debug("[resolveExpressionChain] identifer = " + type.getQualifiedName().toString());
                 return resolver.resolveClass(type.getQualifiedName().toString());
             }
 
@@ -1357,8 +1361,8 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 if (varType.getKind() == TypeKind.DECLARED) {
                     TypeElement varTypeElement = (TypeElement) types.asElement(varType);
                     SymbolInfo typeSymbol = resolver.resolveClass(varTypeElement.getQualifiedName().toString());
-                    //System.err.println("[resolveExpressionChain] identifier (variable) = " + var.getSimpleName() + ", type = " + varTypeElement.getQualifiedName());
-                    //System.err.println("[resolveExpressionChain] typeSymbol = " + typeSymbol);
+                    //log.debug("[resolveExpressionChain] identifier (variable) = " + var.getSimpleName() + ", type = " + varTypeElement.getQualifiedName());
+                    //log.debug("[resolveExpressionChain] typeSymbol = " + typeSymbol);
 
                     SymbolTable parentTable = currentSymbolTable;
                     typeSymbol = typeSymbol.toBuilder()
@@ -1381,23 +1385,23 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
                 TypeMirror fieldType = field.asType();
                 TypeElement fieldTypeElement = (TypeElement) types.asElement(fieldType);
 
-                //System.err.println("[resolveExpressionChain] field = " + field);
-                //System.err.println("[resolveExpressionChain] fieldType = " + fieldTypeElement.getQualifiedName().toString());
+                //log.debug("[resolveExpressionChain] field = " + field);
+                //log.debug("[resolveExpressionChain] fieldType = " + fieldTypeElement.getQualifiedName().toString());
                 return resolver.resolveClass(fieldTypeElement.getQualifiedName().toString());
             }
 
             if (e instanceof ExecutableElement method) {
 
                 TypeMirror returnType = method.getReturnType();
-                //System.err.println("[resolveExpressionChain] returnType = " + returnType.toString());
+                //log.debug("[resolveExpressionChain] returnType = " + returnType.toString());
 
                 if (TypeKind.VOID == returnType.getKind()) {
-                    //System.err.println("[resolveExpressionChain] method returns void: " + method.getSimpleName());
+                    //log.debug("[resolveExpressionChain] method returns void: " + method.getSimpleName());
                     return null;
                 }
 
                 if (returnType.getKind().isPrimitive()) {
-                    //System.err.println("[resolveExpressionChain] method returns primitive: " + returnType);
+                    //log.debug("[resolveExpressionChain] method returns primitive: " + returnType);
                     return null;
                 }
 
@@ -1438,7 +1442,7 @@ public class JavaSymbolAnalyzer extends TreePathScanner<Void, Void> {
 
     @Override
     public Void visitBlock(BlockTree node, Void unused) {
-        ////System.err.println("[visitBlock] invoked");
+        ////log.debug("[visitBlock] invoked");
         enterSymbolTable("^block$");
         try {
             return super.visitBlock(node, unused);

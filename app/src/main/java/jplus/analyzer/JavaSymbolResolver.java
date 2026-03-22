@@ -196,7 +196,6 @@ public class JavaSymbolResolver {
             return;
         }
 
-        // 슈퍼 클래스 처리
         TypeMirror superClassMirror = clazz.getSuperclass();
         if (superClassMirror.getKind() == TypeKind.DECLARED) {
 

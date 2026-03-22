@@ -26,11 +26,11 @@
 
 package jplus.generator;
 
-import jplus.base.JADEx25ParserBaseVisitor;
 import jplus.base.JADEx25Parser.ApplyBlockContext;
 import jplus.base.JADEx25Parser.ApplyDeclarationContext;
 import jplus.base.JADEx25Parser.ApplyFeatureListContext;
 import jplus.base.JADEx25Parser.ApplyStatementContext;
+import jplus.base.JADEx25ParserBaseVisitor;
 import jplus.base.SymbolInfo;
 import jplus.base.SymbolTable;
 import jplus.base.TypeInfo;
@@ -51,6 +51,8 @@ import jplus.generator.apply.SetterFeatureProcessor;
 import jplus.generator.apply.ToBuilderFeatureProcessor;
 import jplus.generator.apply.ToStringFeatureProcessor;
 import jplus.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +65,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
+
+    private static final Logger log = LoggerFactory.getLogger(BoilerplateCodeGenerator.class);
 
     private final SymbolTable symbolTable;
     private final FragmentedText fragmentedText;
@@ -157,10 +161,10 @@ public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
                 enclosingSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(classNames[i]);
             }
 
-            //System.err.println("targetClass = " + targetClass);
-            //System.err.println("enclosingSymbolTable = " + enclosingSymbolTable);
+            //log.debug("targetClass = " + targetClass);
+            //log.debug("enclosingSymbolTable = " + enclosingSymbolTable);
             SymbolInfo targetClassSymbolInfo = enclosingSymbolTable.resolve(targetClass);
-            //System.err.println("targetClassSymbolInfo = " + targetClassSymbolInfo);
+            //log.debug("targetClassSymbolInfo = " + targetClassSymbolInfo);
             TextChangeRange range = targetClassSymbolInfo.getRange();
             String classText = targetClassSymbolInfo.getOriginalText();
             TextChangeRange methodRange = new TextChangeRange(
@@ -169,7 +173,7 @@ public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
             );
 
             SymbolTable classSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(targetClass);
-            //System.err.println("[CodeGenerator] classSymbolTable = " + classSymbolTable);
+            //log.debug("[CodeGenerator] classSymbolTable = " + classSymbolTable);
 
             List<String> fieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive, TypeInfo.Type.Reference, TypeInfo.Type.TypeParameter));
             List<String> primitiveTypeFieldList = classSymbolTable.findSymbolsByType(List.of(TypeInfo.Type.Primitive));
