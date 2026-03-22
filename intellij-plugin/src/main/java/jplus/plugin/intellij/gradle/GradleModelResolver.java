@@ -29,10 +29,14 @@ package jplus.plugin.intellij.gradle;
 import jadex.gradle.JadexModel;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class GradleModelResolver {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GradleModelResolver.class);
 
     private JadexModel cachedModel = null;
     private long cacheTimestamp = 0;
@@ -65,11 +69,14 @@ public class GradleModelResolver {
         try (ProjectConnection connection = connector.connect()) {
 
             JadexModel model = connection.getModel(JadexModel.class);
+
             cachedModel = model;
             cacheTimestamp = System.currentTimeMillis();
+
             return model;
+
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.debug("fetchViaToolingApi", e);
             return cachedModel;
         }
     }

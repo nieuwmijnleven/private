@@ -44,30 +44,24 @@ import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
-import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import java.io.File;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.stream.Collectors;
 
 public class JavaProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(JavaProcessor.class);
 
     private static final Object COMPILER_LOCK = new Object();
-    private static SoftReference<JavaCompiler> cachedCompilerRef;
+    private static JavaCompiler cachedCompilerRef;
 
     private final Project project;
 
@@ -114,14 +108,14 @@ public class JavaProcessor {
     private JavaCompiler getOrLoadJavaCompiler() {
 
         if (cachedCompilerRef != null) {
-            JavaCompiler cached = cachedCompilerRef.get();
+            JavaCompiler cached = cachedCompilerRef;
             if (cached != null) return cached;
         }
 
         synchronized (COMPILER_LOCK) {
 
             if (cachedCompilerRef != null) {
-                JavaCompiler cached = cachedCompilerRef.get();
+                JavaCompiler cached = cachedCompilerRef;
                 if (cached != null) return cached;
             }
 
@@ -136,7 +130,7 @@ public class JavaProcessor {
                         "No Java compiler available. Ensure a JDK (not JRE) is used.");
             }
 
-            cachedCompilerRef = new SoftReference<>(compiler);
+            cachedCompilerRef = compiler;
             return compiler;
         }
     }
