@@ -26,14 +26,9 @@
 
 package jplus.plugin.intellij;
 
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx;
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
-import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -44,13 +39,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import jplus.plugin.intellij.annotator.JPlusIntelliJProjectUtil;
+import jplus.plugin.intellij.util.JPlusUtil;
 import jplus.processor.JPlusProcessor;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class JPlusFileService {
 
@@ -69,7 +63,7 @@ public class JPlusFileService {
             Module module = ModuleUtilCore.findModuleForFile(file.getVirtualFile(), file.getProject());
             if (module == null) return;
 
-            jplus.base.Project jplusProject = ReadAction.compute(() -> JPlusIntelliJProjectUtil.buildJPlusProject(file.getProject(), module));
+            jplus.base.Project jplusProject = ReadAction.compute(() -> JPlusUtil.buildJadexProject(file.getProject(), module));
 
             JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusCode);
 

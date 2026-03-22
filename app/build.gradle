@@ -30,7 +30,7 @@ plugins {
 }
 
 group = 'jadex'
-version = '0.49'
+version = '0.62'
 
 repositories {
     mavenCentral()
@@ -38,11 +38,15 @@ repositories {
 
 dependencies {
     antlr 'org.antlr:antlr4:4.12.0'
+
     implementation 'org.antlr:antlr4-runtime:4.12.0'
-    implementation "org.ow2.asm:asm:9.9"
     implementation 'org.jspecify:jspecify:1.0.0'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
     implementation 'org.bitbucket.cowwoc:diff-match-patch:1.2'
+    implementation "org.ow2.asm:asm:9.9"
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
@@ -60,7 +64,7 @@ sourceSets {
 }
 
 jar {
-    archiveBaseName.set('jplus')
+    archiveBaseName.set('jadex')
     archiveVersion.set('')
     manifest {
         attributes(

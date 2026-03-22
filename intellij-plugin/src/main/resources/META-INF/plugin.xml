@@ -102,6 +102,10 @@
         <projectService
                 serviceImplementation="jplus.plugin.intellij.settings.JadexProjectSettings"/>
 
+        <notificationGroup id="JADEx"
+                           displayType="BALLOON"
+                           isLogByDefault="true"/>
+
         <fileTypeFactory implementation="jplus.plugin.intellij.JPlusFileTypeFactory"/>
         <lang.syntaxHighlighterFactory language="Jadex" implementationClass="jplus.plugin.intellij.JPlusSyntaxHighlighterFactory"/>
         <completion.contributor language="Jadex" implementationClass="jplus.plugin.intellij.JPlusCompletionContributor"/>

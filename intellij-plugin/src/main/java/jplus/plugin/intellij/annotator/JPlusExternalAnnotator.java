@@ -39,6 +39,7 @@ import com.intellij.psi.PsiFile;
 import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.analyzer.nullability.issue.Severity;
 import jplus.plugin.intellij.JPlusFile;
+import jplus.plugin.intellij.util.JPlusUtil;
 import jplus.processor.JPlusProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,8 +70,10 @@ public class JPlusExternalAnnotator
         String moduleKey = module != null ? module.getName() : ideaProject.getName();
         jplus.base.Project jplusProject = projectCache.computeIfAbsent(
                 moduleKey,
-                k -> JPlusIntelliJProjectUtil.buildJPlusProject(ideaProject, module)
+                k -> JPlusUtil.buildJadexProject(ideaProject, module)
         );
+
+        if (jplusProject == null) return null;
 
         String packageName = JPlusIntelliJProjectUtil.resolvePackageName(ideaProject, file);
         String className = file.getVirtualFile().getNameWithoutExtension();
