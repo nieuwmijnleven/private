@@ -29,12 +29,19 @@ package jplus.plugin.intellij.annotator;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.analyzer.nullability.issue.Severity;
@@ -54,17 +61,37 @@ public class JPlusExternalAnnotator
 
     private static final ConcurrentHashMap<String, jplus.base.Project> projectCache = new ConcurrentHashMap<>();
 
-    @Override
-    public @Nullable JPlusAnnotationInput collectInformation(
-            @NotNull PsiFile file
-    ) {
+    public @Nullable JPlusAnnotationInput collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
         LOG.debug("collectInformation called: " + file.getName());
 
-        if (!(file instanceof JPlusFile)) return null;
-
-        String filePath = file.getVirtualFile().getPath();
+        if (hasErrors || !(file instanceof JPlusFile jadexPsiFile)) return null;
 
         Project ideaProject = file.getProject();
+
+        if (DumbService.isDumb(ideaProject)) return null;
+
+        VirtualFile vf = file.getVirtualFile();
+        if (vf != null) {
+            Document docOnDisk = FileDocumentManager.getInstance().getDocument(vf);
+            if (docOnDisk != null &&
+                    FileDocumentManager.getInstance().isDocumentUnsaved(docOnDisk)) {
+                LOG.debug("collectInformation skipped (unsaved): " + file.getName());
+                return null;
+            }
+        }
+
+        FileEditorManager editorManager = FileEditorManager.getInstance(ideaProject);
+        Editor selectedEditor = editorManager.getSelectedTextEditor();
+
+        if (selectedEditor == null || !selectedEditor.equals(editor)) {
+            return null;
+        }
+
+        PsiDocumentManager docManager = PsiDocumentManager.getInstance(ideaProject);
+        Document doc = docManager.getCachedDocument(jadexPsiFile);
+
+        if (doc != null && !docManager.isCommitted(doc)) return null;
+
         Module module = ModuleUtilCore.findModuleForFile(file.getVirtualFile(), ideaProject);
 
         String moduleKey = module != null ? module.getName() : ideaProject.getName();
