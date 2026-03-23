@@ -209,7 +209,6 @@ public class JadexModelBuilder implements ToolingModelBuilder {
 
     private List<String> resolveJavaSrcDirs(Project project) {
         try {
-            // Java 플러그인의 SourceSet에서 main 소스 디렉토리 수집
             JavaPluginExtension javaExtension = project.getExtensions()
                     .findByType(JavaPluginExtension.class);
 
@@ -219,11 +218,10 @@ public class JadexModelBuilder implements ToolingModelBuilder {
             }
 
             return javaExtension.getSourceSets()
-                    .getByName(SourceSet.MAIN_SOURCE_SET_NAME)  // "main"
+                    .getByName(SourceSet.MAIN_SOURCE_SET_NAME)
                     .getJava()
                     .getSrcDirs()
                     .stream()
-                    .filter(File::exists)  // 실제 존재하는 디렉토리만
                     .map(File::getAbsolutePath)
                     .toList();
 
@@ -249,12 +247,10 @@ public class JadexModelBuilder implements ToolingModelBuilder {
             List<String> classPath = new ArrayList<>();
 
             mainSourceSet.getCompileClasspath()
-                    .filter(File::exists)
                     .forEach(file -> classPath.add(file.getAbsolutePath()));
 
             mainSourceSet.getOutput()
                     .getClassesDirs()
-                    .filter(File::exists)
                     .forEach(file -> classPath.add(file.getAbsolutePath()));
 
             return classPath.stream().distinct().toList();
