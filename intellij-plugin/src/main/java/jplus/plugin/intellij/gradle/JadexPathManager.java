@@ -31,6 +31,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import jadex.gradle.JadexModel;
+import jplus.plugin.intellij.annotator.JPlusExternalAnnotator;
 import jplus.plugin.intellij.settings.JadexProjectSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +53,10 @@ public class JadexPathManager {
                 return;
             }
 
-            jadexModelList.forEach(jadexModel -> LOG.debug(jadexModel.toString()));
+            //jadexModelList.forEach(jadexModel -> System.out.println(jadexModel.getJavaSrcDirs()));
 
             JadexProjectSettings.getInstance(project).update(jadexModelList);
+            JPlusExternalAnnotator.clearProjectCache();
         });
     }
 
