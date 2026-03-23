@@ -26,11 +26,14 @@
 
 package jplus.plugin.intellij;
 
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -58,6 +61,22 @@ public class JPlusSaveListener implements FileDocumentManagerListener {
 
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
         if (file == null || !file.getName().endsWith(".jadex")) return;
+
+        FileEditorManager editorManager = FileEditorManager.getInstance(project);
+        Editor selectedEditor = editorManager.getSelectedTextEditor();
+
+        if (selectedEditor == null) return;
+
+        VirtualFile editorFile = com.intellij.openapi.fileEditor.FileDocumentManager
+                .getInstance()
+                .getFile(selectedEditor.getDocument());
+
+        if (!file.equals(editorFile)) return;
+
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+        if (psiFile == null) return;
+
+        DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
 
         JadexProjectSettings settings = JadexProjectSettings.getInstance(project);
         if (settings.hasGradleConfig(JPlusUtil.getModuleDir(project, file))) return;
