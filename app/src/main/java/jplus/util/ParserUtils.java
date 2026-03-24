@@ -27,7 +27,10 @@
 package jplus.util;
 
 import jplus.base.JADEx25Parser;
+import jplus.generator.CodeGenContext;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -35,18 +38,39 @@ public class ParserUtils {
 
     private ParserUtils() {}
 
-    public static boolean usesNullSafety(ParserRuleContext ctx) {
-        for (int i = 0; i < ctx.getChildCount(); i++) {
-            ParseTree child = ctx.getChild(i);
+//    public static boolean usesNullSafety(ParserRuleContext ctx) {
+//        for (int i = 0; i < ctx.getChildCount(); i++) {
+//            ParseTree child = ctx.getChild(i);
+//
+//            if (child instanceof TerminalNode tn) {
+//                if (tn.getSymbol().getType() == JADEx25Parser.NULLSAFE) {
+//                    return true;
+//                }
+//            } else if (child instanceof ParserRuleContext prc) {
+//                if (usesNullSafety(prc)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
-            if (child instanceof TerminalNode tn) {
-                if (tn.getSymbol().getType() == JADEx25Parser.NULLSAFE) {
-                    return true;
-                }
-            } else if (child instanceof ParserRuleContext prc) {
-                if (usesNullSafety(prc)) {
-                    return true;
-                }
+    public static boolean usesNullSafety(ParserRuleContext ctx) {
+
+        JADEx25Parser parser = CodeGenContext.current().getParser();
+        var tokens = parser.getTokenStream();
+
+        if (ctx == null || tokens == null || ctx.start == null || ctx.stop == null) {
+            return false;
+        }
+
+        int startIndex = ctx.start.getTokenIndex();
+        int stopIndex = ctx.stop.getTokenIndex();
+
+        for (int i = startIndex; i <= stopIndex; i++) {
+            Token token = tokens.get(i);
+            if (token.getType() == JADEx25Parser.NULLSAFE) {
+                return true;
             }
         }
         return false;

@@ -26,6 +26,7 @@
 
 package jplus.generator;
 
+import jplus.base.JADEx25Parser;
 import jplus.editor.FragmentedText;
 
 import java.util.ArrayDeque;
@@ -35,6 +36,8 @@ import java.util.Set;
 
 public class CodeGenContext {
     private static final ThreadLocal<Deque<CodeGenContext>> stackLocal = ThreadLocal.withInitial(ArrayDeque::new);
+
+    private JADEx25Parser parser;
 
     private FragmentedText fragmentedText;
 
@@ -58,6 +61,10 @@ public class CodeGenContext {
     public static void pop() {
         stackLocal.get().pop();
     }
+
+    public JADEx25Parser getParser() { return parser; }
+
+    public void setParser(JADEx25Parser parser) { this.parser = parser; }
 
     public FragmentedText getFragmentedText() {
         return fragmentedText;
