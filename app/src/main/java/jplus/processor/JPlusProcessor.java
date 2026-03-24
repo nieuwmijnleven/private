@@ -40,6 +40,7 @@ import jplus.generator.BoilerplateCodeGenerator;
 import jplus.generator.CodeGenContext;
 import jplus.generator.JADExParserRuleContext;
 import jplus.generator.SourceMappingEntry;
+import jplus.parser.JADExParserFactory;
 import jplus.processor.issue.Issue;
 import jplus.processor.issue.Severity;
 import jplus.util.CodeGenUtils;
@@ -144,8 +145,8 @@ public class JPlusProcessor {
         var parser = new JADExParser(tokens);
         parser.setBuildParseTree(false);
 
-        parser.removeErrorListeners();
         parser.setErrorHandler(new BailErrorStrategy());
+        parser.removeErrorListeners();
 
         try {
             parser.compilationUnit();
@@ -158,10 +159,12 @@ public class JPlusProcessor {
 
     private void buildParseTree() {
         CharStream input = CharStreams.fromString(originalText);
-        JADEx25Lexer lexer = new JADEx25Lexer(input);
+        JADEx25Lexer lexer = JADExParserFactory.createLexer(input);
+//        JADEx25Lexer lexer = new JADEx25Lexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        parser = new JADEx25Parser(tokens);
+        //parser = new JADEx25Parser(tokens);
+        parser = JADExParserFactory.createParser(tokens);
 
         parser.setBuildParseTree(true);
         parser.removeErrorListeners();
@@ -409,11 +412,6 @@ public class JPlusProcessor {
         return issueList;
     }
 
-    private int mapOffsetBtoA(String aText, String bText, int offsetInB) {
-        DiffMatchPatch dmp = new DiffMatchPatch();
-        return dmp.diffXIndex(dmp.diffMain(bText, aText), offsetInB);
-    }
-
     public String getProcessedJavaCode() {
         return javaProcessor.getSource();
     }
@@ -503,6 +501,7 @@ public class JPlusProcessor {
         CodeGenContext.push();
         try {
 
+            CodeGenContext.current().setParser(parser);
             CodeGenContext.current().setSemanticMode(false);
             CodeGenContext.current().setFragmentedText(new FragmentedText(originalText));
 
