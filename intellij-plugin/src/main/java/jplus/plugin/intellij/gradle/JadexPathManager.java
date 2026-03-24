@@ -29,18 +29,17 @@ package jplus.plugin.intellij.gradle;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import jadex.gradle.JadexModel;
 import jplus.plugin.intellij.annotator.JPlusExternalAnnotator;
 import jplus.plugin.intellij.settings.JadexProjectSettings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class JadexPathManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JadexPathManager.class);
+    private static final Logger LOG = Logger.getInstance(JadexPathManager.class);
 
     public static void refresh(Project project) {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -53,9 +52,24 @@ public class JadexPathManager {
                 return;
             }
 
-            //jadexModelList.forEach(jadexModel -> System.out.println(jadexModel.getJavaSrcDirs()));
+            jadexModelList.forEach(jadexModel -> {
+                LOG.debug("-- JADEx Gradle Settings info --");
+                LOG.debug("JADEx projectDir: ", jadexModel.getProjectDir());
+                LOG.debug("JADEx pluginVersion: ", jadexModel.getPluginVersion());
+                LOG.debug("JADEx javaHome: ", jadexModel.getJavaHome());
+                LOG.debug("JADEx javaVersion: ", jadexModel.getJavaVersion());
+                LOG.debug("JADEx javaSrcDirs: ", jadexModel.getJavaSrcDirs());
+                LOG.debug("JADEx classPath: ", jadexModel.getClassPath());
 
-            JadexProjectSettings.getInstance(project).update(jadexModelList);
+                int majorVersion = parseMajorVersion(jadexModel.getJavaVersion());
+                if (majorVersion < 21) {
+                    notifyJavaVersionTooLow(project, jadexModel.getJavaVersion());
+                }
+
+                JadexProjectSettings.getInstance(project)
+                        .update(jadexModel);
+            });
+
             JPlusExternalAnnotator.clearProjectCache();
         });
     }
@@ -71,4 +85,36 @@ public class JadexPathManager {
                         NotificationType.WARNING)
                 .notify(project);
     }
+
+    private static void notifyJavaVersionTooLow(Project project, String currentVersion) {
+        NotificationGroupManager.getInstance()
+                .getNotificationGroup("JADEx")
+                .createNotification(
+                        "JADEx: Java version not supported",
+                        "JADEx requires <b>Java 21 or higher</b>.<br><br>" +
+                                "Gradle JVM version: <b>" + currentVersion + "</b><br><br>" +
+                                "Please update the Gradle JVM in:<br>" +
+                                "<b>Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JVM</b>",
+                        NotificationType.ERROR)
+                .notify(project);
+    }
+
+    public static int parseMajorVersion(String version) {
+        if (version == null || version.isBlank()) {
+            throw new IllegalArgumentException("Version string must not be null or blank");
+        }
+
+        String[] parts = version.split("[.+\\-]");
+
+        int first = Integer.parseInt(parts[0]);
+
+        // 1.x.y → major = x
+        if (first == 1 && parts.length >= 2) {
+            return Integer.parseInt(parts[1]);
+        }
+
+        // Modern: x.y.z → major = x
+        return first;
+    }
+
 }
