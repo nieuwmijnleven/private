@@ -79,14 +79,18 @@ public class JadexProjectSettings
         clear();
 
         jadexModelList.forEach(jadexModel -> {
-            state.sourceDirMap.put(jadexModel.getProjectDir(), jadexModel.getSourceDir());
-            state.outputDirMap.put(jadexModel.getProjectDir(), jadexModel.getOutputDir());
-            state.pluginVersionMap.put(jadexModel.getProjectDir(), jadexModel.getPluginVersion());
-            state.javaHomeMap.put(jadexModel.getProjectDir(), jadexModel.getJavaHome());
-            state.javaVersionMap.put(jadexModel.getProjectDir(), jadexModel.getJavaVersion());
-            state.javaSrcDirsMap.put(jadexModel.getProjectDir(), jadexModel.getJavaSrcDirs());
-            state.classPathMap.put(jadexModel.getProjectDir(), jadexModel.getClassPath());
+            update(jadexModel);
         });
+    }
+
+    public void update(JadexModel jadexModel) {
+        state.sourceDirMap.put(jadexModel.getProjectDir(), jadexModel.getSourceDir());
+        state.outputDirMap.put(jadexModel.getProjectDir(), jadexModel.getOutputDir());
+        state.pluginVersionMap.put(jadexModel.getProjectDir(), jadexModel.getPluginVersion());
+        state.javaHomeMap.put(jadexModel.getProjectDir(), jadexModel.getJavaHome());
+        state.javaVersionMap.put(jadexModel.getProjectDir(), jadexModel.getJavaVersion());
+        state.javaSrcDirsMap.put(jadexModel.getProjectDir(), jadexModel.getJavaSrcDirs());
+        state.classPathMap.put(jadexModel.getProjectDir(), jadexModel.getClassPath());
     }
 
     private void clear() {
