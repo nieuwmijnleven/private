@@ -59,23 +59,6 @@
 
     <depends optional="true" config-file="jadex-gradle.xml">org.jetbrains.plugins.gradle</depends>
 
-    <projectListeners>
-        <listener
-                class="jplus.plugin.intellij.JPlusSaveListener"
-                topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
-
-        <listener class="jplus.plugin.intellij.listener.JadexEditorFactoryListener"
-                  topic="com.intellij.openapi.editor.event.EditorFactoryListener"/>
-
-        <listener
-                class="jplus.plugin.intellij.listener.JadexBuildFileListener"
-                topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
-
-        <listener
-                class="jplus.plugin.intellij.annotator.ModuleChangeListener"
-                topic="com.intellij.openapi.project.ModuleListener"/>
-    </projectListeners>
-
     <actions>
         <action id="NewJPlusClass"
                 class="jplus.plugin.intellij.JPlusNewClassAction"
@@ -90,6 +73,23 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
         </action>
     </actions>
+
+    <projectListeners>
+        <listener
+                class="jplus.plugin.intellij.JPlusSaveListener"
+                topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+
+        <listener
+                class="jplus.plugin.intellij.listener.JadexBuildFileListener"
+                topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+
+        <listener
+                class="jplus.plugin.intellij.annotator.ModuleChangeListener"
+                topic="com.intellij.openapi.project.ModuleListener"/>
+
+        <!--listener class="jplus.plugin.intellij.listener.JadexEditorFactoryListener"
+                 topic="com.intellij.openapi.editor.event.EditorFactoryListener"/-->
+    </projectListeners>
 
     <idea-version since-build="251"/>
 
@@ -106,8 +106,8 @@
         <projectService
                 serviceImplementation="jplus.plugin.intellij.settings.JadexProjectSettings"/>
 
-        <projectService
-                serviceImplementation="jplus.plugin.intellij.annotator.JadexAnnotatorState"/>
+        <!--projectService
+                serviceImplementation="jplus.plugin.intellij.annotator.JadexAnnotatorState"/-->
 
         <notificationGroup id="JADEx"
                            displayType="BALLOON"
