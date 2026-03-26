@@ -69,7 +69,7 @@ public class JPlusCompletionContributor extends CompletionContributor {
                                           @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
-                if (parameters.getInvocationCount() == 0) {
+                /*if (parameters.getInvocationCount() == 0) {
                     result.addElement(
                             LookupElementBuilder.create("")
                                     .withPresentableText("⏎ Press Ctrl+Space for JADEx completion")
@@ -78,13 +78,13 @@ public class JPlusCompletionContributor extends CompletionContributor {
                                     .withInsertHandler((ctx, item) -> {})
                     );
                     return;
-                }
+                }*/
 
                 Project project = parameters.getPosition().getProject();
                 PsiElement psiElement = parameters.getPosition();
                 PsiFile jadexPsiFile = psiElement.getContainingFile();
 
-                //collectApplyCandidates(psiElement, result);
+                collectApplyCandidates(psiElement, result);
 
                 PsiJavaFile javaPsiFile =
                         CachedValuesManager.getCachedValue(

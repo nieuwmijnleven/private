@@ -37,16 +37,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
-import jplus.base.JADEx25Parser;
 import jplus.plugin.intellij.adapter.JPlusLexerAdapter;
 import jplus.plugin.intellij.adapter.JPlusParserAdapter;
 import jplus.plugin.intellij.psi.ApplyBlockPsiElement;
 import jplus.plugin.intellij.psi.ApplyStatementPsiElement;
-import jplus.plugin.intellij.psi.MethodDeclarationPsiElement;
-import jplus.plugin.intellij.psi.NormalClassDeclarationPsiElement;
-import jplus.plugin.intellij.psi.VariableDeclaratorPsiElement;
 import org.antlr.intellij.adaptor.lexer.RuleIElementType;
-import org.antlr.intellij.adaptor.lexer.TokenIElementType;
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,6 +87,18 @@ public class JPlusParserDefinition implements ParserDefinition {
     @Override
     public @NotNull PsiElement createElement(ASTNode node) {
 
+        IElementType iElementType = node.getElementType();
+
+        if (!(iElementType instanceof RuleIElementType ruleElementType)) {
+            return new ANTLRPsiNode(node);
+        }
+
+        return switch (ruleElementType.getRuleIndex()) {
+            case JADExIntellijParser.RULE_applyBlock -> new ApplyBlockPsiElement(node);
+            case JADExIntellijParser.RULE_applyStatement -> new ApplyStatementPsiElement(node);
+            default -> new ANTLRPsiNode(node);
+        };
+
         /*IElementType iElementType = node.getElementType();
 
         if (iElementType instanceof TokenIElementType tokenElement) {
@@ -111,7 +118,7 @@ public class JPlusParserDefinition implements ParserDefinition {
             default -> new ANTLRPsiNode(node);
         };*/
 
-        return new ANTLRPsiNode(node);
+        //return new ANTLRPsiNode(node);
     }
 
     @Override
