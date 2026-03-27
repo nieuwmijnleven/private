@@ -68,7 +68,9 @@ public class JavaSymbolResolver {
         }
 
         if (globalSymbolTable.contains(qualifiedName, TypeInfo.Type.Class)) {
-            return globalSymbolTable.resolveInCurrent(qualifiedName);
+            SymbolInfo result = globalSymbolTable.resolveInCurrent(qualifiedName);
+            cache.put(qualifiedName, result);
+            return result;
         }
 
         TypeElement clazz = elements.getTypeElement(qualifiedName);
