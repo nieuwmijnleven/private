@@ -136,14 +136,22 @@ public class JPlusExternalAnnotator
             );
             LOG.debug("processor created");
 
-            ProgressIndicatorProvider.checkCanceled();
-            boolean canParse = processor.canParse();
-            LOG.debug("canParse = " + canParse);
-            if (!canParse) return null;
+//            ProgressIndicatorProvider.checkCanceled();
+//            boolean canParse = processor.canParse();
+//            LOG.debug("canParse = " + canParse);
+//            if (!canParse) return null;
 
             ProgressIndicatorProvider.checkCanceled();
             var diagnostics = processor.process();
             LOG.debug("process done, diagnostics = " + diagnostics.size());
+
+            if (!diagnostics.isEmpty()) {
+
+                var result = new JPlusAnnotationResult(diagnostics, List.of());
+                resultCache.put(key, result);
+
+                return result;
+            }
 
             ProgressIndicatorProvider.checkCanceled();
             processor.analyzeSymbols();
