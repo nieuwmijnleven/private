@@ -88,6 +88,8 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
 
     private static final Logger log = LoggerFactory.getLogger(NullabilityChecker.class);
 
+    private static final Void NOTHING = null;
+
     private final SymbolTable globalSymbolTable;
     private final Set<SourceMappingEntry> sourceMappingEntrySet;
     private final String javaCode;
@@ -554,16 +556,22 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
 
         log.debug("[evalInitializer] line(" + ctx.start.getLine() + ") contextString: " + Utils.getTokenString(ctx));
 
+        var switchExprResult = symbolTable.resolveInCurrent("^SwitchExpression$" + ctx.start.getStartIndex());
+        if (switchExprResult != null) {
+            //log.debug("[evalInitializer] switchExprResult = " + switchExprResult.getNullState());
+            return switchExprResult.getNullState();
+        }
+
         var conditionalExprResult = symbolTable.resolveInCurrent("^ConditionalExpression$" + ctx.start.getStartIndex());
         if (conditionalExprResult != null) {
             //log.debug("[evalInitializer] conditionalExprResult = " + conditionalExprResult.getNullState());
             return conditionalExprResult.getNullState();
         }
 
-        var switchExprResult = symbolTable.resolveInCurrent("^SwitchExpression$" + ctx.start.getStartIndex());
-        if (switchExprResult != null) {
-            //log.debug("[evalInitializer] switchExprResult = " + switchExprResult.getNullState());
-            return switchExprResult.getNullState();
+        var nullcoalescingExprResult = symbolTable.resolveInCurrent("^NullCoalescingExpression$" + ctx.start.getStartIndex());
+        if (nullcoalescingExprResult != null) {
+            //log.debug("[evalInitializer] nullcoalescingExprResult = " + nullcoalescingExprResult.getNullState());
+            return nullcoalescingExprResult.getNullState();
         }
 
         log.debug("[evalInitializer] resolvedChains: " + symbolTable.getResolvedChains());
@@ -1768,7 +1776,7 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
     public Void visitConditionalExpression(ConditionalExpressionContext ctx) {
 
         if (ctx.expression() == null) {
-            return super.visitNullCoalescingExpression(ctx.nullCoalescingExpression());
+            return super.visit(ctx.nullCoalescingExpression());
         }
 
         SymbolTable entry = currentSymbolTable.copy();
@@ -1839,6 +1847,45 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
         );
 
         return null;
+    }
+
+    @Override
+    public Void visitNullCoalescingExpression(NullCoalescingExpressionContext ctx) {
+
+        var lhsExpr = ctx.conditionalOrExpression();
+        var rhsExpr = ctx.nullCoalescingExpression() != null ? ctx.nullCoalescingExpression() : ctx.lambdaExpression();
+
+        log.debug("[NullCoalescingExpression] line(" + ctx.start.getLine() + ", " + ctx.start.getStartIndex() + "), contextString = " + Utils.getTokenString(ctx));
+
+        if (rhsExpr == null) {
+            return super.visit(lhsExpr);
+        }
+
+        visit(lhsExpr);
+        visit(rhsExpr);
+
+        var lhsNS = evalRHS(lhsExpr, currentSymbolTable);
+        var rhsNS = evalRHS(rhsExpr, currentSymbolTable);
+
+        log.debug("[NullCoalescingExpr] evalRHS(lhsExpr) = " + lhsNS);
+        log.debug("[NullCoalescingExpr] evalRHS(rhsExpr) = " + rhsNS);
+
+        var joinedNullState = NullState.join(lhsNS, rhsNS);
+        log.debug("[NullCoalescingExpr] joinedNullState = " + joinedNullState);
+
+        currentSymbolTable.declare(
+                "^NullCoalescingExpression$" + ctx.start.getStartIndex(),
+                SymbolInfo.builder()
+                        .symbol("^NullCoalescingExpression$" + ctx.start.getStartIndex())
+                        .typeInfo(TypeInfo.builder()
+                                .name("^NullCoalescingExpression$")
+                                .type(TypeInfo.Type.Null)
+                                .build())
+                        .nullState(joinedNullState).build()
+        );
+
+
+        return NOTHING;
     }
 
     public NullState updateNullState(ParserRuleContext ctx, SymbolTable symbolTable, NullState nullState) {
