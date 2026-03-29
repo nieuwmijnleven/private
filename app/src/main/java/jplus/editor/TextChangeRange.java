@@ -26,12 +26,34 @@
 
 package jplus.editor;
 
-public record TextChangeRange(int startLine, int startIndex, int endLine, int inclusiveEndIndex) {
+public record TextChangeRange(
+        int startLine,
+        int startIndex,
+        int startOffset,
+        int endLine,
+        int inclusiveEndIndex,
+        int endOffset
+) {
 
-    public static final TextChangeRange EMPTY = new TextChangeRange(0, 0,Integer.MIN_VALUE, Integer.MIN_VALUE);
+    public static final TextChangeRange EMPTY =
+            new TextChangeRange(
+                    0,
+                    0,
+                    0,
+                    Integer.MIN_VALUE,
+                    Integer.MIN_VALUE,
+                    Integer.MIN_VALUE
+            );
 
     public static TextChangeRange copyFrom(final TextChangeRange range) {
-        return new TextChangeRange(range.startLine, range.startIndex, range.endLine, range.inclusiveEndIndex);
+        return new TextChangeRange(
+                range.startLine,
+                range.startIndex,
+                range.startOffset,
+                range.endLine,
+                range.inclusiveEndIndex,
+                range.endOffset
+        );
     }
 
     public boolean isEmpty() {
@@ -39,26 +61,38 @@ public record TextChangeRange(int startLine, int startIndex, int endLine, int in
     }
 
     public boolean contains(TextChangeRange other) {
-        return this.startLine() <= other.startLine()
-                && this.endLine() >= other.endLine()
-                && (this.startLine() != other.startLine() || this.startIndex() <= other.startIndex())
-                && (this.endLine() != other.endLine() || this.inclusiveEndIndex() >= other.inclusiveEndIndex());
+        return this.startOffset() <= other.startOffset()
+                && this.endOffset() >= other.endOffset();
     }
 
     public boolean overlaps(TextChangeRange other) {
-        return !(this.endLine() < other.startLine() ||
-                this.startLine() > other.endLine() ||
-                (this.endLine() == other.startLine() && this.inclusiveEndIndex() < other.startIndex()) ||
-                (this.startLine() == other.endLine() && this.startIndex() > other.inclusiveEndIndex()));
+        return !(this.endOffset() < other.startOffset()
+                || this.startOffset() > other.endOffset());
     }
+
+//    public boolean contains(TextChangeRange other) {
+//        return this.startLine() <= other.startLine()
+//                && this.endLine() >= other.endLine()
+//                && (this.startLine() != other.startLine() || this.startIndex() <= other.startIndex())
+//                && (this.endLine() != other.endLine() || this.inclusiveEndIndex() >= other.inclusiveEndIndex());
+//    }
+//
+//    public boolean overlaps(TextChangeRange other) {
+//        return !(this.endLine() < other.startLine() ||
+//                this.startLine() > other.endLine() ||
+//                (this.endLine() == other.startLine() && this.inclusiveEndIndex() < other.startIndex()) ||
+//                (this.startLine() == other.endLine() && this.startIndex() > other.inclusiveEndIndex()));
+//    }
 
     @Override
     public String toString() {
         return "TextChangeRange{" +
                 "startLine=" + startLine +
                 ", startIndex=" + startIndex +
+                ", startOffset=" + startOffset +
                 ", endLine=" + endLine +
                 ", inclusiveEndIndex=" + inclusiveEndIndex +
+                ", endOffset=" + endOffset +
                 '}';
     }
 }

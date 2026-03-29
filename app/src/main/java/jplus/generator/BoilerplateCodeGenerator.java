@@ -168,8 +168,8 @@ public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
             TextChangeRange range = targetClassSymbolInfo.getRange();
             String classText = targetClassSymbolInfo.getOriginalText();
             TextChangeRange methodRange = new TextChangeRange(
-                    range.endLine(), range.inclusiveEndIndex(),
-                    range.endLine(), range.inclusiveEndIndex()
+                    range.endLine(), range.inclusiveEndIndex(), range.endOffset(),
+                    range.endLine(), range.inclusiveEndIndex(), range.endOffset()
             );
 
             SymbolTable classSymbolTable = enclosingSymbolTable.getEnclosingSymbolTable(targetClass);
@@ -193,7 +193,8 @@ public class BoilerplateCodeGenerator extends JADEx25ParserBaseVisitor<Void> {
             int constructorIndent = symbolInfo.getRange().startIndex();
             int endLine = symbolInfo.getRange().endLine();
             int endIndex = symbolInfo.getRange().inclusiveEndIndex() + 1;
-            TextChangeRange constructorRange = new TextChangeRange(endLine, endIndex, endLine, endIndex);
+            int endOffset = symbolInfo.getRange().endOffset() + 1;
+            TextChangeRange constructorRange = new TextChangeRange(endLine, endIndex, endOffset, endLine, endIndex, endOffset);
 
             ApplyFeatureProcessingContext context = processedClassActionContextMap.computeIfAbsent(qualifiedName, k -> {
                 return ApplyFeatureProcessingContext.builder()

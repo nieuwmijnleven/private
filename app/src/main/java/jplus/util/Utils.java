@@ -216,7 +216,7 @@ public class Utils {
             currentOffset++;
         }
 
-        return new TextChangeRange(startLine, startIndex, endLine, endIndex);
+        return new TextChangeRange(startLine, startIndex, startOffset, endLine, endIndex, endOffset);
     }
 
     public static TextChangeRange getRangeFromStartIndexAndEndIndex(
@@ -226,7 +226,7 @@ public class Utils {
             int endIndex) {
 
         if (startIndex < 0 || endIndex < startIndex || endIndex >= originalText.length()) {
-            throw new IllegalArgumentException("Invalid startIndex or endIndex");
+            throw new IllegalArgumentException("Invalid startIndex{%s} or endIndex{%s}, originalText{%s}".formatted(startIndex, endIndex, originalText));
         }
 
         int currentLine = originalTextChangeRange.startLine();
@@ -268,7 +268,7 @@ public class Utils {
             throw new IllegalStateException("Could not resolve line/column positions.");
         }
 
-        return new TextChangeRange(startLine, startColumn, endLine, endColumn);
+        return new TextChangeRange(startLine, startColumn, startIndex, endLine, endColumn, endIndex);
     }
 
     public static TextChangeRange getTextChangeRange(String original, ParserRuleContext ctx) {
