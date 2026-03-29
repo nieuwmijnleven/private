@@ -46,6 +46,7 @@ import com.intellij.psi.PsiFile;
 import jplus.analyzer.nullability.issue.NullabilityIssue;
 import jplus.analyzer.nullability.issue.Severity;
 import jplus.plugin.intellij.JPlusFile;
+import jplus.plugin.intellij.settings.JadexProjectSettings;
 import jplus.plugin.intellij.util.JPlusUtil;
 import jplus.processor.JPlusProcessor;
 import org.jetbrains.annotations.NotNull;
@@ -97,13 +98,14 @@ public class JPlusExternalAnnotator
 
         Module module = ModuleUtilCore.findModuleForFile(file.getVirtualFile(), ideaProject);
 
-        String moduleKey = module != null ? module.getName() : ideaProject.getName();
-        jplus.base.Project jplusProject = JPlusUtil.buildJadexProject(ideaProject, module);
+        jplus.base.Project jplusProject = null;
+        JadexProjectSettings settings = JadexProjectSettings.getInstance(ideaProject);
 
-        /*jplus.base.Project jplusProject = projectCache.computeIfAbsent(
-                moduleKey,
-                k -> JPlusUtil.buildJadexProject(ideaProject, module)
-        );*/
+        if (settings.hasGradleConfig(JPlusUtil.getModuleDir(ideaProject, file.getVirtualFile()))) {
+            jplusProject = JPlusUtil.buildJadexProject(ideaProject, module);
+        } else {
+            jplusProject = JPlusIntelliJProjectUtil.buildJPlusProject(ideaProject, module);
+        }
 
         if (jplusProject == null) return null;
 
