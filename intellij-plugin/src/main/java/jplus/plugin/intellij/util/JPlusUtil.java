@@ -68,7 +68,7 @@ public final class JPlusUtil {
 
         JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusFile.getText());
 
-        if (checkParsible && !processor.canParse()) return null;
+        //if (checkParsible && !processor.canParse()) return null;
 
         //String javaText = processor.compile();
         String javaText = processor.transformJADExToJava();
@@ -88,7 +88,7 @@ public final class JPlusUtil {
 
         JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusFile.getText());
 
-        if (checkParsible && !processor.canParse()) return null;
+        //if (checkParsible && !processor.canParse()) return null;
 
         LOG.debug("[createJavaPsiFromJADExForCodeCompletion] JadexText = " + jplusFile.getText());
 

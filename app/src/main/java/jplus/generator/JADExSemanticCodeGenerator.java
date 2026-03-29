@@ -70,7 +70,7 @@ public class JADExSemanticCodeGenerator extends JADExBasicCodeGenerator {
         var fallbackExpr = ctx.expression(1);
 
         //rewriter.insertBefore(conditionExpr.start, "jext.util.JextUtils.__elvis(");
-        rewriter.insertBefore(conditionExpr.start, "JadexUtil._elvis(");
+        rewriter.insertBefore(conditionExpr.start, "jadex.runtime.JadexUtil._elvis(");
         rewriter.replace(ctx.bop.getTokenIndex(), ",");
         rewriter.insertAfter(fallbackExpr.stop, ")");
 

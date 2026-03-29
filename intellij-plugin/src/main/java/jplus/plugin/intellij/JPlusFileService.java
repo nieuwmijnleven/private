@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import jplus.plugin.intellij.annotator.JPlusIntelliJProjectUtil;
 import jplus.plugin.intellij.util.JPlusUtil;
 import jplus.processor.JPlusProcessor;
 
@@ -63,7 +64,7 @@ public class JPlusFileService {
             Module module = ModuleUtilCore.findModuleForFile(file.getVirtualFile(), file.getProject());
             if (module == null) return;
 
-            jplus.base.Project jplusProject = ReadAction.compute(() -> JPlusUtil.buildJadexProject(file.getProject(), module));
+            jplus.base.Project jplusProject = ReadAction.compute(() -> JPlusIntelliJProjectUtil.buildJPlusProject(ideaProject, module));
 
             JPlusProcessor processor = new JPlusProcessor(jplusProject, jplusCode);
 
