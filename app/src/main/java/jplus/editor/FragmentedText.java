@@ -224,6 +224,7 @@ public class FragmentedText {
 
         for (int i = 0; i < fragments.size(); ++i) {
             Fragment f = fragments.get(i);
+            System.out.println("Fragment = " + f);
 
             if (!range.contains(f.range)) continue;
 
@@ -248,6 +249,7 @@ public class FragmentedText {
     private SourceMappingEntry buildSourceMapForPrior(SourceMappingEntry entry, Fragment prior, int skipOffset) {
         int currentLine = entry.getTransformedRange().startLine();
         int currentCol = entry.getTransformedRange().startIndex();
+        int currentOffset = entry.getTransformedRange().startOffset();
         //System.err.println("[buildSourceMapForPrior] entry = " + entry);
         //System.err.println("[buildSourceMapForPrior] source = " + entry.getSource());
         //System.err.println("[buildSourceMapForPrior] prior = " + prior);
@@ -262,13 +264,13 @@ public class FragmentedText {
             } else {
                 currentCol++;
             }
+            currentOffset++;
         }
 
         //calculate text range
         int startLine = currentLine;
         int startCol = currentCol;
-        int endLine;
-        int endCol;
+        int startOffset = currentOffset;
 
         //System.err.println("[buildSourceMapForPrior] prior text = " + getTextFromRef(prior.ref));
         for (int i = 0; i < prior.ref.length; i++) {
@@ -279,14 +281,18 @@ public class FragmentedText {
             } else {
                 currentCol++;
             }
+            currentOffset++;
         }
 
         //endLine = Math.min(currentLine, entry.getTransformedRange().endLine());
         //endCol = Math.min(currentCol, entry.getTransformedRange().inclusiveEndIndex());endLine = Math.min(currentLine, entry.getTransformedRange().endLine());
-        endLine = currentLine;
-        endCol = (currentCol > 0) ? currentCol - 1 : currentCol;
+        int endLine = currentLine;
+        int endCol = (currentCol > 0) ? currentCol - 1 : currentCol;
+        int endOffset = currentOffset - 1;
 
-        TextChangeRange newRange = new TextChangeRange(startLine, startCol, endLine, endCol);
+        TextChangeRange newRange = new TextChangeRange(
+                startLine, startCol, startOffset, endLine, endCol, endOffset);
+
         return new SourceMappingEntry(getTextFromRef(prior.ref), prior.range, newRange);
     }
 
@@ -295,10 +301,12 @@ public class FragmentedText {
 
         int currentLine = originalRange.startLine();
         int currentCol = originalRange.startIndex();
+        int currentOffset = originalRange.startOffset();
 
         for (Fragment f : fragments) {
             int transformedStartLine = currentLine;
             int transformedStartCol = currentCol;
+            int transformedStartOffset = currentOffset;
 
             for (int i = 0; i < f.ref.length; i++) {
                 char c = bufferManager.charAt(f.ref.bufType, f.ref.start + i);
@@ -312,6 +320,7 @@ public class FragmentedText {
 
             int transformedEndLine = currentLine;
             int transformedEndCol = (currentCol > 0) ? currentCol - 1 : currentCol;
+            int transformedEndOffset = currentOffset - 1;
 
             SourceMappingEntry entry = new SourceMappingEntry(
                     getTextFromRef(f.ref),
@@ -319,8 +328,10 @@ public class FragmentedText {
                     new TextChangeRange(
                             transformedStartLine,
                             transformedStartCol,
+                            transformedStartOffset,
                             transformedEndLine,
-                            transformedEndCol
+                            transformedEndCol,
+                            transformedEndOffset
                     ));
             mapping.add(entry);
 

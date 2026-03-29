@@ -28,6 +28,8 @@ package jplus.base;
 
 import jplus.analyzer.ResolvedChain;
 import jplus.editor.TextChangeRange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +42,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SymbolTable implements Iterable<SymbolInfo> {
+
+    private static final Logger log = LoggerFactory.getLogger(SymbolTable.class);
 
     public static final String STATIC_NS = "^static$";
     public static final String INSTANCE_NS = "^instance$";
@@ -459,7 +463,7 @@ public class SymbolTable implements Iterable<SymbolInfo> {
             var firstStep = resolvedChain.first();
             var lastStep = resolvedChain.last();
 
-            TextChangeRange totalRange = new TextChangeRange(firstStep.range.startLine(), firstStep.range.startIndex(), lastStep.range.endLine(), lastStep.range.inclusiveEndIndex());
+            TextChangeRange totalRange = new TextChangeRange(firstStep.range.startLine(), firstStep.range.startIndex(), firstStep.range.startOffset(), lastStep.range.endLine(), lastStep.range.inclusiveEndIndex(), lastStep.range.endOffset());
 
             if (totalRange.equals(range)) return Optional.of(resolvedChain);
         }
