@@ -108,6 +108,12 @@ public final class JPlusIntelliJProjectUtil {
         return sdk.getHomePath();
     }
 
+    public static Path resolveLombokJarPath() {
+        return Path.of(PathManager.getPluginsPath())
+                .resolve("intellij-plugin")
+                .resolve("lib/lombok-1.18.42.jar");
+    }
+
     private static Path resolveJSpecifyJarPath() {
         return Path.of(PathManager.getPluginsPath())
                 .resolve("intellij-plugin")

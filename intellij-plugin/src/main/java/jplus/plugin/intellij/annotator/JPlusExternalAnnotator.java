@@ -138,6 +138,8 @@ public class JPlusExternalAnnotator
             );
             LOG.debug("processor created");
 
+            processor.setLombokJarPath(JPlusIntelliJProjectUtil.resolveLombokJarPath());
+
 //            ProgressIndicatorProvider.checkCanceled();
 //            boolean canParse = processor.canParse();
 //            LOG.debug("canParse = " + canParse);
