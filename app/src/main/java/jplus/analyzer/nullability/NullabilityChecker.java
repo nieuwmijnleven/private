@@ -266,8 +266,18 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
 
     @Override
     public Void visitTopLevelClassOrInterfaceDeclaration(TopLevelClassOrInterfaceDeclarationContext ctx) {
-        String className = getClassName(ctx.classDeclaration().normalClassDeclaration());
+
+        String className = null;
+        if (ctx.classDeclaration() != null) {
+            className = Utils.getTokenString(ctx.classDeclaration().normalClassDeclaration().typeIdentifier());
+        } else {
+            className = Utils.getTokenString(ctx.interfaceDeclaration().normalInterfaceDeclaration().typeIdentifier());
+        }
         //log.debug("className = " + className);
+
+        if (this.packageName != null) {
+            className = this.packageName + "." + className;
+        }
 
         SymbolInfo classSymbolInfo = getClassSymbolInfo(className);
         currentSymbolTable = classSymbolInfo.getSymbolTable();
@@ -281,14 +291,6 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
             throw new IllegalStateException("Symbol not found: " + className);
         }
         return classSymbolInfo;
-    }
-
-    private String getClassName(NormalClassDeclarationContext ctx) {
-        String className = Utils.getTokenString(ctx.typeIdentifier());
-        if (this.packageName != null) {
-            className = this.packageName + "." + className;
-        }
-        return className;
     }
 
     @Override
