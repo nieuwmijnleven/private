@@ -64,6 +64,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JPlusProcessor {
 
@@ -94,6 +96,7 @@ public class JPlusProcessor {
     private DiffMatchPatch dmp;
     private LinkedList<DiffMatchPatch.Diff> diffs;
     private LinkedList<DiffMatchPatch.Diff> lombokDiffs;
+    private LinkedList<DiffMatchPatch.Diff> removedLombokDiffs;
     private boolean isLombokUsed;
 
     public JPlusProcessor(Project project, String packageName, String className, String originalText, SymbolTable globalSymbolTable) {
@@ -409,15 +412,20 @@ public class JPlusProcessor {
 
         this.diffs = generateDiffTable(javaCode, originalText);
 
+        jadexText = originalText;
+
         isLombokUsed = checkIfLombokUse(javaCode);
         if (isLombokUsed) {
 
             var delombokCode = applyDelombok(javaCode);
-            System.err.println("delombokCode = " + delombokCode);
+            log.debug("delombokCode = " + delombokCode);
 
-            this.lombokDiffs = generateDiffTable(delombokCode, javaCode);
+            var removedLombokCode = LombokCleaner.removeLombokGeneratedPerfectly(delombokCode);
+            log.debug("removedLombokCode = " + removedLombokCode);
 
-            jadexText = originalText;
+            this.lombokDiffs = generateDiffTable(removedLombokCode, javaCode);
+            this.removedLombokDiffs = generateDiffTable(delombokCode, removedLombokCode);
+
             jadexToJavaText = javaCode;
 
             originalText = delombokCode;
@@ -456,20 +464,6 @@ public class JPlusProcessor {
         var issueList = new ArrayList<Issue>();
         for (var diagnositic : diagnositics) {
 
-            /*var issue =
-                    new Issue(
-                            Severity.ERROR,
-                            CodeGenUtils.getMapOffset(
-                                    originalText,
-                                    javaCode,
-                                    (int) diagnositic.getStartPosition()),
-                            CodeGenUtils.getMapOffset(
-                                    originalText,
-                                    javaCode,
-                                    (int)diagnositic.getEndPosition()),
-                            diagnositic.getMessage(Locale.getDefault())
-                    );*/
-
             var issue =
                     new Issue(
                             Severity.ERROR,
@@ -478,7 +472,7 @@ public class JPlusProcessor {
                             diagnositic.getMessage(Locale.getDefault())
                     );
 
-            issueList.add(issue);
+            if (issue.start() < jadexText.length()) issueList.add(issue);
         }
 
         return issueList;
@@ -487,7 +481,9 @@ public class JPlusProcessor {
     private int getMapOffset(int offset) {
 
         int offs = offset;
+
         if (isLombokUsed) {
+            offs = dmp.diffXIndex(removedLombokDiffs, offs);
             offs = dmp.diffXIndex(lombokDiffs, offs);
         }
 
@@ -513,6 +509,8 @@ public class JPlusProcessor {
 
     private LinkedList<DiffMatchPatch.Diff> generateDiffTable(String originalText, String newText) {
         this.dmp = new DiffMatchPatch();
+        this.dmp.diffTimeout = 0;
+
         return this.dmp.diffMain(originalText, newText);
     }
 
@@ -600,21 +598,22 @@ public class JPlusProcessor {
         if (isLombokUsed) {
 
             return nullabilityChecker.getIssues().stream()
-                    .sorted()
+                    .filter(issue -> getMapOffset(issue.offset()) < jadexText.length())
                     .map(issue -> {
 
                         var mapOffset = getMapOffset(issue.offset());
                         var range = Utils.computeTextChangeRange(jadexText, mapOffset, mapOffset);
 
                         return new NullabilityIssue(
-                                issue.issueCode(),
-                                issue.severity(),
-                                range.startLine(),
-                                range.startIndex(),
-                                getMapOffset(issue.offset()),
-                                issue.message()
+                        issue.issueCode(),
+                        issue.severity(),
+                        range.startLine(),
+                        range.startIndex(),
+                        mapOffset,
+                        issue.message()
                         );
                     })
+                    .sorted()
                     .toList();
         }
 
@@ -641,11 +640,11 @@ public class JPlusProcessor {
             throw new IllegalStateException("Must perform symbol analysis first.");
         }
 
-        if (isLombokUsed) {
-            this.originalText = this.jadexText;
-            buildParseTree();
-            //return transformJADExToJava();
-        }
+//        if (isLombokUsed) {
+//            this.originalText = this.jadexText;
+//            buildParseTree();
+//            //return transformJADExToJava();
+//        }
 
         String generated = transformJADExToJava();
         //log.debug("[generateJavaCode] javaCode = " + generated);
@@ -653,7 +652,7 @@ public class JPlusProcessor {
         /*int startIndex = parseTree.start.getStartIndex();
         String startWhiteSpace = originalText.substring(0, startIndex);
         String fullyGenerated = startWhiteSpace + generated;
-        System.err.println("startWhiteSpace = " + startWhiteSpace);*/
+        log.debug("startWhiteSpace = " + startWhiteSpace);*/
         ////log.debug("fullyGenerated = " + fullyGenerated);
 
         //FragmentedText fragmentedText = new FragmentedText(fullyGenerated);
