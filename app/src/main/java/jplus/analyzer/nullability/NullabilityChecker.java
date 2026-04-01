@@ -533,18 +533,20 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
     }
 
     private Void processInvocationDeclaration(InvocationDeclarationContext ctx) {
-        List<String> typeNameList = getTypeNamesFromParameterList(ctx.formalParameterList());
-        String methodSymbol = "^" + ctx.methodName() + "$~" + String.join("~", typeNameList);
+        List<String> paramTypes = getTypeNamesFromParameterList(ctx.formalParameterList());
+        //String methodSymbol = "^" + ctx.methodName() + "$~" + String.join("~", typeNameList);
+        //String methodName = "^" + ctx.methodName() + "$";
+
+        var methodSymbolInfoOpt = resolveMethod(currentSymbolTable, ctx.methodName(), paramTypes);
+        if (methodSymbolInfoOpt.isEmpty()) {
+            //throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
+            return NOTHING;
+        }
 
         //log.debug("[processInvocationDeclaration] currentSymbolTable = " + currentSymbolTable);
-        //log.debug("[processInvocationDeclaration] methodSymbol = " + methodSymbol);
         //SymbolInfo methodSymbolInfo = currentSymbolTable.resolveInCurrent(methodSymbol);
-        SymbolInfo methodSymbolInfo = currentSymbolTable.resolve(methodSymbol);
-
-        if (methodSymbolInfo == null) {
-            //throw new IllegalStateException("cannot find the symbol(" + methodSymbol + ")");
-            return null;
-        }
+        SymbolInfo methodSymbolInfo = methodSymbolInfoOpt.get();
+        log.debug("[processInvocationDeclaration] methodSymbolInfo = " + methodSymbolInfoOpt.get());
 
         enterSymbolTable(methodSymbolInfo.getSymbol());
         contextStack.push(new MethodContext(ctx.methodName(), methodSymbolInfo));
@@ -871,6 +873,26 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
         return Optional.empty();
     }
 
+    private Optional<SymbolInfo> resolveMethod(SymbolTable classSymbolTable, String methodName, List<String> paramTypes) {
+//        log.debug("[resolveMethod] classSymbolTable = " + classSymbolTable);
+//        log.debug("[resolveMethod] classSymbolTable.hasSuperClassTable() = " + classSymbolTable.hasSuperClassTable());
+//        log.debug("[resolveMethod] classSymbolTable.superClassTable() = " + classSymbolTable.getSuperClassTable());
+//        log.debug("[resolveMethod] classSymbolTable.superIntefaceTable() = " + classSymbolTable.getSuperInterfaceTables());
+
+        List<String> candidates = MethodUtils.getCandidates(methodName, paramTypes);
+        candidates.forEach(c -> log("[InstanceCreationExpression] candidate = " + c));
+
+        for (String candidate : candidates) {
+
+            var methodSymbolInfo = classSymbolTable.resolve(candidate);
+            log.debug("[resolveMethod] methodSymbolInfo = " + methodSymbolInfo);
+
+            if (methodSymbolInfo != null) return Optional.of(methodSymbolInfo);
+        }
+
+        return Optional.empty();
+    }
+
     private String resolveMethodName(MethodInvocationInfo info) {
         return Objects.equals(info.receiver, info.methodName) ? "constructor" : info.methodName;
     }
@@ -1184,10 +1206,10 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
             if (symbolInfoOpt.isPresent()) {
 
                 symbolInfo = symbolInfoOpt.get();
-                log("[NullabilityChecker][Assignment] symbolInfo = " + symbolInfo);
+                log.debug("[NullabilityChecker][Assignment] symbolInfo = " + symbolInfo);
             } else {
                 //throw new IllegalStateException(String.format("There is no symbolInfo(%s).", symbol));
-                log(String.format("There is no symbolInfo(%s).", symbol));
+                log.debug(String.format("There is no symbolInfo(%s).", symbol));
                 //return super.visitAssignment(ctx);
                 return null;
             }
@@ -1209,7 +1231,7 @@ public class NullabilityChecker extends JADEx25ParserBaseVisitor<Void> {
         visit(ctx.expression());
 
         NullState rhsState = evalRHS(ctx.expression(), currentSymbolTable);
-        log("[NullabilityChecker][Assignment] rhsState = " + rhsState);
+        log.debug("[NullabilityChecker][Assignment] rhsState = " + rhsState);
 
         checkPrimitiveAndNonNullAssignments(
                 AssignmentContextAdapter.from(ctx, ctx.expression()),
