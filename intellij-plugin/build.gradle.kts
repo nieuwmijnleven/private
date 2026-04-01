@@ -32,7 +32,7 @@ plugins {
 }
 
 group = "jplus.plugin.intellij"
-version = "0.62"
+version = "0.628"
 
 repositories {
     mavenCentral()

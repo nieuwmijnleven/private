@@ -43,7 +43,7 @@ plugins {
 }
 
 group = "io.github.nieuwmijnleven.jadex"
-version = "0.62"
+version = "0.628"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -55,7 +55,9 @@ dependencies {
     compileOnly project(":app")
 
     implementation gradleApi()
+
     implementation 'ch.qos.logback:logback-classic:1.5.32'
+    //implementation 'org.projectlombok:lombok:1.18.42'
 
     testImplementation libs.junit.jupiter
 
@@ -97,7 +99,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates("io.github.nieuwmijnleven.jadex", "jadex-gradle-plugin", "0.62")
+    coordinates("io.github.nieuwmijnleven.jadex", "jadex-gradle-plugin", "0.628")
 
     pom {
         name = 'JADEx Gradle Plugin'
