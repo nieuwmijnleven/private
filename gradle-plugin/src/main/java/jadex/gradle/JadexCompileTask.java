@@ -79,6 +79,14 @@ public class JadexCompileTask extends DefaultTask {
                 .map(File::toPath)
                 .collect(Collectors.toList());
 
+        Path lombokJarPath = resolveLombokJarPath(javaClassPath);
+        if (lombokJarPath == null) {
+            throw new GradleException(
+                    "[JADEx] Lombok JAR not found in compileClasspath. " +
+                            "Please add 'compileOnly \"org.projectlombok:lombok\"' to your dependencies."
+            );
+        }
+
         getLogger().lifecycle("javaClassPath: " + javaClassPath);
 
         SourceSetContainer sourceSets =
@@ -123,11 +131,19 @@ public class JadexCompileTask extends DefaultTask {
                     .resolveSibling(className + ".java")
                     .toFile();
 
-            runCompiler(jadexProject, file, output, packageName, className);
+            runCompiler(jadexProject, file, output, packageName, className, lombokJarPath);
         }
     }
 
-    private void runCompiler(Project jadexProject, File input, File output, String packageName, String className) {
+    private Path resolveLombokJarPath(List<Path> classPath) {
+        return classPath.stream()
+                .filter(p -> p.getFileName().toString().startsWith("lombok-")
+                        && p.getFileName().toString().endsWith(".jar"))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void runCompiler(Project jadexProject, File input, File output, String packageName, String className, Path lombokJarPath) {
 
         getLogger().lifecycle("Compiling JADEx: " + input.getName());
 
@@ -142,11 +158,14 @@ public class JadexCompileTask extends DefaultTask {
                     new SymbolTable(null)
             );
 
-            if (!processor.canParse()) {
-                throw new GradleException(
-                        "JADEx compilation failed: " + input.getName()
-                );
-            }
+//            if (!processor.canParse()) {
+//                throw new GradleException(
+//                        "JADEx compilation failed: " + input.getName()
+//                );
+//            }
+
+//            processor.setLombokJarPath(Path.of("/home/user/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.42/8365263844ebb62398e0dc33057ba10ba472d3b8/lombok-1.18.42.jar"));
+            processor.setLombokJarPath(lombokJarPath);
 
             String javaCode = processor.compile();
             if (javaCode == null) {

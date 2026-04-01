@@ -83,6 +83,18 @@ public class JadexPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
 
+            boolean hasLombok = p.getConfigurations()
+                    .getByName("compileClasspath")
+                    .getDependencies()
+                    .stream()
+                    .anyMatch(dep -> "org.projectlombok".equals(dep.getGroup()));
+
+            if (!hasLombok) {
+                p.getDependencies().add("compileOnly", "org.projectlombok:lombok:1.18.42");
+                p.getDependencies().add("annotationProcessor", "org.projectlombok:lombok:1.18.42");
+                log.debug("[JADEx] Lombok not found — added automatically");
+            }
+
             JavaPluginExtension javaExt =
                     p.getExtensions().getByType(JavaPluginExtension.class);
 
