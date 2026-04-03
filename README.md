@@ -424,6 +424,12 @@ JADEx allows even complex null-handling logic to be expressed **safely and conci
 
 ---
 
+### 📚 Spring Boot Examples
+
+- This section demonstrates how to integrate **JADEx** into a real Spring Boot project, enabling null-safety without migrating to Kotlin.
+
+  [Building a Null-Safe Spring Boot CRUD API with JADEx](https://github.com/nieuwmijnleven/JADEx/blob/master/SpringBootExample.md)
+
 ## 💡 How to make your Java code readonly
 
 JADEx allows you to optionally make fields, local variables, and method parameters **readonly (final-by-default)**. This helps prevent accidental reassignment and enforces immutability where you choose to apply it.
